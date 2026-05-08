@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeuroFlow | Data Import</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#004c6b",
+                        "on-error-container": "#93000a",
+                        "outline-variant": "#c1c7d1",
+                        "surface-variant": "#e0e3e5",
+                        "primary-fixed-dim": "#9ccaff",
+                        "inverse-on-surface": "#eff1f3",
+                        "surface-dim": "#d8dadc",
+                        "on-tertiary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#c6e7ff",
+                        "on-background": "#191c1e",
+                        "on-surface-variant": "#414750",
+                        "outline": "#717781",
+                        "background": "#f7f9fb",
+                        "on-primary-fixed": "#001d35",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed-variant": "#005234",
+                        "surface-bright": "#f7f9fb",
+                        "primary-fixed": "#d0e4ff",
+                        "surface": "#f7f9fb",
+                        "on-secondary-fixed": "#002112",
+                        "tertiary-fixed-dim": "#83cfff",
+                        "on-primary-fixed-variant": "#00497b",
+                        "surface-container": "#eceef0",
+                        "on-tertiary-container": "#9bd7ff",
+                        "primary-container": "#0d5c96",
+                        "surface-container-low": "#f2f4f6",
+                        "tertiary-container": "#005f85",
+                        "secondary-container": "#6af9b5",
+                        "surface-tint": "#19629c",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed": "#001e2d",
+                        "secondary-fixed-dim": "#4ddf9d",
+                        "secondary-fixed": "#6dfcb8",
+                        "surface-container-high": "#e6e8ea",
+                        "primary": "#004473",
+                        "tertiary": "#004664",
+                        "on-secondary-container": "#007149",
+                        "inverse-primary": "#9ccaff",
+                        "inverse-surface": "#2d3133",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "error-container": "#ffdad6",
+                        "on-primary-container": "#afd3ff",
+                        "secondary": "#006c46"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "content-max-width": "960px",
+                        "unit-base": "8px",
+                        "sidebar-width": "280px",
+                        "margin-page": "40px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Manrope"],
+                        "headline-lg": ["Manrope"],
+                        "code-mono": ["monospace"],
+                        "body-lg": ["Inter"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "headline-xl": ["Manrope"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "code-mono": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "headline-xl": ["40px", {"lineHeight": "48px", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .progress-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased">
+<!-- SideNavBar Component -->
+<aside class="fixed left-0 top-0 h-full w-64 border-r border-slate-200 bg-slate-50 flex flex-col py-6 z-50">
+<div class="px-6 mb-8">
+<img alt="NeuroFlow logo" class="h-10 w-auto" src="../../assets/images/neuroflow_logo.png"/>
+<p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mt-1">Clinical v2.4.0</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-100 hover:text-blue-700 cursor-pointer active:scale-95 transition-all duration-200" href="./home.html">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm">Home</span>
+</a>
+<!-- Data Import (Active) -->
+<a class="flex items-center gap-3 px-4 py-3 border-l-4 border-primary bg-blue-50 text-blue-800 font-semibold cursor-pointer active:scale-95 transition-all duration-200" href="./data-import.html">
+<span class="material-symbols-outlined text-primary">upload_file</span>
+<span class="font-label-sm">Data Import</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-100 hover:text-blue-700 cursor-pointer active:scale-95 transition-all duration-200" href="./pipelines.html">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-label-sm">Pipeline Config</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-100 hover:text-blue-700 cursor-pointer active:scale-95 transition-all duration-200" href="./data-visualization.html">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-sm">Analysis Results</span>
+</a>
+</nav>
+<div class="px-4 mb-4">
+<a class="w-full bg-primary text-white py-2.5 rounded-lg font-label-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95" href="./pipelines.html">
+<span class="material-symbols-outlined text-sm">play_arrow</span>
+                Run Pipeline
+            </a>
+</div>
+<div class="border-t border-slate-200 pt-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-100 hover:text-blue-700 transition-all" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-sm">Docs</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-100 hover:text-blue-700 transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-sm">Settings</span>
+</a>
+<div class="px-4 py-3 flex items-center gap-3 mt-2">
+<img alt="Clinician Profile" class="w-8 h-8 rounded-full border border-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcXI4-R8GZSkR09OBsb9062sZBKhsMlLYiCl7uXTFo3tqYH3pFhi_EdSnR2bkyNdIGPREU3c5HX_cf5sduWlYJxx4-yO8kTF0R_cLm2hsHSQVBlSz48dGSXbNNKlWrS0idJRgDZo49muC7PjSGkoJDW3NwwWk12p4PGw_8s0HND0tnSf6f8IytyQacsGBI0j6LZzh5HKnyQpHlnA08uKDEqi12TdiWXQ2yRxuJx4YNWLqoT3OzLmz9t48iNi-WZOg5vEF8V3pIoPNG"/>
+<div class="overflow-hidden">
+<p class="text-xs font-semibold text-slate-900 truncate">Dr. Aris Thorne</p>
+<p class="text-[10px] text-slate-500">Neuro-Radiology</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- TopNavBar Component -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-white/80 backdrop-blur-md z-40 flex justify-between items-center px-8 border-b border-slate-200 shadow-sm">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="w-full bg-slate-50 border-slate-200 rounded-full pl-10 pr-4 py-1.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="Search datasets, scan IDs, or patients..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-slate-500">
+<button class="hover:text-teal-600 transition-colors active:scale-98">
+<span class="material-symbols-outlined">notifications_active</span>
+</button>
+<button class="hover:text-teal-600 transition-colors active:scale-98">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+</div>
+<div class="h-6 w-px bg-slate-200"></div>
+<button class="bg-white border border-teal-500 text-teal-600 px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-teal-50 transition-all active:scale-95">
+                Export
+            </button>
+</div>
+</header>
+<!-- Main Content Container -->
+<main class="ml-64 pt-16 min-h-screen">
+<div class="max-w-[960px] mx-auto px-10 py-12">
+<!-- Header Section -->
+<div class="mb-12">
+<div class="flex items-center gap-3 mb-2">
+<span class="px-2.5 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-bold tracking-wider">WORKSPACE</span>
+<span class="text-slate-400">/</span>
+<span class="text-slate-500 text-sm font-label-sm">Primary Pipeline</span>
+</div>
+<h2 class="font-headline-xl text-primary mb-2">Import Neuroimaging Data</h2>
+<p class="font-body-lg text-slate-600">Standardize your clinical workflow by uploading MRI scans for automated preprocessing and volumetric analysis.</p>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Large Upload Area -->
+<div class="col-span-12 lg:col-span-8">
+<div class="bg-white border border-slate-200 rounded-xl p-10 flex flex-col items-center justify-center border-dashed border-2 hover:border-primary/50 transition-all group relative overflow-hidden">
+<div class="absolute inset-0 bg-blue-50/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+<div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-4xl text-primary">cloud_upload</span>
+</div>
+<h3 class="font-headline-md text-slate-900 mb-2">Drag &amp; Drop Scan Files</h3>
+<p class="font-body-md text-slate-500 text-center max-w-sm mb-8">
+                            Support for <span class="text-slate-900 font-semibold">.dcm, .nii, .nii.gz</span> and ZIP archives. Patient metadata will be scrubbed automatically.
+                        </p>
+<div class="flex items-center gap-4">
+<button class="bg-primary text-white px-8 py-3 rounded-xl font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:translate-y-[-2px] transition-all active:scale-95">
+                                Browse Files
+                            </button>
+<button class="bg-white border border-secondary text-secondary px-8 py-3 rounded-xl font-semibold hover:bg-secondary/5 transition-all active:scale-95">
+                                Select Folder
+                            </button>
+</div>
+</div>
+<!-- Active Upload Progress -->
+<div class="mt-8 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="bg-teal-50 p-2 rounded-lg">
+<span class="material-symbols-outlined text-teal-600">neurology</span>
+</div>
+<div>
+<p class="font-semibold text-slate-900">Uploading: Patient_SCAN_0921.nii.gz</p>
+<p class="text-xs text-slate-500">Estimated time remaining: 1m 24s</p>
+</div>
+</div>
+<span class="text-sm font-bold text-teal-600">64%</span>
+</div>
+<div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+<div class="bg-teal-500 h-full w-[64%] progress-pulse rounded-full"></div>
+</div>
+<div class="mt-4 flex justify-end gap-3">
+<button class="text-slate-400 text-sm font-semibold hover:text-error transition-colors">Cancel Upload</button>
+</div>
+</div>
+</div>
+<!-- Recent Uploads Sidebar (Asymmetric) -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+<div class="flex items-center justify-between mb-6">
+<h4 class="font-headline-md text-sm text-slate-900 uppercase tracking-wider">Recently Added</h4>
+<a class="text-xs text-primary font-bold hover:underline" href="#">View All</a>
+</div>
+<div class="space-y-4">
+<!-- Item 1 -->
+<div class="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors group cursor-pointer border border-transparent hover:border-slate-100">
+<div class="w-10 h-10 rounded bg-slate-100 flex-shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-400">biotech</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold text-slate-900 truncate">Sbj_0041_T1w</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-2 py-0.5 rounded-full bg-secondary-container text-[10px] text-on-secondary-container font-bold">READY</span>
+<p class="text-[10px] text-slate-400">2 min ago</p>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors group cursor-pointer border border-transparent hover:border-slate-100">
+<div class="w-10 h-10 rounded bg-slate-100 flex-shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-400">biotech</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold text-slate-900 truncate">Sbj_0039_FLAIR</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-2 py-0.5 rounded-full bg-secondary-container text-[10px] text-on-secondary-container font-bold">READY</span>
+<p class="text-[10px] text-slate-400">1 hour ago</p>
+</div>
+</div>
+</div>
+<!-- Item 3 (Error) -->
+<div class="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 transition-colors group cursor-pointer border border-transparent hover:border-slate-100">
+<div class="w-10 h-10 rounded bg-error-container/20 flex-shrink-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-error">warning</span>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold text-slate-900 truncate">Sbj_0038_DTI</p>
+<div class="flex items-center gap-2 mt-1">
+<span class="px-2 py-0.5 rounded-full bg-error-container text-[10px] text-on-error-container font-bold">FAILED</span>
+<p class="text-[10px] text-slate-400">3 hours ago</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Usage Stats Card -->
+<div class="bg-primary-container rounded-xl p-6 text-white overflow-hidden relative">
+<div class="relative z-10">
+<h4 class="text-sm font-bold text-on-primary-container/80 mb-4 uppercase">Storage Usage</h4>
+<p class="text-3xl font-headline-xl mb-1">4.2 <span class="text-lg">TB</span></p>
+<p class="text-xs text-on-primary-container/60 mb-6">of 10 TB Workspace Limit</p>
+<button class="w-full bg-white/10 hover:bg-white/20 border border-white/20 py-2 rounded-lg text-xs font-bold transition-all">Manage Storage</button>
+</div>
+<!-- Decorative Abstract Background -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary/20 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+<div class="absolute bottom-0 left-0 w-24 h-24 bg-teal-400/20 rounded-full -ml-12 -mb-12 blur-2xl"></div>
+</div>
+</div>
+</div>
+<!-- Pipeline Status Banner -->
+<div class="mt-12 p-8 bg-white border border-slate-200 rounded-xl flex items-center justify-between gap-8 shadow-sm">
+<div class="flex items-center gap-6">
+<div class="w-16 h-16 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center flex-shrink-0">
+<img class="w-10 h-10 object-contain grayscale opacity-50 group-hover:grayscale-0 transition-all" data-alt="high quality 3D medical visualization of a human brain with highlighted neural pathways and cool blue ambient lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_6JJ7Xm0ZaQ78c7uOpw4KQUDnO8agmlaG7hAv1FiT9SrVYt7AxQ-xs0cPKuzB-JGNDacsLnJge6OxWLqHOUQ1MpaB0vmwPAjbnOzvsdOkNxZNCFcIIpc5rurtQGjF7Dmzji-pXssPdFw0k6-16pDN_OcGlkhk_XpUYcs5GfVLTriI2ow7d2rl8lHhc9CKil2ptKbBJROgfFhKu2Dy9qOEMWcKuOTEAueSBCw71n8zXr6_C2iouPujLUJP90o3JUKGA9PithzhcDe4"/>
+</div>
+<div>
+<h4 class="font-headline-md text-lg text-slate-900">Streamline Analysis</h4>
+<p class="font-body-md text-slate-500">Configure your pipeline to automatically trigger segmentation upon successful import.</p>
+</div>
+</div>
+<div class="flex gap-4">
+<button class="bg-white border border-slate-200 text-slate-600 px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-50 transition-all">Later</button>
+<a class="bg-primary text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-lg shadow-primary/20 hover:opacity-90 transition-all inline-flex items-center" href="./pipelines.html">Go to Config</a>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button (FAB) -->
+<!-- Suppressed per rules for Task-Focused screens -->
+</body></html>

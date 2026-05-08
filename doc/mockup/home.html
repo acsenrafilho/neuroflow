@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeuroFlow | Home</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#c1c7d1",
+                        "background": "#f7f9fb",
+                        "surface": "#f7f9fb",
+                        "surface-container": "#eceef0",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "on-surface-variant": "#414750",
+                        "primary": "#004473",
+                        "primary-container": "#0d5c96",
+                        "secondary": "#006c46",
+                        "secondary-container": "#6af9b5",
+                        "on-secondary-container": "#007149"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Manrope"],
+                        "headline-xl": ["Manrope"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-xl": ["40px", {"lineHeight": "48px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body-md antialiased">
+<aside class="fixed left-0 top-0 h-full w-64 border-r border-slate-200 bg-slate-50 flex flex-col py-6 z-50">
+<div class="px-6 mb-8">
+<img alt="NeuroFlow logo" class="h-10 w-auto" src="../../assets/images/neuroflow_logo.png"/>
+<p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mt-1">Clinical v2.4.0</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 border-l-4 border-primary bg-blue-50 text-blue-800 font-semibold transition-all duration-200" href="./home.html">
+<span class="material-symbols-outlined text-primary">home</span>
+<span class="font-label-sm">Home</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-100 hover:text-blue-700 transition-all duration-200" href="./data-import.html">
+<span class="material-symbols-outlined">upload_file</span>
+<span class="font-label-sm">Data Import</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-100 hover:text-blue-700 transition-all duration-200" href="./pipelines.html">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-label-sm">Pipeline Config</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-100 hover:text-blue-700 transition-all duration-200" href="./data-visualization.html">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-sm">Analysis Results</span>
+</a>
+</nav>
+<div class="px-4 mb-4">
+<a class="w-full bg-primary text-white py-2.5 rounded-lg font-label-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95" href="./pipelines.html">
+<span class="material-symbols-outlined text-sm">play_arrow</span>
+                Run Pipeline
+            </a>
+</div>
+<div class="border-t border-slate-200 pt-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-100 hover:text-blue-700 transition-all" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-sm">Docs</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:bg-slate-100 hover:text-blue-700 transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-sm">Settings</span>
+</a>
+<div class="px-4 py-3 flex items-center gap-3 mt-2">
+<img alt="Clinician Profile" class="w-8 h-8 rounded-full border border-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcXI4-R8GZSkR09OBsb9062sZBKhsMlLYiCl7uXTFo3tqYH3pFhi_EdSnR2bkyNdIGPREU3c5HX_cf5sduWlYJxx4-yO8kTF0R_cLm2hsHSQVBlSz48dGSXbNNKlWrS0idJRgDZo49muC7PjSGkoJDW3NwwWk12p4PGw_8s0HND0tnSf6f8IytyQacsGBI0j6LZzh5HKnyQpHlnA08uKDEqi12TdiWXQ2yRxuJx4YNWLqoT3OzLmz9t48iNi-WZOg5vEF8V3pIoPNG"/>
+<div class="overflow-hidden">
+<p class="text-xs font-semibold text-slate-900 truncate">Dr. Aris Thorne</p>
+<p class="text-[10px] text-slate-500">Neuro-Radiology</p>
+</div>
+</div>
+</div>
+</aside>
+
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-white/80 backdrop-blur-md z-40 flex justify-between items-center px-8 border-b border-slate-200 shadow-sm">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="w-full bg-slate-50 border-slate-200 rounded-full pl-10 pr-4 py-1.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="Buscar pipeline por ID, data ou administrador" type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-slate-500">
+<button class="hover:text-primary transition-colors active:scale-98">
+<span class="material-symbols-outlined">notifications_active</span>
+</button>
+<button class="hover:text-primary transition-colors active:scale-98">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+</div>
+<div class="h-6 w-px bg-slate-200"></div>
+<button class="bg-primary text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-all active:scale-95">
+                Export
+            </button>
+</div>
+</header>
+
+<main class="ml-64 pt-24 pb-16 px-10 min-h-screen">
+<div class="max-w-[960px] mx-auto">
+<section class="bg-white border border-slate-200 rounded-xl p-10 shadow-sm mb-8">
+<div class="flex flex-col items-center justify-center">
+<img alt="NeuroFlow logo" class="h-20 w-auto mb-4" src="../../assets/images/neuroflow_logo.png"/>
+<p class="text-slate-600 text-center mt-2 max-w-xl">Selecione um pipeline existente para reaproveitar configurações e continuar a execução clínica.</p>
+</div>
+</section>
+
+<section class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+<div class="px-6 py-4 border-b border-slate-200 bg-slate-50/60">
+<h3 class="font-headline-md text-slate-900">Pipelines Disponíveis</h3>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-slate-50/40 text-slate-600 text-xs uppercase tracking-wider">
+<tr>
+<th class="px-6 py-3 font-semibold">Pipeline ID</th>
+<th class="px-6 py-3 font-semibold">Data de Criação</th>
+<th class="px-6 py-3 font-semibold">Última Execução</th>
+<th class="px-6 py-3 font-semibold">Administrador</th>
+<th class="px-6 py-3 font-semibold">Ação</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 text-sm">
+<tr class="hover:bg-slate-50/80">
+<td class="px-6 py-4 font-semibold text-primary">PIPE-2026-001</td>
+<td class="px-6 py-4">2026-04-10</td>
+<td class="px-6 py-4">2026-05-07 14:22</td>
+<td class="px-6 py-4">Dr. Aris Thorne</td>
+<td class="px-6 py-4">
+<a class="inline-flex items-center gap-1 bg-primary text-white px-3 py-1.5 rounded-lg font-semibold hover:opacity-90 transition-all" href="./pipelines.html?pipelineId=PIPE-2026-001">
+<span class="material-symbols-outlined text-sm">play_arrow</span>
+                                    Carregar
+                                </a>
+</td>
+</tr>
+<tr class="hover:bg-slate-50/80">
+<td class="px-6 py-4 font-semibold text-primary">PIPE-2026-014</td>
+<td class="px-6 py-4">2026-03-18</td>
+<td class="px-6 py-4">2026-05-06 09:35</td>
+<td class="px-6 py-4">Dra. Lina Campos</td>
+<td class="px-6 py-4">
+<a class="inline-flex items-center gap-1 bg-primary text-white px-3 py-1.5 rounded-lg font-semibold hover:opacity-90 transition-all" href="./pipelines.html?pipelineId=PIPE-2026-014">
+<span class="material-symbols-outlined text-sm">play_arrow</span>
+                                    Carregar
+                                </a>
+</td>
+</tr>
+<tr class="hover:bg-slate-50/80">
+<td class="px-6 py-4 font-semibold text-primary">PIPE-2026-022</td>
+<td class="px-6 py-4">2026-05-01</td>
+<td class="px-6 py-4">2026-05-08 08:11</td>
+<td class="px-6 py-4">Dr. Mauro Vidal</td>
+<td class="px-6 py-4">
+<a class="inline-flex items-center gap-1 bg-primary text-white px-3 py-1.5 rounded-lg font-semibold hover:opacity-90 transition-all" href="./pipelines.html?pipelineId=PIPE-2026-022">
+<span class="material-symbols-outlined text-sm">play_arrow</span>
+                                    Carregar
+                                </a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+</body></html>

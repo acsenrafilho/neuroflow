@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeuroFlow | Analysis Results</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#c1c7d1",
+                        "background": "#f7f9fb",
+                        "surface": "#f7f9fb",
+                        "surface-container": "#eceef0",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "on-surface-variant": "#414750",
+                        "primary": "#004473",
+                        "primary-container": "#0d5c96",
+                        "secondary": "#006c46",
+                        "secondary-container": "#6af9b5",
+                        "on-secondary-container": "#007149"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Manrope"],
+                        "headline-lg": ["Manrope"],
+                        "headline-xl": ["Manrope"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "code-mono": ["monospace"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "headline-xl": ["40px", {"lineHeight": "48px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "code-mono": ["14px", {"lineHeight": "20px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #f7f9fb;
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .tonal-layer-1 {
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+        }
+        .tonal-layer-2 {
+            background-color: #ffffff;
+            box-shadow: 0px 4px 12px rgba(0, 68, 115, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface">
+<aside class="fixed left-0 top-0 h-full w-64 border-r border-slate-200 bg-slate-50 flex flex-col py-6 font-manrope text-sm antialiased z-50">
+<div class="px-6 mb-8">
+<img alt="NeuroFlow logo" class="h-10 w-auto" src="../../assets/images/neuroflow_logo.png"/>
+<p class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mt-1">Clinical v2.4.0</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-blue-700 hover:bg-slate-100 transition-all duration-200" href="./home.html">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm">Home</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-blue-700 hover:bg-slate-100 transition-all duration-200" href="./data-import.html">
+<span class="material-symbols-outlined">upload_file</span>
+<span class="font-label-sm">Data Import</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-blue-700 hover:bg-slate-100 transition-all duration-200" href="./pipelines.html">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-label-sm">Pipeline Config</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 border-l-4 border-primary bg-blue-50 text-blue-800 font-semibold transition-all duration-200" href="./data-visualization.html">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-sm">Analysis Results</span>
+</a>
+</nav>
+<div class="px-4 mb-4">
+<a class="w-full bg-primary text-white py-2.5 rounded-lg font-label-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95" href="./pipelines.html">
+<span class="material-symbols-outlined text-sm">play_arrow</span>
+                Run Pipeline
+            </a>
+</div>
+<div class="border-t border-slate-200 pt-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-blue-700 hover:bg-slate-100 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span>Docs</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-blue-700 hover:bg-slate-100 transition-all duration-200" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+<div class="px-4 py-3 flex items-center gap-3 mt-2">
+<img alt="Clinician Profile" class="w-8 h-8 rounded-full border border-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcXI4-R8GZSkR09OBsb9062sZBKhsMlLYiCl7uXTFo3tqYH3pFhi_EdSnR2bkyNdIGPREU3c5HX_cf5sduWlYJxx4-yO8kTF0R_cLm2hsHSQVBlSz48dGSXbNNKlWrS0idJRgDZo49muC7PjSGkoJDW3NwwWk12p4PGw_8s0HND0tnSf6f8IytyQacsGBI0j6LZzh5HKnyQpHlnA08uKDEqi12TdiWXQ2yRxuJx4YNWLqoT3OzLmz9t48iNi-WZOg5vEF8V3pIoPNG"/>
+<div class="overflow-hidden">
+<p class="text-xs font-semibold text-slate-900 truncate">Dr. Aris Thorne</p>
+<p class="text-[10px] text-slate-500">Neuro-Radiology</p>
+</div>
+</div>
+</div>
+</aside>
+
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200 flex justify-between items-center px-8 font-manrope text-sm">
+<div class="flex items-center gap-4">
+<div class="h-8 w-8 rounded-full bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-sm">psychology</span>
+</div>
+<span class="font-bold text-blue-900 text-lg">Analysis Results</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-slate-100 border-none rounded-full text-xs w-64 focus:ring-2 focus:ring-primary/20" placeholder="Search parameters..." type="text"/>
+</div>
+<div class="flex items-center gap-4 text-slate-500">
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors">notifications_active</span>
+<span class="material-symbols-outlined cursor-pointer hover:text-primary transition-colors">help_outline</span>
+</div>
+<button class="bg-primary text-on-primary px-5 py-1.5 rounded-lg font-bold scale-100 active:scale-98 transition-transform">
+                Export
+            </button>
+</div>
+</header>
+
+<main class="ml-64 pt-24 pb-16 px-8 min-h-screen">
+<div class="max-w-[960px] mx-auto">
+<div class="flex justify-between items-end mb-8">
+<div>
+<nav class="flex items-center gap-2 text-slate-500 mb-2 font-label-sm text-label-sm">
+<span>Projects</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span>Patient_092</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-primary font-semibold">T1 Weighted Analysis</span>
+</nav>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Volumetric Summary</h2>
+</div>
+<button class="flex items-center gap-2 border border-secondary text-secondary px-4 py-2 rounded-lg font-semibold hover:bg-secondary/5 transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+                    Export Report
+                </button>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="tonal-layer-2 p-6 rounded-xl relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-8 -mt-8"></div>
+<p class="font-label-sm text-label-sm text-slate-500 mb-1">Total Brain Volume</p>
+<h3 class="font-headline-md text-headline-md text-primary">1,420.4 <span class="text-sm font-normal text-slate-400">cm3</span></h3>
+<div class="mt-4 flex items-center gap-2 text-secondary text-xs font-semibold">
+<span class="material-symbols-outlined text-xs">arrow_upward</span>
+<span>+2.4% vs Baseline</span>
+</div>
+</div>
+<div class="tonal-layer-2 p-6 rounded-xl">
+<p class="font-label-sm text-label-sm text-slate-500 mb-1">Gray Matter Ratio</p>
+<h3 class="font-headline-md text-headline-md text-primary">0.42</h3>
+<div class="mt-4 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full" style="width: 42%"></div>
+</div>
+</div>
+<div class="tonal-layer-2 p-6 rounded-xl">
+<p class="font-label-sm text-label-sm text-slate-500 mb-1">Processing Status</p>
+<div class="mt-1">
+<span class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-label-sm text-label-sm font-bold">Verified</span>
+</div>
+<p class="mt-4 text-xs text-slate-400 font-code-mono">ID: NFLW-882-X9</p>
+</div>
+</div>
+
+<div class="tonal-layer-2 rounded-xl mb-8 overflow-hidden">
+<div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
+<h4 class="font-headline-md text-body-lg font-bold text-on-surface">Subcortical Measurements</h4>
+<span class="text-xs text-slate-400">Confidence Score: 0.982</span>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left font-body-md text-body-md border-collapse">
+<thead>
+<tr class="text-slate-500 border-b border-slate-100">
+<th class="px-6 py-3 font-semibold text-xs uppercase tracking-wider">Structure</th>
+<th class="px-6 py-3 font-semibold text-xs uppercase tracking-wider">Volume (mm3)</th>
+<th class="px-6 py-3 font-semibold text-xs uppercase tracking-wider">Z-Score</th>
+<th class="px-6 py-3 font-semibold text-xs uppercase tracking-wider">Asymmetry</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-50">
+<tr class="hover:bg-slate-50 transition-colors"><td class="px-6 py-4 font-semibold text-primary">Left Hippocampus</td><td class="px-6 py-4">4,128.5</td><td class="px-6 py-4"><span class="text-secondary">+0.42</span></td><td class="px-6 py-4">0.012</td></tr>
+<tr class="hover:bg-slate-50 transition-colors"><td class="px-6 py-4 font-semibold text-primary">Right Hippocampus</td><td class="px-6 py-4">4,092.1</td><td class="px-6 py-4"><span class="text-secondary">+0.38</span></td><td class="px-6 py-4">0.012</td></tr>
+<tr class="hover:bg-slate-50 transition-colors"><td class="px-6 py-4 font-semibold text-primary">Left Thalamus</td><td class="px-6 py-4">7,820.3</td><td class="px-6 py-4"><span class="text-slate-600">-0.12</span></td><td class="px-6 py-4">0.004</td></tr>
+<tr class="hover:bg-slate-50 transition-colors"><td class="px-6 py-4 font-semibold text-primary">Right Thalamus</td><td class="px-6 py-4">7,792.8</td><td class="px-6 py-4"><span class="text-slate-600">-0.15</span></td><td class="px-6 py-4">0.004</td></tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-3 bg-slate-50/30 text-center">
+<button class="text-primary font-semibold text-label-sm hover:underline">View all 14 structures</button>
+</div>
+</div>
+
+<div class="mb-8">
+<div class="flex items-center justify-between mb-4">
+<h4 class="font-headline-md text-headline-md text-on-surface">Slice Previews</h4>
+<div class="flex gap-2">
+<span class="bg-primary-container text-white px-3 py-1 rounded-full text-xs font-bold">Axial</span>
+<span class="bg-slate-200 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">Sagittal</span>
+<span class="bg-slate-200 text-slate-600 px-3 py-1 rounded-full text-xs font-bold">Coronal</span>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="tonal-layer-1 rounded-xl overflow-hidden"><div class="aspect-square bg-black"><img alt="MRI Axial Slice" class="w-full h-full object-cover opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB78AnMQAtBehPKwjy5BaAX5xU9A7wRq_khD92c5SLwW9LMg5NgoUUn_5eFm0h3nr0_fnokC5o914B_bA25RCTGo687JwGqzmJZoYYyfmRcCoZEfJBoRUEVF5Vav9-CVRMZwqPqZ__DoStrIeBO4E7K8gU0ezt0kj7XV56f5MPAWzIgQJw3oqm8dPU9he82ZJ9SGIBQDPIrxzuM44aUXQcy7HMEpwwM93WVzc7NxW7rVyP0J-rID0ubIxJi59fbsQ6RJKQQe62DIDPN"/></div><div class="p-3"><p class="font-label-sm text-label-sm text-slate-700">Superior Parietal</p></div></div>
+<div class="tonal-layer-1 rounded-xl overflow-hidden"><div class="aspect-square bg-black"><img alt="MRI Axial Slice" class="w-full h-full object-cover opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDPDeU8_6a7dwDKPO69zDIERu8V-eELOxtklCQHpQkYdBLkyfFsIpKZBAWMqLn32RAM30v2zsTggTUlnmIw2_7Nkb60eCsnG7x7XP-k0FjQPGKPHemikebF-NVsqZAXgF4GR58Ct4HK8ILxxLO3fyermSalXh33xdciUP-VUjn57DWauasMmBlcUQ47SsJUeVDpKOQQ0P5mKItl9mQtD3OK32eeZ0Foe4pDCwntVgIKmzSa3b541gwWOwVyxBSV5ETQoUuoYGqnbsT"/></div><div class="p-3"><p class="font-label-sm text-label-sm text-slate-700">Mid-Ventricular</p></div></div>
+<div class="tonal-layer-1 rounded-xl overflow-hidden"><div class="aspect-square bg-black"><img alt="MRI Axial Slice" class="w-full h-full object-cover opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAr_g_W9G5JGgQGSbidK-dkk6_3QuiaXxFW5ovGbltu5TvWtzJd32LleN2KjIHs1BkJAjUNXtJWaTrs3eB3bceVdlESFUXResQhyen8v4zMfJAb8-JeSiiqZSEYSSiRJNy673BamZOltTfs82MHSWAuJumdyMbRVLy9UKI_86mxJZsnEL-5DZdlLGcTtOgECENcJiKur9vEBu4P1Zr2Qd0_mZgi6N8_6pDucYaztTF-8c-Qnrkz1q1AlmHSg-5H9eOywM1f_QMGgHFC"/></div><div class="p-3"><p class="font-label-sm text-label-sm text-slate-700">Temporal Lobe</p></div></div>
+<div class="tonal-layer-1 rounded-xl overflow-hidden"><div class="aspect-square bg-black"><img alt="MRI Axial Slice" class="w-full h-full object-cover opacity-80" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAObvwdvEmiD43TJ8fhLfM0G8Wso14wzdy95O9EHYKbx_MfyK_pPqEJa3z4_42fDvBUtFfhRQCm2N5qXBNP8eI_UtEQawE26Pcz5gRuL8-uQ36xNhgGnrBTrW8C9yNF0lZw5zu43jG9gGM8M6mGByrOpMaKs4Br1JSxn4qJk-GBkLUImnpT8YxbIl-s1Xl438GGVKdlGL3Hpdoei1Il_Derk4Gv7RNLsyhlU0vbSRxabhyQxIC6aOLr__0TbPR6pLZgR5f29iLrMXvX"/></div><div class="p-3"><p class="font-label-sm text-label-sm text-slate-700">Cerebellar Level</p></div></div>
+</div>
+</div>
+
+<div class="flex items-center justify-between text-slate-400 font-label-sm text-xs mt-12 border-t border-slate-200 pt-6">
+<div class="flex items-center gap-4">
+<span>Algorithm: NF-DeepSegmentation v4.1</span>
+<span>&bull;</span>
+<span>Processed: 2023-10-24 14:22 UTC</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">shield</span>
+<span>HIPAA Compliant Session</span>
+</div>
+</div>
+</div>
+</main>
+</body></html>

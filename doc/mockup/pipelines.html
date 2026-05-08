@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeuroFlow | Pipeline Config</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#c1c7d1",
+                        "background": "#f7f9fb",
+                        "surface": "#f7f9fb",
+                        "surface-container": "#eceef0",
+                        "surface-container-low": "#f2f4f6",
+                        "surface-container-lowest": "#ffffff",
+                        "on-surface": "#191c1e",
+                        "on-surface-variant": "#414750",
+                        "primary": "#004473",
+                        "primary-container": "#0d5c96",
+                        "primary-fixed": "#d0e4ff",
+                        "secondary": "#006c46",
+                        "secondary-container": "#6af9b5",
+                        "on-secondary-container": "#007149",
+                        "tertiary-fixed": "#c6e7ff"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Manrope"],
+                        "headline-lg": ["Manrope"],
+                        "headline-xl": ["Manrope"],
+                        "body-md": ["Inter"],
+                        "label-sm": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "headline-xl": ["40px", {"lineHeight": "48px", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #f7f9fb;
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface">
+<aside class="fixed left-0 top-0 h-full w-64 border-r border-slate-200 bg-slate-50 font-manrope text-sm antialiased z-50">
+<div class="flex flex-col h-full py-6">
+<div class="px-6 mb-8">
+<img alt="NeuroFlow logo" class="h-10 w-auto" src="../../assets/images/neuroflow_logo.png"/>
+<div class="text-[10px] uppercase tracking-widest text-slate-400 font-bold mt-1">Clinical v2.4.0</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-blue-700 hover:bg-slate-100 transition-all duration-200" href="./home.html">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm">Home</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-blue-700 hover:bg-slate-100 transition-all duration-200" href="./data-import.html">
+<span class="material-symbols-outlined">upload_file</span>
+<span class="font-label-sm">Data Import</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 border-l-4 border-primary bg-blue-50 text-blue-800 font-semibold transition-all duration-200" href="./pipelines.html">
+<span class="material-symbols-outlined">account_tree</span>
+<span class="font-label-sm">Pipeline Config</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-blue-700 hover:bg-slate-100 transition-all duration-200" href="./data-visualization.html">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-sm">Analysis Results</span>
+</a>
+</nav>
+<div class="px-4 mb-4">
+<a class="w-full bg-primary text-white py-2.5 rounded-lg font-label-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all active:scale-95" href="#pipeline-procedures">
+<span class="material-symbols-outlined text-sm">play_arrow</span>
+                Run Pipeline
+            </a>
+</div>
+<div class="border-t border-slate-200 pt-4 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-blue-700 hover:bg-slate-100 transition-all" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-sm">Docs</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 hover:text-blue-700 hover:bg-slate-100 transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-sm">Settings</span>
+</a>
+<div class="px-4 py-3 flex items-center gap-3 mt-2">
+<img alt="Clinician Profile" class="w-8 h-8 rounded-full border border-slate-200" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcXI4-R8GZSkR09OBsb9062sZBKhsMlLYiCl7uXTFo3tqYH3pFhi_EdSnR2bkyNdIGPREU3c5HX_cf5sduWlYJxx4-yO8kTF0R_cLm2hsHSQVBlSz48dGSXbNNKlWrS0idJRgDZo49muC7PjSGkoJDW3NwwWk12p4PGw_8s0HND0tnSf6f8IytyQacsGBI0j6LZzh5HKnyQpHlnA08uKDEqi12TdiWXQ2yRxuJx4YNWLqoT3OzLmz9t48iNi-WZOg5vEF8V3pIoPNG"/>
+<div class="overflow-hidden">
+<p class="text-xs font-semibold text-slate-900 truncate">Dr. Aris Thorne</p>
+<p class="text-[10px] text-slate-500">Neuro-Radiology</p>
+</div>
+</div>
+</div>
+</div>
+</aside>
+
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-16 bg-white/80 backdrop-blur-md z-40 flex justify-between items-center px-8 border-b border-slate-200 shadow-sm">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+<input class="w-full bg-slate-50 border-slate-200 rounded-full pl-10 pr-4 py-1.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all" placeholder="Search procedure, method, or config..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-4 text-slate-500">
+<button class="hover:text-primary transition-colors active:scale-98"><span class="material-symbols-outlined">notifications_active</span></button>
+<button class="hover:text-primary transition-colors active:scale-98"><span class="material-symbols-outlined">help_outline</span></button>
+</div>
+<div class="h-6 w-px bg-slate-200"></div>
+<button class="bg-primary text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:opacity-90 transition-all active:scale-95">Export</button>
+</div>
+</header>
+
+<main class="ml-64 pt-24 pb-16 px-10 min-h-screen">
+<div class="max-w-[960px] mx-auto">
+<header class="mb-8">
+<div class="flex items-center justify-between gap-4 flex-wrap">
+<div>
+<h1 class="font-headline-xl text-headline-xl text-primary mb-2">Pipeline Configurator</h1>
+<p class="font-body-md text-on-surface-variant">Selecione procedimentos e metodos para o pipeline atual.</p>
+</div>
+<div class="px-4 py-2 bg-secondary-container text-on-secondary-container rounded-lg text-sm font-semibold" id="selectedPipelineBanner">Pipeline selecionado: PIPE-2026-001</div>
+</div>
+</header>
+
+<section class="mb-8 bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+<h2 class="font-headline-md text-headline-md mb-2">Resumo do Pipeline Atual</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+<div class="bg-slate-50 rounded-lg p-4"><p class="text-slate-500 mb-1">Pipeline ID</p><p class="font-semibold text-primary" id="selectedPipelineId">PIPE-2026-001</p></div>
+<div class="bg-slate-50 rounded-lg p-4"><p class="text-slate-500 mb-1">Paciente</p><p class="font-semibold">Patient_092</p></div>
+<div class="bg-slate-50 rounded-lg p-4"><p class="text-slate-500 mb-1">Ultima Atualizacao</p><p class="font-semibold">2026-05-08 08:11</p></div>
+</div>
+</section>
+
+<section id="pipeline-procedures" class="space-y-6">
+<details class="bg-white border border-slate-200 rounded-xl shadow-sm" open>
+<summary class="px-6 py-4 cursor-pointer font-semibold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-base">expand_more</span>Brain extraction</summary>
+<div class="px-6 pb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="p-5 rounded-xl border border-slate-200 bg-surface-container-lowest">
+<div class="flex items-start justify-between mb-3"><h3 class="font-headline-md text-lg">FreeSurfer (SynthStrip)</h3><input class="w-5 h-5 rounded border-slate-300 text-secondary focus:ring-secondary" type="checkbox" checked/></div>
+<p class="text-sm text-on-surface-variant mb-3">Extracao de cerebro robusta para MRI estrutural.</p>
+<span class="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold">Recomendado</span>
+</div>
+<div class="p-5 rounded-xl border border-slate-200 bg-surface-container-lowest">
+<div class="flex items-start justify-between mb-3"><h3 class="font-headline-md text-lg">FSL (BET)</h3><input class="w-5 h-5 rounded border-slate-300 text-secondary focus:ring-secondary" type="checkbox"/></div>
+<p class="text-sm text-on-surface-variant mb-3">Metodo leve e rapido para remocao de cranio.</p>
+<span class="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">Alternativa</span>
+</div>
+</div>
+</details>
+
+<details class="bg-white border border-slate-200 rounded-xl shadow-sm" open>
+<summary class="px-6 py-4 cursor-pointer font-semibold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-base">expand_more</span>Brain segmentation</summary>
+<div class="px-6 pb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="p-5 rounded-xl border border-slate-200 bg-surface-container-lowest">
+<div class="flex items-start justify-between mb-3"><h3 class="font-headline-md text-lg">FreeSurfer (aseg)</h3><input class="w-5 h-5 rounded border-slate-300 text-secondary focus:ring-secondary" type="checkbox" checked/></div>
+<p class="text-sm text-on-surface-variant">Segmentacao subcortical automatizada.</p>
+</div>
+<div class="p-5 rounded-xl border border-slate-200 bg-surface-container-lowest">
+<div class="flex items-start justify-between mb-3"><h3 class="font-headline-md text-lg">FSL (FIRST)</h3><input class="w-5 h-5 rounded border-slate-300 text-secondary focus:ring-secondary" type="checkbox"/></div>
+<p class="text-sm text-on-surface-variant">Segmentacao de estruturas subcorticais.</p>
+</div>
+<div class="p-5 rounded-xl border border-slate-200 bg-surface-container-lowest">
+<div class="flex items-start justify-between mb-3"><h3 class="font-headline-md text-lg">3D Slicer</h3><input class="w-5 h-5 rounded border-slate-300 text-secondary focus:ring-secondary" type="checkbox"/></div>
+<p class="text-sm text-on-surface-variant">Segmentacao interativa para refinamento manual.</p>
+</div>
+</div>
+</details>
+
+<details class="bg-white border border-slate-200 rounded-xl shadow-sm">
+<summary class="px-6 py-4 cursor-pointer font-semibold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-base">expand_more</span>Brain parcellation</summary>
+<div class="px-6 pb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="p-5 rounded-xl border border-slate-200 bg-surface-container-lowest">
+<div class="flex items-start justify-between mb-3"><h3 class="font-headline-md text-lg">FreeSurfer (recon-all)</h3><input class="w-5 h-5 rounded border-slate-300 text-secondary focus:ring-secondary" type="checkbox" checked/></div>
+<p class="text-sm text-on-surface-variant">Parcelamento cortical completo com atlas padrao.</p>
+</div>
+<div class="p-5 rounded-xl border border-slate-200 bg-surface-container-lowest">
+<div class="flex items-start justify-between mb-3"><h3 class="font-headline-md text-lg">ANTs + Atlas</h3><input class="w-5 h-5 rounded border-slate-300 text-secondary focus:ring-secondary" type="checkbox"/></div>
+<p class="text-sm text-on-surface-variant">Parcelamento por registro nao linear em atlas especifico.</p>
+</div>
+</div>
+</details>
+
+<details class="bg-white border border-slate-200 rounded-xl shadow-sm">
+<summary class="px-6 py-4 cursor-pointer font-semibold text-primary flex items-center gap-2"><span class="material-symbols-outlined text-base">expand_more</span>Spinal cord segmentation</summary>
+<div class="px-6 pb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="p-5 rounded-xl border border-slate-200 bg-surface-container-lowest">
+<div class="flex items-start justify-between mb-3"><h3 class="font-headline-md text-lg">SCT (sct_deepseg_sc)</h3><input class="w-5 h-5 rounded border-slate-300 text-secondary focus:ring-secondary" type="checkbox"/></div>
+<p class="text-sm text-on-surface-variant">Segmentacao automatica da medula espinhal em MRI.</p>
+</div>
+<div class="p-5 rounded-xl border border-slate-200 bg-surface-container-lowest">
+<div class="flex items-start justify-between mb-3"><h3 class="font-headline-md text-lg">3D Slicer + MONAI</h3><input class="w-5 h-5 rounded border-slate-300 text-secondary focus:ring-secondary" type="checkbox"/></div>
+<p class="text-sm text-on-surface-variant">Segmentacao assistida por IA para revisao clinica.</p>
+</div>
+</div>
+</details>
+</section>
+
+<section class="mt-8 bg-surface-container-low rounded-2xl p-8 border border-outline-variant">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">tune</span>
+<h2 class="font-headline-md text-headline-md">Configuracoes de Processamento</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-4">
+<label class="block"><span class="font-label-sm text-label-sm text-on-surface-variant mb-1 block">Diretorio de Saida</span><input class="w-full rounded-lg border-slate-300 bg-white px-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" type="text" value="/mnt/research/pipeline_outputs/run_002"/></label>
+<label class="block"><span class="font-label-sm text-label-sm text-on-surface-variant mb-1 block">Motor de Processamento</span><select class="w-full rounded-lg border-slate-300 bg-white px-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"><option>High Performance Cluster (SLURM)</option><option>Cloud AWS p3.2xlarge</option><option>Local Workstation</option></select></label>
+</div>
+<div class="bg-white/50 p-6 rounded-xl border border-slate-200">
+<div class="flex justify-between items-center mb-4"><span class="font-label-sm text-label-sm text-on-surface-variant">Tempo Estimado de Processamento</span><span class="text-secondary font-bold">1h 14m</span></div>
+<div class="w-full bg-slate-200 h-2 rounded-full mb-6"><div class="bg-secondary h-2 rounded-full w-3/4"></div></div>
+<div class="flex items-start gap-3"><span class="material-symbols-outlined text-primary">info</span><p class="text-label-sm text-on-surface-variant">Novos metodos podem ser adicionados como novos cards dentro de cada dropdown de procedimento.</p></div>
+</div>
+</div>
+</section>
+</div>
+</main>
+
+<script>
+(function() {
+    var params = new URLSearchParams(window.location.search);
+    var id = params.get('pipelineId');
+    if (!id) return;
+    var banner = document.getElementById('selectedPipelineBanner');
+    var value = document.getElementById('selectedPipelineId');
+    if (banner) banner.textContent = 'Pipeline selecionado: ' + id;
+    if (value) value.textContent = id;
+})();
+</script>
+</body></html>
