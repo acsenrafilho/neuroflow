@@ -1,0 +1,13 @@
+---
+description: Frontend — HTML, Tailwind, MD3 design system
+globs: "**/*.{html,css},assets/DESIGN.md,doc/mockup/**"
+alwaysApply: false
+---
+
+# Frontend (HTML + Tailwind)
+
+- **Plain HTML/CSS** + **Tailwind**; simple pages for viewing and basic manipulation of imaging data — no heavy SPA unless required.
+- Follow `assets/DESIGN.md` and `doc/mockup/` (MD3 tokens, Inter/Manrope, Material Symbols).
+- Reuse shell: sidebar `w-64`, top bar `h-16`, main `max-w-[960px]`.
+- Prioritize: dataset browser, import status, pipeline config, lightweight result preview.
+- Semantic HTML, accessible labels, keyboard-friendly forms/tables; monospace for BIDS paths in tables.

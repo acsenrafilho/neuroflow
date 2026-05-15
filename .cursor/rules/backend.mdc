@@ -1,0 +1,30 @@
+---
+description: Python backend — Poetry, FastAPI, tests, API conventions
+globs: "**/*.py,pyproject.toml,poetry.lock"
+alwaysApply: false
+---
+
+# Backend (Python)
+
+Managed with **[Poetry](https://python-poetry.org/)** — `pyproject.toml` + `poetry.lock` are the source of truth.
+
+| Concern | Choice |
+|--------|--------|
+| Runtime | Python ≥ 3.10 |
+| API | FastAPI + Pydantic (async for I/O-bound work) |
+| Tests | pytest (+ pytest-asyncio for async routes) |
+| CLI | Rich |
+| Imaging | NiBabel (NIfTI); pybids for layout |
+
+## Structure & quality
+
+- Packages by concern: `api/`, `services/`, `bids/`, `pipelines/`, `models/`.
+- Type hints on public APIs; long jobs via task IDs — never block HTTP on compute.
+- `poetry add` + commit lockfile; optional groups (`dev`, `neuro`); run via `poetry run`.
+- Unit tests: BIDS paths, metadata, API contracts; integration tests for critical pipelines.
+
+## REST API
+
+- Resources: `datasets`, `subjects`, `sessions`, `pipelines`, `runs`, `artifacts`.
+- Prefix: `/api/v1/`; consistent errors (`detail`, `code`, optional `field`).
+- OpenAPI is the contract for frontend and integrators.

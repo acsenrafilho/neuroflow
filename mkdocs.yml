@@ -1,0 +1,31 @@
+site_name: NeuroFlow
+site_description: Facilitation portal for neuroscience medical image processing
+site_url: https://neuroflow.readthedocs.io/
+repo_url: https://github.com/acsenrafilho/neuroflow
+repo_name: acsenrafilho/neuroflow
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue grey
+      accent: teal
+  features:
+    - navigation.sections
+    - content.code.copy
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Development: development.md
+  - Architecture: architecture.md
+  - API: api.md
+  - Security: security.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences

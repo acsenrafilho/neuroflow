@@ -1,0 +1,32 @@
+---
+description: NeuroFlow core mission, language, and repo hygiene
+alwaysApply: true
+---
+
+# NeuroFlow — Core Standards
+
+NeuroFlow is a **facilitation portal** for neuroscience medical image processing. Optimize UX/UI for **reading, writing, and manipulating neuroimaging data**, especially **MRI**.
+
+- Prefer clarity over feature density; surface BIDS metadata (subject, session, modality, pipeline status) alongside volumes.
+- Treat data as sensitive: no PHI in logs; least-privilege access; document handling assumptions.
+- **English only** for code, comments, docstrings, commits, and API schemas. UI copy defaults to English.
+
+## Repo hygiene
+
+- Small, focused changes; match existing layout.
+- No secrets in git; use `.env` + `.env.example`.
+- Document licenses for third-party neuroimaging tools.
+- Update tests and user-visible docs (`assets/DESIGN.md`, `doc/mockup/`) when behavior changes.
+
+## Specialized rules (apply by file type)
+
+| Rule | When |
+|------|------|
+| `bids.mdc` | BIDS datasets, derivatives, layout code |
+| `backend.mdc` | Python, API, Poetry |
+| `frontend.mdc` | HTML/CSS, mockups, design system |
+| `docker.mdc` | Processing images and orchestration |
+
+## Stack (summary)
+
+BIDS data · Poetry + FastAPI · HTML/Tailwind · Docker pipelines · pytest · Rich · NiBabel/pybids
