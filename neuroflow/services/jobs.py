@@ -15,7 +15,14 @@ from neuroflow.config import Settings
 
 JobStatus = Literal["queued", "running", "completed", "failed"]
 
-ALLOWED_UPLOAD_SUFFIXES = (".nii", ".nii.gz", ".dcm")
+ALLOWED_UPLOAD_SUFFIXES = (
+    ".nii",
+    ".nii.gz",
+    ".dcm",
+    ".txt",
+    ".mat",
+    ".zip",
+)
 
 
 def _validate_upload_name(filename: str) -> None:

@@ -9,6 +9,7 @@ NeuroFlow is a **web portal** that wraps neuroimaging **CLI tools**—one indepe
 - [Poetry](https://python-poetry.org/) (Python 3.10+)
 - [Node.js](https://nodejs.org/) 18+ (frontend Tailwind build)
 - **FreeSurfer** on the host for the FreeSurfer module (`recon-all` on `PATH`, or set `NEUROFLOW_RECON_ALL_BIN`)
+- **FSL** on the host for FSL modules (`bet`, `flirt`, etc. on `PATH`, or set `NEUROFLOW_FSLDIR` / `FSLDIR`)
 
 ## Quick start
 
@@ -72,6 +73,7 @@ tests/
 - Health: `GET /api/v1/health`
 - Tools: `GET /api/v1/tools`
 - FreeSurfer job: `POST /api/v1/tools/freesurfer/jobs` (multipart: file + form fields)
+- FSL job: `POST /api/v1/tools/fsl/jobs` (multipart: files, `file_roles`, `module_id`, `parameters`)
 
 ## Adding a tool
 

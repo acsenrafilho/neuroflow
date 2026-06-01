@@ -4,7 +4,7 @@
 (function (global) {
   const PACKAGE_ICONS = {
     freesurfer: { icon: "neurology", active: true },
-    fsl: { icon: "science", active: false },
+    fsl: { icon: "science", active: true },
     ants: { icon: "transform", active: false },
   };
 

@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     neuroflow_max_upload_mb: int = 500
     neuroflow_freesurfer_home: Path | None = None
     neuroflow_recon_all_bin: str = "recon-all"
+    neuroflow_fsldir: Path | None = None
 
     @property
     def data_root(self) -> Path:

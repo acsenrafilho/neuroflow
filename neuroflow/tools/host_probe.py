@@ -173,5 +173,7 @@ def module_available(
     required_executable: str | None = None,
 ) -> bool:
     if required_executable:
-        return which(required_executable) is not None
+        return which(required_executable) is not None or (
+            required_executable == "eddy" and which("eddy_openmp") is not None
+        )
     return package_available(results, package_id)

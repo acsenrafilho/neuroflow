@@ -7,7 +7,10 @@
       docsUrl: "https://surfer.nmr.mgh.harvard.edu/",
       docsLabel: "FreeSurfer project site",
     },
-    fsl: { docsUrl: null, docsLabel: null },
+    fsl: {
+      docsUrl: "https://fsl.fmrib.ox.ac.uk/fsl/docs/index.html",
+      docsLabel: "FSL documentation",
+    },
     ants: { docsUrl: null, docsLabel: null },
   };
 
@@ -78,6 +81,9 @@
       } else if (packageId === "freesurfer") {
         summaryEl.textContent =
           "Cortical reconstruction and volumetric segmentation. Choose a pipeline module below.";
+      } else if (packageId === "fsl") {
+        summaryEl.textContent =
+          "Structural, diffusion, and registration tools. Complete prerequisite steps in linked modules before advanced pipelines.";
       } else {
         summaryEl.textContent = `Processing modules available under ${packageName}.`;
       }

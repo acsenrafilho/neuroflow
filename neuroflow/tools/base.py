@@ -12,12 +12,33 @@ from shutil import which
 from neuroflow.config import Settings
 from neuroflow.services.jobs import JobStore
 
-ALLOWLISTED_EXECUTABLES = frozenset({"recon-all"})
-
+ALLOWLISTED_EXECUTABLES = frozenset(
+    {
+        "recon-all",
+        "bet",
+        "bet2",
+        "fast",
+        "susan",
+        "mcflirt",
+        "flirt",
+        "fnirt",
+        "run_first_all",
+        "epi_reg",
+        "siena",
+        "topup",
+        "eddy",
+        "eddy_openmp",
+        "dtifit",
+        "bedpostx",
+        "tbss_1_preproc",
+        "bianca",
+    }
+)
 
 def resolve_executable(settings: Settings, name: str) -> Path | None:
     if name not in ALLOWLISTED_EXECUTABLES:
         return None
+
     if name == "recon-all" and settings.neuroflow_recon_all_bin:
         candidate = settings.neuroflow_recon_all_bin
         if os.path.isabs(candidate) and os.access(candidate, os.X_OK):
@@ -25,6 +46,14 @@ def resolve_executable(settings: Settings, name: str) -> Path | None:
         found = which(candidate)
         if found:
             return Path(found)
+
+    if settings.neuroflow_fsldir:
+        fsldir = settings.neuroflow_fsldir.resolve()
+        for sub in ("bin", ""):
+            candidate = fsldir / sub / name if sub else fsldir / name
+            if candidate.is_file() and os.access(candidate, os.X_OK):
+                return candidate
+
     found = which(name)
     return Path(found) if found else None
 
@@ -37,6 +66,14 @@ def build_env(settings: Settings) -> dict[str, str]:
         setup = Path(fs_home) / "SetUpFreeSurfer.sh"
         if setup.is_file():
             env["NEUROFLOW_FREESURFER_SETUP"] = str(setup)
+
+    if settings.neuroflow_fsldir:
+        fsldir = str(settings.neuroflow_fsldir.resolve())
+        env["FSLDIR"] = fsldir
+        fs_bin = Path(fsldir) / "bin"
+        if fs_bin.is_dir():
+            env["PATH"] = f"{fs_bin}{os.pathsep}{env.get('PATH', '')}"
+
     return env
 
 
@@ -71,6 +108,7 @@ def start_job_process(
         status="running",
         command=cmd,
         command_preview=" ".join(_shell_quote(part) for part in cmd),
+        started_at=_utc_now(),
     )
     store.append_log(tool_id, job_id, f"$ {' '.join(_shell_quote(part) for part in cmd)}\n\n")
 
@@ -107,14 +145,12 @@ def start_job_process(
             return
 
         status = "completed" if exit_code == 0 else "failed"
-        from datetime import datetime, timezone
-
         store.update_meta(
             tool_id,
             job_id,
             status=status,
             exit_code=exit_code,
-            finished_at=datetime.now(timezone.utc).isoformat(),
+            finished_at=_utc_now(),
         )
         if on_complete:
             on_complete(exit_code)
@@ -122,6 +158,12 @@ def start_job_process(
     thread = threading.Thread(target=_run, daemon=True)
     thread.start()
     return 0
+
+
+def _utc_now() -> str:
+    from datetime import datetime, timezone
+
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _shell_quote(part: str) -> str:

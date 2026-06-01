@@ -8,9 +8,11 @@ def test_list_modules(client: TestClient) -> None:
     response = client.get("/api/v1/modules")
     assert response.status_code == 200
     modules = response.json()
-    assert len(modules) >= 4
+    assert len(modules) >= 15
     fs_modules = [m for m in modules if m["package_id"] == "freesurfer" and not m["coming_soon"]]
     assert len(fs_modules) == 4
+    fsl_modules = [m for m in modules if m["package_id"] == "fsl" and not m["coming_soon"]]
+    assert len(fsl_modules) == 15
     recon_options = {m["recon_options"] for m in fs_modules}
     assert recon_options == {"all", "autorecon1", "autorecon2", "autorecon3"}
 
@@ -46,9 +48,9 @@ def test_modules_use_cached_host_probe(client: TestClient) -> None:
     assert len(fs_modules) == 4
     assert all(m["available"] for m in fs_modules)
 
-    fsl = next(m for m in modules if m["id"] == "fsl-placeholder")
-    assert fsl["coming_soon"] is True
-    assert fsl["available"] is True
+    fsl_bet = next(m for m in modules if m["id"] == "fsl-bet")
+    assert fsl_bet["coming_soon"] is False
+    assert fsl_bet["available"] is True
 
     ants = next(m for m in modules if m["id"] == "ants-placeholder")
     assert ants["coming_soon"] is True
