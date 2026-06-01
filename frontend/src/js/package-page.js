@@ -12,14 +12,14 @@
   };
 
   function statusLabel(module) {
-    if (module.coming_soon) return "Coming soon";
+    if (module.coming_soon && !module.available) return "Coming soon";
     if (module.available) return "Ready";
     return "Install on host";
   }
 
   function statusBadge(module) {
     const label = statusLabel(module);
-    if (module.coming_soon) {
+    if (module.coming_soon && !module.available) {
       return `<span class="rounded-full bg-surface-container px-3 py-1 font-label-sm text-on-surface-variant">${label}</span>`;
     }
     if (module.available) {

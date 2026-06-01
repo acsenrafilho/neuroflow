@@ -50,7 +50,7 @@ With Live Server on port 5500 and the API on port 8000, hub features that call `
 | `make install` | Install Python and frontend dependencies |
 | `make test` | Run pytest |
 | `make lint` | Run ruff check and format check |
-| `make api` | Start FastAPI with reload |
+| `make api` | Start FastAPI with reload (host package scan on startup) |
 | `make frontend-build` | Build Tailwind CSS and copy pages to `frontend/dist/` |
 | `make docs` | Serve MkDocs locally |
 

@@ -22,20 +22,36 @@ Set `NEUROFLOW_SERVE_FRONTEND=1` in `.env` to serve the built UI from the API pr
 ## Run the API and UI
 
 ```bash
-poetry run uvicorn neuroflow.api.main:app --reload --host 127.0.0.1 --port 8000
+make api
+# or: poetry run uvicorn neuroflow.api.main:app --reload --host 127.0.0.1 --port 8000
 ```
+
+On startup the API scans the local host for registered packages (FreeSurfer, FSL, ANTs) and caches the result. The home page **Processing modules** table uses `GET /api/v1/modules` to show **Ready** when the corresponding software is installed, even for portal placeholders that are not yet executable from the UI.
 
 - Tool hub: http://127.0.0.1:8000/
 - FreeSurfer module: http://127.0.0.1:8000/tools/freesurfer.html
 - OpenAPI: http://127.0.0.1:8000/docs
 
-## CLI status
+After sourcing a tool environment (e.g. FreeSurfer), re-scan without restarting:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/v1/host/rescan
+```
+
+## CLI status and host scan
 
 ```bash
 poetry run neuroflow
 ```
 
-Lists the data root and whether each registered tool binary is on `PATH`.
+Lists the data root and package readiness from the same probes used by the API.
+
+```bash
+poetry run neuroflow scan
+# or: ./scripts/check-host-tools.sh
+```
+
+Prints package and module readiness for the current machine. Probes use `PATH`, optional `.env` overrides (`NEUROFLOW_RECON_ALL_BIN`, `NEUROFLOW_FREESURFER_HOME`), and common env vars such as `FSLDIR`.
 
 ## Frontend-only (separate port)
 

@@ -38,6 +38,17 @@ class ModuleInfo(BaseModel):
     available: bool = False
 
 
+class PackageProbeInfo(BaseModel):
+    package_id: str
+    available: bool
+    resolved_path: str | None = None
+    detail: str = ""
+
+
+class HostScanResponse(BaseModel):
+    packages: list[PackageProbeInfo]
+
+
 class BatchItemStatus(BaseModel):
     filename: str
     subject_id: str

@@ -35,7 +35,9 @@ flowchart TB
 | Resource | Path |
 |----------|------|
 | Health | `GET /api/v1/health` |
+| Host rescan | `POST /api/v1/host/rescan` |
 | Tools | `GET /api/v1/tools` |
+| Modules | `GET /api/v1/modules` |
 | FreeSurfer jobs | `POST /api/v1/tools/freesurfer/jobs` |
 | Job status | `GET /api/v1/tools/freesurfer/jobs/{job_id}` |
 | Job log | `GET /api/v1/tools/freesurfer/jobs/{job_id}/log` |

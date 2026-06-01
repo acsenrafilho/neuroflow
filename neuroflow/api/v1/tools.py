@@ -6,15 +6,17 @@ import json
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from pydantic import ValidationError
 
 from neuroflow.api.deps import get_cached_settings, get_job_store
+from neuroflow.api.host_state import get_tool_availability
 from neuroflow.config import Settings
 from neuroflow.models.schemas import JobLogResponse, JobStatusResponse, ModuleInfo, ToolInfo
 from neuroflow.services.job_monitoring import enrich_log, enrich_status
 from neuroflow.services.jobs import JobStore
 from neuroflow.tools.freesurfer import BatchScan, FreeSurferJobParams, launch_freesurfer_job
+from neuroflow.tools.host_probe import module_available
 from neuroflow.tools.registry import get_module, get_tool, list_modules, list_tools
 
 router = APIRouter(prefix="/tools", tags=["tools"])
@@ -44,25 +46,30 @@ def _meta_to_status(meta: dict) -> JobStatusResponse:
 
 
 @router.get("", response_model=list[ToolInfo])
-async def list_registered_tools() -> list[ToolInfo]:
+async def list_registered_tools(request: Request) -> list[ToolInfo]:
+    availability = get_tool_availability(request)
     return [
         ToolInfo(
             id=tool.id,
             name=tool.name,
             description=tool.description,
             page_path=tool.page_path,
-            available=tool.is_available(),
+            available=availability[tool.id].available if tool.id in availability else False,
         )
         for tool in list_tools()
     ]
 
 
 @router.get("/modules", response_model=list[ModuleInfo])
-async def list_processing_modules() -> list[ModuleInfo]:
+async def list_processing_modules(request: Request) -> list[ModuleInfo]:
+    availability = get_tool_availability(request)
     result: list[ModuleInfo] = []
     for module in list_modules():
-        package = get_tool(module.package_id)
-        available = False if module.coming_soon else (package.is_available() if package else False)
+        available = module_available(
+            availability,
+            module.package_id,
+            required_executable=module.required_executable,
+        )
         result.append(
             ModuleInfo(
                 id=module.id,

@@ -1,7 +1,6 @@
 """Registered neuroimaging tools and processing modules exposed in the portal."""
 
 from dataclasses import dataclass
-from shutil import which
 from typing import Literal
 
 ReconOption = Literal["all", "autorecon1", "autorecon2", "autorecon3"]
@@ -14,11 +13,13 @@ class ToolDefinition:
     description: str
     page_path: str
     executable: str | None = None
+    probe_binaries: tuple[str, ...] = ()
 
     def is_available(self) -> bool:
-        if self.executable is None:
-            return False
-        return which(self.executable) is not None
+        from neuroflow.config import get_settings
+        from neuroflow.tools.host_probe import probe_package
+
+        return probe_package(get_settings(), self.id).available
 
 
 @dataclass(frozen=True)
@@ -32,6 +33,7 @@ class ModuleDefinition:
     recon_options: ReconOption | None = None
     estimated_hours_per_scan: float = 1.0
     coming_soon: bool = False
+    required_executable: str | None = None
 
 
 TOOLS: dict[str, ToolDefinition] = {
@@ -47,14 +49,16 @@ TOOLS: dict[str, ToolDefinition] = {
         name="FSL",
         description="FMRIB Software Library (coming soon).",
         page_path="/tools/fsl.html",
-        executable=None,
+        executable="bet",
+        probe_binaries=("bet", "fsl", "flirt"),
     ),
     "ants": ToolDefinition(
         id="ants",
         name="ANTs",
         description="Advanced Normalization Tools (coming soon).",
         page_path="/tools/ants.html",
-        executable=None,
+        executable="antsRegistration",
+        probe_binaries=("antsRegistration", "ANTS", "antsApplyTransforms"),
     ),
 }
 

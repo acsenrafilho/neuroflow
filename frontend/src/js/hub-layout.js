@@ -46,9 +46,6 @@
 
     el.innerHTML = `
       <div class="mb-8 px-6">
-        <a href="/">
-          <img src="${LOGO_SRC}" alt="NeuroFlow logo" class="block h-auto max-h-10 w-auto max-w-[11rem] object-contain object-left" />
-        </a>
         <p class="mt-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
           Facilitation portal
         </p>
