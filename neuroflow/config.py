@@ -15,13 +15,20 @@ class Settings(BaseSettings):
     )
 
     neuroflow_env: str = "development"
-    neuroflow_bids_root: Path = Path("./data/sample")
+    neuroflow_data_root: Path = Path("./data/jobs")
     neuroflow_log_level: str = "INFO"
     neuroflow_serve_frontend: bool = False
+    neuroflow_max_upload_mb: int = 500
+    neuroflow_freesurfer_home: Path | None = None
+    neuroflow_recon_all_bin: str = "recon-all"
 
     @property
-    def bids_root(self) -> Path:
-        return self.neuroflow_bids_root.resolve()
+    def data_root(self) -> Path:
+        return self.neuroflow_data_root.resolve()
+
+    @property
+    def max_upload_bytes(self) -> int:
+        return self.neuroflow_max_upload_mb * 1024 * 1024
 
 
 def get_settings() -> Settings:

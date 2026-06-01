@@ -5,46 +5,55 @@
 ```mermaid
 flowchart TB
   subgraph portal [NeuroFlow portal]
-    UI[frontend HTML]
+    Hub[index.html]
+    ToolPage[tools/freesurfer.html]
     API[FastAPI]
   end
-  subgraph data [Data layer]
-    BIDS[BIDS dataset on disk]
-    DERIV[derivatives/]
+  subgraph disk [Data layer]
+    Jobs[data/jobs/tool/job_id]
   end
-  subgraph compute [Processing]
-    FSL[docker/fsl]
-    ANTS[docker/ants]
+  subgraph host [Host OS]
+    CLI[recon-all etc]
   end
-  UI -->|REST /api/v1| API
-  API -->|read layout| BIDS
-  API -->|submit jobs| FSL
-  API -->|submit jobs| ANTS
-  FSL --> DERIV
-  ANTS --> DERIV
+  Hub --> ToolPage
+  ToolPage -->|multipart POST| API
+  API --> Jobs
+  API -->|subprocess allowlist| CLI
+  CLI --> Jobs
 ```
 
 ## Design rules
 
-1. **BIDS on disk** — no parallel naming scheme; portal exposes `sub-*`, `ses-*`, modalities.
-2. **No heavy compute in FastAPI** — pipelines run in Docker with BIDS volumes mounted read-only.
-3. **No database (MVP)** — run metadata lives under `derivatives/<pipeline>/` as JSON sidecars (future).
+1. **One tool per page** — no cross-tool pipeline composer or shared orchestration DAG.
+2. **No heavy compute inside FastAPI** — the API starts allowlisted subprocesses and streams logs to disk.
+3. **No database (MVP)** — job metadata lives in `data/jobs/<tool>/<job_id>/meta.json`.
 4. **No authentication (MVP)** — local/trusted network only; see [Security](security.md).
+5. **No Docker in repo** — tools must be installed on the host where the API runs.
 
 ## API surface
 
 | Resource | Path |
 |----------|------|
 | Health | `GET /api/v1/health` |
-| Datasets | `GET /api/v1/datasets` |
+| Tools | `GET /api/v1/tools` |
+| FreeSurfer jobs | `POST /api/v1/tools/freesurfer/jobs` |
+| Job status | `GET /api/v1/tools/freesurfer/jobs/{job_id}` |
+| Job log | `GET /api/v1/tools/freesurfer/jobs/{job_id}/log` |
 
 Errors return `{ "detail", "code", "field?" }`.
 
+## Job layout
+
+```
+data/jobs/freesurfer/{job_id}/
+  input/       # uploaded NIfTI/DICOM
+  output/      # SUBJECTS_DIR for recon-all
+  meta.json    # status, parameters, command
+  run.log      # merged stdout/stderr
+```
+
 ## Processing contract
 
-Containers receive:
-
-- `BIDS_ROOT` → `/data/bids`
-- `SUBJECT`, `SESSION`, `PIPELINE_CONFIG_JSON`
-
-Logs go to stdout/stderr; exit codes are recorded by the orchestration layer (planned).
+- Executables must be on an **allowlist** (`recon-all` today).
+- Arguments are built server-side from validated form fields (never raw shell strings from the browser).
+- Optional `NEUROFLOW_FREESURFER_HOME` sets `FREESURFER_HOME` for child processes.

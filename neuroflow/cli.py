@@ -1,12 +1,14 @@
 """Rich CLI entry point for NeuroFlow."""
 
 import argparse
+from shutil import which
 
 from rich.console import Console
 from rich.table import Table
 
 from neuroflow import __version__
 from neuroflow.config import get_settings
+from neuroflow.tools.registry import list_tools
 
 console = Console()
 
@@ -31,17 +33,23 @@ def main() -> None:
     table.add_column("Value")
     table.add_row("Version", __version__)
     table.add_row("Environment", settings.neuroflow_env)
-    table.add_row("BIDS root", str(settings.bids_root))
+    table.add_row("Data root", str(settings.data_root))
     table.add_row(
-        "BIDS root exists",
-        "[green]yes[/green]" if settings.bids_root.is_dir() else "[yellow]no[/yellow]",
+        "Data root exists",
+        "[green]yes[/green]" if settings.data_root.is_dir() else "[yellow]no[/yellow]",
     )
     console.print(table)
-    if not settings.bids_root.is_dir():
-        console.print(
-            "[dim]Run scripts/fetch_sample_bids.sh to download a public sample dataset.[/dim]"
-        )
 
-
-if __name__ == "__main__":
-    main()
+    tools_table = Table(title="Registered tools")
+    tools_table.add_column("ID")
+    tools_table.add_column("Available")
+    tools_table.add_column("Page")
+    for tool in list_tools():
+        available = tool.is_available()
+        if tool.executable:
+            path = which(tool.executable) or "not found"
+            status = f"[green]{path}[/green]" if available else f"[red]{path}[/red]"
+        else:
+            status = "[dim]coming soon[/dim]"
+        tools_table.add_row(tool.id, status, tool.page_path)
+    console.print(tools_table)

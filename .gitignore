@@ -38,9 +38,9 @@ coverage.xml
 node_modules/
 frontend/dist/
 
-# BIDS sample data (keep .gitkeep only)
-data/sample/*
-!data/sample/.gitkeep
+# Job data (keep .gitkeep only)
+data/jobs/*
+!data/jobs/.gitkeep
 
 # MkDocs
 site/
@@ -57,5 +57,3 @@ site/
 .DS_Store
 Thumbs.db
 
-# Docker
-.docker/

@@ -1,13 +1,15 @@
 ---
 description: Frontend — HTML, Tailwind, MD3 design system
-globs: "**/*.{html,css},assets/DESIGN.md,doc/mockup/**"
+globs: "**/*.{html,css},assets/DESIGN.md,frontend/**"
 alwaysApply: false
 ---
 
 # Frontend (HTML + Tailwind)
 
-- **Plain HTML/CSS** + **Tailwind**; simple pages for viewing and basic manipulation of imaging data — no heavy SPA unless required.
-- Follow `assets/DESIGN.md` and `doc/mockup/` (MD3 tokens, Inter/Manrope, Material Symbols).
-- Reuse shell: sidebar `w-64`, top bar `h-16`, main `max-w-[960px]`.
-- Prioritize: dataset browser, import status, pipeline config, lightweight result preview.
-- Semantic HTML, accessible labels, keyboard-friendly forms/tables; monospace for BIDS paths in tables.
+- **Plain HTML/CSS** + **Tailwind** (built to `frontend/dist/assets/app.css`) — no heavy SPA unless required.
+- Follow `assets/DESIGN.md` (MD3 tokens, Inter/Manrope, Material Symbols).
+- **Hub:** `frontend/src/pages/index.html` lists tool modules.
+- **Tool page:** `frontend/src/pages/tools/<tool>.html` — upload, form, execute, log panel (see FreeSurfer).
+- Centered layout `max-w-[800px]` for tool pages; top nav with link back to hub.
+- Wire forms to `/api/v1/tools/<id>/jobs` via `fetch` + `FormData`.
+- Semantic HTML, accessible labels, keyboard-friendly forms; monospace for CLI output.

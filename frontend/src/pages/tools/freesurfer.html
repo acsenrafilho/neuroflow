@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroFlow | FreeSurfer Module</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body
+    class="flex min-h-screen flex-col items-center bg-background font-body-md text-on-background"
+  >
+    <nav
+      class="fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between border-b border-outline-variant bg-white/80 px-8 backdrop-blur-md"
+    >
+      <div class="flex items-center gap-4">
+        <a href="/" class="flex items-center gap-4">
+          <img
+            src="/assets/neuroflow_logo.svg"
+            alt="NeuroFlow logo"
+            class="h-8 w-auto"
+          />
+          <span class="font-headline-md tracking-tight text-primary">NeuroFlow</span>
+        </a>
+        <div class="mx-2 h-6 w-px bg-outline-variant"></div>
+        <span class="font-label-sm uppercase tracking-widest text-on-surface-variant" id="nav-module-label"
+          >FreeSurfer</span
+        >
+      </div>
+    </nav>
+
+    <main class="mb-16 mt-24 flex w-full max-w-[800px] flex-col gap-8 px-6">
+      <header class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <h1 class="font-headline-xl text-primary-container" id="page-title">FreeSurfer</h1>
+          <p class="font-body-md text-on-surface-variant" id="page-summary">
+            Automated cortical reconstruction and volumetric segmentation.
+          </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="font-label-sm text-on-surface-variant">Official documentation</span>
+          <a
+            href="https://surfer.nmr.mgh.harvard.edu/"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 rounded-lg border border-secondary bg-surface-container-lowest px-4 py-2 font-label-sm text-secondary transition-colors hover:bg-secondary/10"
+          >
+            <span class="material-symbols-outlined text-sm">open_in_new</span>
+            FreeSurfer project site
+          </a>
+        </div>
+      </header>
+
+      <form id="job-form" class="flex flex-col gap-8">
+        <section class="glass-panel flex flex-col gap-4 rounded-xl p-8 shadow-sm">
+          <div class="mb-2 flex items-center gap-2">
+            <span
+              class="material-symbols-outlined text-secondary"
+              style="font-variation-settings: 'FILL' 1"
+              >upload_file</span
+            >
+            <h2 class="font-headline-md text-on-surface">Input selection</h2>
+          </div>
+          <div
+            class="flex cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-outline-variant bg-surface-container-low/50 p-12 transition-colors hover:border-secondary"
+            id="dropzone"
+          >
+            <span class="material-symbols-outlined text-5xl text-outline">cloud_upload</span>
+            <div class="text-center">
+              <p class="font-label-sm text-on-surface">Drag and drop NIfTI or DICOM here</p>
+              <p class="mt-1 text-xs text-on-surface-variant">
+                One or more files · maximum 500 MB each
+              </p>
+            </div>
+            <button
+              type="button"
+              id="browse-btn"
+              class="mt-2 rounded-lg border border-secondary px-4 py-2 font-label-sm text-secondary transition-colors hover:bg-secondary/5"
+            >
+              Browse files
+            </button>
+            <input
+              type="file"
+              id="file-input"
+              class="hidden"
+              accept=".nii,.nii.gz,.dcm"
+              multiple
+            />
+          </div>
+          <div id="file-list-wrap" class="hidden flex-col gap-3">
+            <p class="font-label-sm text-on-surface" id="file-list-summary"></p>
+            <div class="overflow-x-auto rounded-lg border border-outline-variant/60">
+              <table class="w-full text-left text-sm">
+                <thead class="bg-surface-container-low text-xs uppercase text-on-surface-variant">
+                  <tr>
+                    <th class="px-4 py-2 font-semibold">File</th>
+                    <th class="px-4 py-2 font-semibold">Subject ID</th>
+                    <th class="px-4 py-2 font-semibold w-16"></th>
+                  </tr>
+                </thead>
+                <tbody id="file-list-body" class="divide-y divide-outline-variant/40"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="glass-panel flex flex-col gap-6 rounded-xl p-8 shadow-sm">
+          <div class="flex items-center gap-2">
+            <span
+              class="material-symbols-outlined text-secondary"
+              style="font-variation-settings: 'FILL' 1"
+              >settings_input_component</span
+            >
+            <h2 class="font-headline-md text-on-surface">Configuration</h2>
+          </div>
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div class="flex flex-col gap-2" id="single-subject-wrap">
+              <label class="font-label-sm text-on-surface" for="subject_id">Subject ID</label>
+              <input
+                class="rounded-lg border-outline-variant bg-surface-container-lowest font-body-md focus:border-secondary focus:ring-secondary"
+                id="subject_id"
+                name="subject_id"
+                placeholder="e.g. sub-001"
+                type="text"
+              />
+              <p class="text-xs text-on-surface-variant">
+                Used when a single file is selected. For multiple files, set Subject ID per row above.
+              </p>
+            </div>
+            <div class="flex flex-col gap-2" id="recon-options-wrap">
+              <label class="font-label-sm text-on-surface" for="recon_options"
+                >Recon-all stage</label
+              >
+              <select
+                class="rounded-lg border-outline-variant bg-surface-container-lowest font-body-md focus:border-secondary focus:ring-secondary"
+                id="recon_options"
+                name="recon_options"
+              >
+                <option value="all">-all (full pipeline)</option>
+                <option value="autorecon1">-autorecon1 (motion correction)</option>
+                <option value="autorecon2">-autorecon2 (segmentation)</option>
+                <option value="autorecon3">-autorecon3 (cortical surfaces)</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <div class="flex flex-col items-center gap-4">
+          <button
+            type="submit"
+            class="flex w-full items-center justify-center gap-3 rounded-xl bg-primary py-4 font-headline-md text-on-primary shadow-lg transition-all hover:opacity-95 active:scale-[0.99]"
+            id="run-btn"
+          >
+            <span class="material-symbols-outlined">play_arrow</span>
+            Execute processing
+          </button>
+          <p
+            id="time-estimate"
+            class="flex items-center gap-1 text-xs text-on-surface-variant"
+            aria-live="polite"
+          ></p>
+          <p class="flex items-center gap-1 text-xs italic text-on-surface-variant">
+            <span class="material-symbols-outlined text-[14px]">bolt</span>
+            Requires recon-all on this host. Runs may take hours.
+          </p>
+          <p id="form-error" class="hidden text-sm text-error" role="alert"></p>
+        </div>
+      </form>
+
+      <section class="glass-panel hidden overflow-hidden rounded-xl shadow-md" id="status-panel">
+        <div
+          class="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant bg-surface-container-highest px-4 py-2"
+        >
+          <div class="flex items-center gap-2">
+            <span class="h-2 w-2 animate-pulse rounded-full bg-secondary" id="status-dot"></span>
+            <span
+              class="font-code-mono text-xs font-semibold uppercase tracking-wider text-on-surface"
+              >FreeSurfer CLI output</span
+            >
+          </div>
+          <div class="flex flex-wrap items-center gap-3 font-code-mono text-xs text-on-surface-variant">
+            <span id="job-status-label">queued</span>
+            <span id="elapsed-label" class="hidden">Elapsed: 00:00:00</span>
+            <span id="batch-label" class="hidden"></span>
+            <span id="eta-label" class="hidden"></span>
+            <span id="pid-label" class="hidden"></span>
+          </div>
+        </div>
+        <div
+          class="cli-terminal h-64 overflow-y-auto bg-slate-900 p-6 font-code-mono text-sm leading-relaxed text-teal-400"
+          id="log-output"
+        ></div>
+        <div class="h-1 w-full bg-surface-container-low">
+          <div
+            class="h-full w-0 bg-secondary transition-all duration-500"
+            id="progress-bar"
+          ></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-auto w-full border-t border-outline-variant/30 py-8 text-center">
+      <p class="font-label-sm text-xs text-on-surface-variant">
+        NeuroFlow — single-tool CLI facilitation. FreeSurfer must be licensed separately.
+      </p>
+    </footer>
+
+    <script src="/js/neuroflow-api.js"></script>
+    <script>
+      const form = document.getElementById("job-form");
+      const runBtn = document.getElementById("run-btn");
+      const statusPanel = document.getElementById("status-panel");
+      const logOutput = document.getElementById("log-output");
+      const progressBar = document.getElementById("progress-bar");
+      const formError = document.getElementById("form-error");
+      const dropzone = document.getElementById("dropzone");
+      const fileInput = document.getElementById("file-input");
+      const browseBtn = document.getElementById("browse-btn");
+      const fileListWrap = document.getElementById("file-list-wrap");
+      const fileListBody = document.getElementById("file-list-body");
+      const fileListSummary = document.getElementById("file-list-summary");
+      const singleSubjectWrap = document.getElementById("single-subject-wrap");
+      const reconOptionsWrap = document.getElementById("recon-options-wrap");
+      const timeEstimateEl = document.getElementById("time-estimate");
+
+      /** @type {{ file: File, subjectId: string }[]} */
+      let fileQueue = [];
+      let pollTimer = null;
+      let activeModule = null;
+      let hoursPerScan = 8;
+
+      const params = new URLSearchParams(window.location.search);
+      const queryModuleId = params.get("module");
+      const queryRecon = params.get("recon_options");
+
+      function formatDuration(seconds) {
+        if (seconds == null || seconds < 0) return "—";
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        return [h, m, s].map((n) => String(n).padStart(2, "0")).join(":");
+      }
+
+      function formatHours(h) {
+        if (h < 1) return `~${Math.round(h * 60)} min`;
+        return `~${h}h`;
+      }
+
+      function updateTimeEstimate() {
+        const n = Math.max(1, fileQueue.length);
+        const total = n * hoursPerScan;
+        timeEstimateEl.textContent = `Estimated total: ${n} × ${formatHours(hoursPerScan)} ≈ ${formatHours(total)} (heuristic)`;
+      }
+
+      async function loadModuleFromQuery() {
+        try {
+          const modules = await NeuroflowApi.fetchJson("/api/v1/modules");
+          activeModule =
+            modules.find((m) => m.id === queryModuleId) ||
+            modules.find((m) => m.recon_options === queryRecon && !m.coming_soon) ||
+            modules.find((m) => m.recon_options === "all" && !m.coming_soon);
+          if (!activeModule) return;
+
+          hoursPerScan = activeModule.estimated_hours_per_scan;
+          document.getElementById("page-title").textContent = `${activeModule.package_name} · ${activeModule.module_name}`;
+          document.getElementById("page-summary").textContent = activeModule.description;
+          document.getElementById("nav-module-label").textContent = activeModule.module_name;
+
+          if (activeModule.recon_options) {
+            document.getElementById("recon_options").value = activeModule.recon_options;
+          }
+          if (queryModuleId || queryRecon) {
+            reconOptionsWrap.classList.add("hidden");
+          }
+          updateTimeEstimate();
+        } catch {
+          /* ignore */
+        }
+      }
+
+      function renderFileList() {
+        if (fileQueue.length === 0) {
+          fileListWrap.classList.add("hidden");
+          singleSubjectWrap.classList.remove("hidden");
+          dropzone.classList.remove("hidden");
+          updateTimeEstimate();
+          return;
+        }
+
+        fileListWrap.classList.remove("hidden");
+        dropzone.classList.add("hidden");
+        const multi = fileQueue.length > 1;
+        singleSubjectWrap.classList.toggle("hidden", multi);
+
+        const totalMb = fileQueue.reduce((sum, item) => sum + item.file.size, 0) / (1024 * 1024);
+        fileListSummary.textContent = `${fileQueue.length} file(s) · ${totalMb.toFixed(1)} MB total`;
+
+        fileListBody.innerHTML = fileQueue
+          .map(
+            (item, index) => `
+          <tr>
+            <td class="px-4 py-2 text-on-surface">${item.file.name}</td>
+            <td class="px-4 py-2">
+              <input
+                type="text"
+                class="subject-id-input w-full rounded border border-outline-variant bg-surface-container-lowest px-2 py-1 text-sm"
+                data-index="${index}"
+                value="${item.subjectId}"
+                placeholder="e.g. sub-001"
+                required
+              />
+            </td>
+            <td class="px-4 py-2 text-center">
+              <button type="button" class="remove-file text-on-surface-variant hover:text-error" data-index="${index}" title="Remove">
+                <span class="material-symbols-outlined text-sm">close</span>
+              </button>
+            </td>
+          </tr>`
+          )
+          .join("");
+
+        fileListBody.querySelectorAll(".subject-id-input").forEach((input) => {
+          input.addEventListener("input", (e) => {
+            const idx = Number(e.target.dataset.index);
+            fileQueue[idx].subjectId = e.target.value;
+          });
+        });
+        fileListBody.querySelectorAll(".remove-file").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            fileQueue.splice(Number(btn.dataset.index), 1);
+            renderFileList();
+          });
+        });
+        updateTimeEstimate();
+      }
+
+      function addFiles(fileList) {
+        for (const file of fileList) {
+          if (fileQueue.some((item) => item.file.name === file.name && item.file.size === file.size)) {
+            continue;
+          }
+          const stem = file.name.replace(/\.nii\.gz$/i, "").replace(/\.nii$/i, "").replace(/\.dcm$/i, "");
+          fileQueue.push({ file, subjectId: stem || "" });
+        }
+        renderFileList();
+      }
+
+      browseBtn.addEventListener("click", () => fileInput.click());
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files.length) addFiles(fileInput.files);
+        fileInput.value = "";
+      });
+
+      dropzone.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dropzone.classList.add("border-secondary", "bg-secondary/5");
+      });
+      dropzone.addEventListener("dragleave", () => {
+        dropzone.classList.remove("border-secondary", "bg-secondary/5");
+      });
+      dropzone.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dropzone.classList.remove("border-secondary", "bg-secondary/5");
+        if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+      });
+
+      function showError(message) {
+        formError.textContent = message;
+        formError.classList.remove("hidden");
+      }
+
+      function clearError() {
+        formError.classList.add("hidden");
+        formError.textContent = "";
+      }
+
+      function setRunningUi() {
+        statusPanel.classList.remove("hidden");
+        runBtn.disabled = true;
+        runBtn.classList.add("opacity-50", "cursor-not-allowed");
+        runBtn.innerHTML = `
+          <span class="material-symbols-outlined animate-spin">refresh</span>
+          Processing in background
+        `;
+        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      }
+
+      function resetRunButton() {
+        runBtn.disabled = false;
+        runBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        runBtn.innerHTML = `
+          <span class="material-symbols-outlined">play_arrow</span>
+          Execute processing
+        `;
+      }
+
+      function updateMonitoring(statusData, logData) {
+        const label = document.getElementById("job-status-label");
+        const status = logData?.status || statusData?.status || "queued";
+        label.textContent = status;
+
+        const elapsedEl = document.getElementById("elapsed-label");
+        const elapsed = statusData?.elapsed_seconds ?? logData?.elapsed_seconds;
+        if (elapsed != null) {
+          elapsedEl.textContent = `Elapsed: ${formatDuration(elapsed)}`;
+          elapsedEl.classList.remove("hidden");
+        }
+
+        const batchTotal = statusData?.batch_total || logData?.batch_total || 0;
+        const batchIdx = statusData?.batch_current_index || logData?.batch_current_index || 0;
+        const batchEl = document.getElementById("batch-label");
+        if (batchTotal > 1) {
+          const current = status === "completed" ? batchTotal : Math.max(1, batchIdx);
+          batchEl.textContent = `Scan ${current} of ${batchTotal}`;
+          batchEl.classList.remove("hidden");
+        } else {
+          batchEl.classList.add("hidden");
+        }
+
+        const etaEl = document.getElementById("eta-label");
+        const remaining =
+          statusData?.estimated_remaining_seconds ?? logData?.estimated_remaining_seconds;
+        if (remaining != null && status === "running") {
+          etaEl.textContent = `ETA (heuristic): ${formatDuration(remaining)}`;
+          etaEl.classList.remove("hidden");
+        } else {
+          etaEl.classList.add("hidden");
+        }
+
+        const pid = statusData?.pid ?? logData?.pid;
+        const pidEl = document.getElementById("pid-label");
+        if (pid && status === "running") {
+          pidEl.textContent = `PID ${pid}`;
+          pidEl.classList.remove("hidden");
+        } else {
+          pidEl.classList.add("hidden");
+        }
+
+        if (batchTotal > 1 && batchIdx > 0) {
+          progressBar.style.width = `${Math.min(100, (batchIdx / batchTotal) * 100)}%`;
+        } else {
+          const widths = { queued: "5%", running: "40%", completed: "100%", failed: "100%" };
+          progressBar.style.width = widths[status] || "10%";
+        }
+        if (status === "failed") progressBar.classList.add("bg-error");
+        else progressBar.classList.remove("bg-error");
+
+        const dot = document.getElementById("status-dot");
+        if (status === "completed" || status === "failed") {
+          dot.classList.remove("animate-pulse");
+        }
+      }
+
+      async function pollJob(jobId) {
+        const logData = await NeuroflowApi.fetchJson(
+          `/api/v1/tools/freesurfer/jobs/${jobId}/log`
+        );
+        const statusData = await NeuroflowApi.fetchJson(
+          `/api/v1/tools/freesurfer/jobs/${jobId}`
+        );
+        logOutput.textContent = logData.log || "(waiting for output…)";
+        logOutput.scrollTop = logOutput.scrollHeight;
+        updateMonitoring(statusData, logData);
+
+        if (statusData.command_preview && !logData.log) {
+          logOutput.textContent = `$ ${statusData.command_preview}\n\n`;
+        }
+
+        if (logData.status === "completed" || logData.status === "failed") {
+          clearInterval(pollTimer);
+          pollTimer = null;
+          resetRunButton();
+          if (logData.status === "failed" && statusData.error_message) {
+            logOutput.textContent += `\n${statusData.error_message}`;
+          }
+        }
+      }
+
+      function collectSubjectIds() {
+        if (fileQueue.length === 0) return [];
+        if (fileQueue.length === 1) {
+          const sid =
+            fileQueue[0].subjectId.trim() ||
+            document.getElementById("subject_id").value.trim();
+          return [sid];
+        }
+        return fileQueue.map((item) => item.subjectId.trim());
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearError();
+        if (fileQueue.length === 0) {
+          showError("Select at least one input file before running.");
+          return;
+        }
+
+        const subjectIds = collectSubjectIds();
+        if (subjectIds.some((sid) => !sid)) {
+          showError("Enter a Subject ID for every file in the list.");
+          return;
+        }
+
+        const formData = new FormData();
+        for (const item of fileQueue) {
+          formData.append("files", item.file);
+        }
+        formData.append("subject_ids", JSON.stringify(subjectIds));
+        const reconOptions = document.getElementById("recon_options").value;
+        formData.append("recon_options", reconOptions);
+        if (activeModule?.id) {
+          formData.append("module_id", activeModule.id);
+        }
+
+        setRunningUi();
+        logOutput.textContent = "Submitting job…";
+        updateMonitoring({ status: "queued" }, { status: "queued" });
+
+        try {
+          const { res } = await NeuroflowApi.fetchApi("/api/v1/tools/freesurfer/jobs", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            showError(data.detail || "Failed to start job.");
+            resetRunButton();
+            return;
+          }
+          if (data.command_preview) {
+            logOutput.textContent = `$ ${data.command_preview}\n\n`;
+          }
+          pollTimer = setInterval(() => pollJob(data.job_id), 2000);
+          pollJob(data.job_id);
+        } catch {
+          showError("Could not reach the API. Start the server with NEUROFLOW_SERVE_FRONTEND=1.");
+          resetRunButton();
+        }
+      });
+
+      loadModuleFromQuery();
+    </script>
+  </body>
+</html>

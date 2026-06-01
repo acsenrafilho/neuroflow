@@ -19,32 +19,87 @@ Local development: `http://127.0.0.1:8000`
 }
 ```
 
-### Datasets
+### Tools
 
-`GET /api/v1/datasets`
+`GET /api/v1/tools`
 
-Returns summaries for the dataset at `NEUROFLOW_BIDS_ROOT`.
+Lists registered packages and whether each executable is available on `PATH`.
+
+### Processing modules
+
+`GET /api/v1/modules` (alias: `GET /api/v1/tools/modules`)
+
+Lists package/module rows for the hub table (e.g. FreeSurfer `recon-all (-all)`, `autorecon1`, …).
 
 ```json
 [
   {
-    "name": "sample",
-    "path": "/path/to/data/sample",
-    "subjects": ["01"],
-    "description": "NeuroFlow Sample"
+    "id": "freesurfer-recon-all",
+    "package_id": "freesurfer",
+    "package_name": "FreeSurfer",
+    "module_name": "recon-all (-all)",
+    "description": "Full cortical reconstruction pipeline from T1-weighted MRI.",
+    "page_path": "/tools/freesurfer.html",
+    "recon_options": "all",
+    "estimated_hours_per_scan": 8.0,
+    "coming_soon": false,
+    "available": true
   }
 ]
 ```
+
+```json
+[
+  {
+    "id": "freesurfer",
+    "name": "FreeSurfer",
+    "description": "Cortical reconstruction and volumetric segmentation (recon-all).",
+    "page_path": "/tools/freesurfer.html",
+    "available": true
+  }
+]
+```
+
+### FreeSurfer — create job
+
+`POST /api/v1/tools/freesurfer/jobs`
+
+`multipart/form-data`:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `files` | file[] | One or more `.nii`, `.nii.gz`, or `.dcm` uploads |
+| `subject_ids` | string | JSON array of subject names (`-s`), one per file |
+| `recon_options` | string | `all`, `autorecon1`, `autorecon2`, `autorecon3` |
+| `module_id` | string | Optional; overrides `recon_options` from the module catalog |
+
+Scans run **sequentially** in one job (single `job_id`, shared `run.log`).
+
+Returns `201` with job status, including `command_preview`, `batch_total`, `estimated_total_seconds`, and `elapsed_seconds` when applicable.
+
+### FreeSurfer — job status
+
+`GET /api/v1/tools/freesurfer/jobs/{job_id}`
+
+Includes monitoring fields: `elapsed_seconds`, `pid`, `batch_current_index`, `batch_total`, `estimated_remaining_seconds`, `batch_items`.
+
+### FreeSurfer — job log
+
+`GET /api/v1/tools/freesurfer/jobs/{job_id}/log`
+
+Returns log text, `status`, and the same monitoring fields as status (for polling).
 
 ### Errors
 
 ```json
 {
-  "detail": "Human-readable message",
-  "code": "bids_root_missing",
+  "detail": "recon-all was not found on PATH.",
+  "code": "tool_not_installed",
   "field": null
 }
 ```
+
+Common codes: `validation_error`, `tool_not_installed`, `job_not_found`.
 
 ## Interactive docs
 

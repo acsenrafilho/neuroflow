@@ -2,10 +2,10 @@
 
 ## Requirements
 
-- Python 3.10
+- Python 3.10+
 - [Poetry](https://python-poetry.org/)
 - Node.js 18+ (frontend build)
-- Docker (processing modules)
+- FreeSurfer with `recon-all` available (for the FreeSurfer module)
 
 ## Setup
 
@@ -14,35 +14,37 @@ git clone https://github.com/acsenrafilho/neuroflow.git
 cd neuroflow
 cp .env.example .env
 poetry install
-./scripts/fetch_sample_bids.sh
+cd frontend && npm install && npm run build && cd ..
 ```
 
-## Run the API
+Set `NEUROFLOW_SERVE_FRONTEND=1` in `.env` to serve the built UI from the API process.
+
+## Run the API and UI
 
 ```bash
 poetry run uvicorn neuroflow.api.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Open http://127.0.0.1:8000/docs for interactive OpenAPI documentation.
+- Tool hub: http://127.0.0.1:8000/
+- FreeSurfer module: http://127.0.0.1:8000/tools/freesurfer.html
+- OpenAPI: http://127.0.0.1:8000/docs
 
-## Run the frontend
-
-```bash
-cd frontend
-npm install
-npm run build
-cd dist && python -m http.server 8080
-```
-
-The production UI lives in `frontend/`. Design reference mockups are in `doc/mockup/` and are **not** used by the build.
-
-## Sample BIDS data
-
-`./scripts/fetch_sample_bids.sh` creates a minimal dataset under `data/sample/`. Contents are gitignored except `.gitkeep`.
-
-## Docker smoke test
+## CLI status
 
 ```bash
-docker compose build fsl
-docker compose run --rm fsl
+poetry run neuroflow
 ```
+
+Lists the data root and whether each registered tool binary is on `PATH`.
+
+## Frontend-only (separate port)
+
+```bash
+cd frontend/dist && python -m http.server 8080
+```
+
+Use the API at port 8000; configure CORS origins in `neuroflow/api/main.py` if needed.
+
+## Job data
+
+Uploads and logs are stored under `NEUROFLOW_DATA_ROOT` (default `./data/jobs`). Contents are gitignored except `.gitkeep`.

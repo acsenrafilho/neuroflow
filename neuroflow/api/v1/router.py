@@ -2,8 +2,16 @@
 
 from fastapi import APIRouter
 
-from neuroflow.api.v1 import datasets, health
+from neuroflow.api.v1 import health, tools
+from neuroflow.models.schemas import ModuleInfo
 
 api_router = APIRouter()
 api_router.include_router(health.router)
-api_router.include_router(datasets.router)
+api_router.include_router(tools.router)
+api_router.add_api_route(
+    "/modules",
+    tools.list_processing_modules,
+    methods=["GET"],
+    tags=["tools"],
+    response_model=list[ModuleInfo],
+)

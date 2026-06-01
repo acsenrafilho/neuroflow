@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./src/**/*.{html,js}"],
+  content: ["./src/**/*.{html,js}", "./src/pages/**/*.html"],
   darkMode: "class",
   theme: {
     extend: {
@@ -18,12 +18,17 @@ module.exports = {
         secondary: "#006c46",
         "secondary-container": "#6af9b5",
         "on-secondary-container": "#007149",
+        "on-primary": "#ffffff",
+        "surface-container-highest": "#e0e3e5",
+        outline: "#717781",
+        error: "#ba1a1a",
       },
       fontFamily: {
         "headline-md": ["Manrope", "sans-serif"],
         "headline-xl": ["Manrope", "sans-serif"],
         "body-md": ["Inter", "sans-serif"],
         "label-sm": ["Inter", "sans-serif"],
+        "code-mono": ["ui-monospace", "monospace"],
       },
       fontSize: {
         "headline-md": ["24px", { lineHeight: "32px", fontWeight: "600" }],
@@ -33,6 +38,12 @@ module.exports = {
           "14px",
           { lineHeight: "20px", letterSpacing: "0.02em", fontWeight: "500" },
         ],
+        "code-mono": ["14px", { lineHeight: "20px", fontWeight: "400" }],
+      },
+      borderRadius: {
+        lg: "0.25rem",
+        xl: "0.5rem",
+        full: "0.75rem",
       },
     },
   },

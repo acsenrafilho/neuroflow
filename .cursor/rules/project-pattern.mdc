@@ -5,9 +5,9 @@ alwaysApply: true
 
 # NeuroFlow — Core Standards
 
-NeuroFlow is a **facilitation portal** for neuroscience medical image processing. Optimize UX/UI for **reading, writing, and manipulating neuroimaging data**, especially **MRI**.
+NeuroFlow is a **facilitation portal** for neuroscience medical image processing: **one web page per CLI tool** (upload, parameters, run, logs). Optimize UX for configuring and launching a **single** neuroimaging program at a time.
 
-- Prefer clarity over feature density; surface BIDS metadata (subject, session, modality, pipeline status) alongside volumes.
+- Prefer clarity over feature density; show subject ID, job status, and CLI preview alongside uploads.
 - Treat data as sensitive: no PHI in logs; least-privilege access; document handling assumptions.
 - **English only** for code, comments, docstrings, commits, and API schemas. UI copy defaults to English.
 
@@ -16,17 +16,15 @@ NeuroFlow is a **facilitation portal** for neuroscience medical image processing
 - Small, focused changes; match existing layout.
 - No secrets in git; use `.env` + `.env.example`.
 - Document licenses for third-party neuroimaging tools.
-- Update tests and user-visible docs (`assets/DESIGN.md`, `doc/mockup/`) when behavior changes.
+- Update tests and user-visible docs (`assets/DESIGN.md`, `frontend/src/pages/`) when behavior changes.
 
 ## Specialized rules (apply by file type)
 
 | Rule | When |
 |------|------|
-| `bids.mdc` | BIDS datasets, derivatives, layout code |
 | `backend.mdc` | Python, API, Poetry |
-| `frontend.mdc` | HTML/CSS, mockups, design system |
-| `docker.mdc` | Processing images and orchestration |
+| `frontend.mdc` | HTML/CSS, design system |
 
 ## Stack (summary)
 
-BIDS data · Poetry + FastAPI · HTML/Tailwind · Docker pipelines · pytest · Rich · NiBabel/pybids
+Poetry + FastAPI · HTML/Tailwind · host subprocess (allowlisted CLIs) · pytest · Rich · job data on disk under `data/jobs/`

@@ -1,1 +1,0 @@
-"""BIDS dataset layout helpers."""

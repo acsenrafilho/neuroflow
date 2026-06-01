@@ -2,11 +2,13 @@
 
 Design patterns, reusable components, and UI guidelines for NeuroFlow mockups and frontend pages.
 
-NeuroFlow is a **facilitation portal** for neuroscience medical image processing. The interface should prioritize **reading, writing, and manipulating neuroimaging data**, especially **MRI**, with clear BIDS-oriented metadata (subject, session, modality, pipeline status) shown alongside volumes and derivatives.
+NeuroFlow is a **facilitation portal** for neuroscience medical image processing: **one web module per CLI tool**. Each tool page covers upload, parameters, command preview, execution status, and logs.
 
-**Stack:** plain HTML/CSS, **Tailwind CSS** (CDN in mockups), **Material Design 3 (MD3)** tokens, **Inter** + **Manrope**, **Material Symbols Outlined**.
+**Stack:** plain HTML/CSS, **Tailwind CSS** (built in `frontend/`), **Material Design 3 (MD3)** tokens, **Inter** + **Manrope**, **Material Symbols Outlined**.
 
-**Reference mockups:** `doc/mockup/` (`home.html`, `data-import.html`, `pipelines.html`, `data-visualization.html`).
+**Production pages:** `frontend/src/pages/index.html` (hub), `frontend/src/pages/tools/freesurfer.html` (reference tool module).
+
+**Legacy mockups:** `doc/mockup/` (older portal concepts; do not use `pipelines.html` — removed).
 
 **Project standards:** `.cursor/rules/project-pattern.mdc`.
 
@@ -30,7 +32,7 @@ NeuroFlow is a **facilitation portal** for neuroscience medical image processing
 ## Design principles
 
 - **Clarity over density** — workflows should be obvious to researchers and clinicians.
-- **Data-first** — tables, labels, and status chips for BIDS entities (`sub-*`, `ses-*`, modalities, run state) before decorative UI.
+- **Data-first** — subject ID, job status, and CLI output before decorative UI.
 - **English UI copy** by default; localization may be added later.
 - **Accessible defaults** — semantic HTML, visible labels, keyboard-friendly forms and tables.
 - **Simple frontend** — no heavy SPA unless explicitly required; reuse shared chrome (sidebar, top bar) across pages.
@@ -64,7 +66,7 @@ NeuroFlow uses **Material Design 3** with custom color tokens defined in each pa
 │  ├─ Docs / Settings            │                    │
 │  └─ Profile                    │                    │
 ├─────────────────────────────────────────────────────┤
-│  MAIN (ml-64, pt-24, max-width 960px, centered)     │
+│  MAIN (ml-64, pt-24, max-width 1400px, centered)      │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -72,18 +74,27 @@ NeuroFlow uses **Material Design 3** with custom color tokens defined in each pa
 
 | Region | Tailwind / size |
 |--------|------------------|
-| Sidebar | `w-64`, `h-full`, `fixed left-0 top-0`, `py-6`, `border-r border-outline-variant` |
+| Sidebar | `w-64`, `h-full`, `fixed left-0 top-0`, `py-6`, `border-r border-outline-variant`; logo `/assets/neuroflow_logo.png` |
 | Top bar | `h-16`, `fixed top-0 right-0`, `w-[calc(100%-16rem)]`, `px-8` |
-| Main | `ml-64 pt-24 pb-16 px-10`, inner `max-w-[960px] mx-auto` |
+| Hub main | `ml-64 pt-24 pb-16 px-12`, inner `max-w-[1400px] mx-auto` |
+| Tool page main | `max-w-[800px]` centered (unchanged) |
 
-### Primary navigation (mockups)
+### Tool module page (production pattern)
 
-| Label | Mockup file | Purpose |
-|-------|-------------|---------|
-| Home | `home.html` | Overview |
-| Data Import | `data-import.html` | BIDS dataset intake |
-| Pipeline Config | `pipelines.html` | Processing setup |
-| Analysis Results | `data-visualization.html` | Outputs / previews |
+Reference: `frontend/src/pages/tools/freesurfer.html`.
+
+| Section | Purpose |
+|---------|---------|
+| Top nav | Logo, module name, link back to hub (no API docs link on tool pages) |
+| Header | Package/module title, summary, **Official documentation** button (external project site) |
+| Input | Multi-file drag-and-drop; per-file Subject ID table when batching |
+| Configuration | Simple CLI flags only (e.g. recon stage when not fixed via `?module=`) |
+| Execute | Primary CTA; heuristic `N × hours` estimate below button |
+| Status panel | Log tail, elapsed time, batch position, heuristic ETA, PID |
+
+Hub (`index.html`) table columns: **Package** | **Module** | Description | Status | Action. Rows from `GET /api/v1/modules`; action links to `/tools/<page>?module=<id>`. Toolbar: global search, per-column filters (package, module, status), sortable headers. Shared chrome via `frontend/src/js/hub-layout.js`.
+
+Package pages (`frontend/src/pages/packages/<id>.html`): list modules for one package; sidebar highlights package; FreeSurfer links to official docs.
 
 ---
 
@@ -420,5 +431,8 @@ Use when adding or updating pages under `doc/mockup/`:
 |------|--------|--------|
 | 2026-05-08 | Tim | Initial design system; sidebar/top bar; components |
 | 2026-05-15 | — | English documentation; alignment with project standards; MD3 token examples; BIDS-oriented UX notes |
+| 2026-06-01 | — | Simplified to one-page-per-tool modules; production reference `frontend/src/pages/tools/freesurfer.html`; removed pipeline configurator pattern |
+| 2026-06-01 | — | Hub Package/Module table; batch upload; official docs button; job monitoring fields |
+| 2026-06-01 | — | Wider hub (`max-w-[1400px]`); PNG logo; package pages; modules table filters and sort |
 
-**Last updated:** 2026-05-15
+**Last updated:** 2026-06-01

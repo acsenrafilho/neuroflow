@@ -1,4 +1,4 @@
-import { cpSync, mkdirSync, existsSync } from "node:fs";
+import { cpSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -8,7 +8,9 @@ const assetsDist = join(dist, "assets");
 
 mkdirSync(assetsDist, { recursive: true });
 cpSync(join(root, "src/pages"), dist, { recursive: true });
-cpSync(
-  join(root, "..", "assets", "images", "neuroflow_logo.svg"),
-  join(assetsDist, "neuroflow_logo.svg"),
-);
+const jsDist = join(dist, "js");
+mkdirSync(jsDist, { recursive: true });
+cpSync(join(root, "src/js"), jsDist, { recursive: true });
+const repoAssets = join(root, "..", "assets", "images");
+cpSync(join(repoAssets, "neuroflow_logo.svg"), join(assetsDist, "neuroflow_logo.svg"));
+cpSync(join(repoAssets, "neuroflow_logo.png"), join(assetsDist, "neuroflow_logo.png"));

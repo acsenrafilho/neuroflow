@@ -22,23 +22,22 @@ make docs       # mkdocs serve
 
 ## Python version
 
-The project pins **Python 3.10** (`>=3.10,<3.11` in `pyproject.toml`). Plan an upgrade to 3.11+ before deploying to environments where 3.10 is unavailable (3.10 EOL: October 2026).
+The project requires **Python 3.10+** (`>=3.10` in `pyproject.toml`).
 
 ## Project packages
 
 ```
 neuroflow/
   api/          # FastAPI routes
-  bids/         # pybids helpers
-  pipelines/    # Docker orchestration (future)
-  services/     # Business logic
+  tools/        # Per-tool argv builders and registry
+  services/     # Job storage on disk
   models/       # Pydantic schemas
 ```
 
 ## Frontend vs mockups
 
 - `frontend/` — built with Tailwind CLI; ship to `frontend/dist/`
-- `doc/mockup/` — static design references (CDN Tailwind); do not import into the build
+- `doc/mockup/` — legacy static design references; not used by the build
 
 ## Pre-commit
 

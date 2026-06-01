@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroFlow | ANTs</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-background font-body-md text-on-surface antialiased">
+    <aside id="hub-sidebar"></aside>
+    <header id="hub-header"></header>
+
+    <main class="ml-64 min-h-screen px-12 pb-16 pt-24">
+      <div class="mx-auto w-full max-w-[1400px] space-y-8">
+        <header class="flex flex-col gap-4">
+          <div class="flex flex-col gap-2">
+            <h1 class="font-headline-xl text-primary-container" id="package-title">ANTs</h1>
+            <p class="max-w-3xl text-on-surface-variant" id="package-summary">Loading…</p>
+          </div>
+          <div id="package-docs" class="hidden flex flex-wrap items-center gap-3"></div>
+        </header>
+
+        <div
+          id="package-coming-soon-banner"
+          class="hidden rounded-xl border border-outline-variant bg-surface-container-low px-6 py-4 text-sm text-on-surface-variant"
+        >
+          This package is not yet available in NeuroFlow. Module entries below are placeholders.
+        </div>
+
+        <section
+          class="overflow-hidden rounded-xl border border-outline-variant/60 bg-surface-container-lowest shadow-sm"
+        >
+          <div
+            class="flex items-center justify-between border-b border-outline-variant bg-surface-container-low px-6 py-4"
+          >
+            <h2 class="font-headline-md text-on-surface">Modules in this package</h2>
+            <span class="font-label-sm text-on-surface-variant" id="package-modules-count">Loading…</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-left text-sm">
+              <thead
+                class="bg-surface-container-low/80 text-xs uppercase tracking-wider text-on-surface-variant"
+              >
+                <tr>
+                  <th class="px-6 py-3 font-semibold">Module</th>
+                  <th class="px-6 py-3 font-semibold">Description</th>
+                  <th class="px-6 py-3 font-semibold">Status</th>
+                  <th class="px-6 py-3 font-semibold">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-outline-variant/40" id="package-modules-body">
+                <tr>
+                  <td class="px-6 py-8 text-center text-on-surface-variant" colspan="4">
+                    Loading modules…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script>window.PACKAGE_ID = "ants";</script>
+    <script src="/js/neuroflow-api.js"></script>
+    <script src="/js/hub-layout.js"></script>
+    <script src="/js/package-page.js"></script>
+  </body>
+</html>

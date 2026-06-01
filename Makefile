@@ -1,4 +1,4 @@
-.PHONY: install test lint api frontend-build docs sample-bids
+.PHONY: install test lint api frontend-build docs
 
 install:
 	poetry install
@@ -20,7 +20,3 @@ frontend-build:
 docs:
 	poetry install --with docs
 	poetry run mkdocs serve
-
-sample-bids:
-	chmod +x scripts/fetch_sample_bids.sh
-	./scripts/fetch_sample_bids.sh

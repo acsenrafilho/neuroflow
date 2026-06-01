@@ -1,13 +1,14 @@
 # NeuroFlow
 
-NeuroFlow is a **facilitation portal** for neuroscience medical image processing. Researchers use it to browse **BIDS** datasets, configure pipelines, and inspect derivatives—without running heavy compute inside the web server.
+NeuroFlow is a **facilitation portal** for neuroscience medical image processing: **one web page per CLI tool** (FreeSurfer today; more tools via the same pattern).
 
-## Features (roadmap)
+## Features
 
-- BIDS-aware dataset browser (`sub-*`, `ses-*`, modalities)
-- Containerized pipelines (FSL, ANTs, and more)
-- Plain HTML + Tailwind frontend aligned with Material Design 3
+- Tool hub and per-tool parameter forms
+- Multipart upload and on-disk job folders
+- Allowlisted subprocess execution with streamed logs
 - FastAPI backend with OpenAPI contract
+- Plain HTML + Tailwind frontend
 
 ## Quick links
 

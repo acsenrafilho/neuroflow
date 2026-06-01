@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -18,12 +18,20 @@ from neuroflow.models.schemas import ErrorDetail
 app = FastAPI(
     title="NeuroFlow API",
     version=__version__,
-    description="Facilitation portal API for BIDS-oriented neuroimaging workflows.",
+    description="Web API for per-tool neuroimaging CLI jobs (upload, run, logs).",
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:8080", "http://localhost:8080"],
+    allow_origins=[
+        "http://127.0.0.1:8080",
+        "http://localhost:8080",
+        "http://127.0.0.1:5500",
+        "http://localhost:5500",
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+    ],
+    allow_origin_regex=r"https?://(127\.0\.0\.1|localhost)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -64,6 +72,11 @@ def mount_frontend_if_enabled() -> None:
         app.mount("/", StaticFiles(directory=str(dist), html=True), name="frontend")
 
 
-@app.get("/")
-async def root() -> dict[str, str]:
+@app.get("/", response_model=None)
+async def root():
+    settings = get_cached_settings()
+    if settings.neuroflow_serve_frontend:
+        index = Path("frontend/dist/index.html")
+        if index.is_file():
+            return FileResponse(index)
     return {"service": "neuroflow", "docs": "/docs", "api": "/api/v1/health"}
