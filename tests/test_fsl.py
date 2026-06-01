@@ -110,6 +110,37 @@ def test_output_prefix_for_batch(work_dir: Path) -> None:
     assert prefix == "result_sub-001_T1w"
 
 
+def test_batch_meta_matches_batch_item_status_schema(work_dir: Path) -> None:
+    from neuroflow.config import Settings
+    from neuroflow.services.job_monitoring import batch_items_from_meta
+    from neuroflow.services.jobs import JobStore
+
+    settings = Settings()
+    store = JobStore(settings)
+    job_id = store.create_job("fsl", {"module_id": "fsl-bet"})
+    input_path = work_dir / "sub-001_T1w.nii.gz"
+    input_path.write_bytes(b"x")
+
+    from neuroflow.tools.fsl import launch_fsl_job
+
+    with patch("neuroflow.tools.fsl._run_one_fsl", return_value=0):
+        launch_fsl_job(
+            settings=settings,
+            store=store,
+            job_id=job_id,
+            module_id="fsl-bet",
+            batch_items=[{ROLE_INPUT: input_path}],
+            output_prefix="brain",
+            parameters={},
+        )
+
+    meta = store.read_meta("fsl", job_id)
+    items = batch_items_from_meta(meta)
+    assert len(items) == 1
+    assert items[0].filename == "sub-001_T1w.nii.gz"
+    assert items[0].subject_id == "sub-001_T1w"
+
+
 @patch("neuroflow.api.v1.tools.launch_fsl_job")
 def test_create_fsl_batch_job_api(mock_launch: object, client: TestClient) -> None:
     def _fake(**kwargs: object) -> list[str]:

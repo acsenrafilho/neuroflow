@@ -167,6 +167,15 @@ class FslJobParams(BaseModel):
         return cleaned
 
 
+def subject_id_from_filename(filename: str) -> str:
+    """Derive a safe batch label from an input filename (for BatchItemStatus)."""
+    stem = strip_nifti_extension(filename)
+    cleaned = stem.strip().replace(" ", "_")
+    if cleaned and cleaned.replace("_", "").replace("-", "").isalnum():
+        return cleaned[:64]
+    return "run"
+
+
 def strip_nifti_extension(name: str) -> str:
     """Return basename without .nii or .nii.gz (case-insensitive)."""
     base = Path(name.strip()).name
@@ -711,10 +720,11 @@ def launch_fsl_job(
     for index, item_files in enumerate(batch_items):
         driver = _MODULE_BATCH_DRIVER.get(module_id)
         label_path = item_files.get(driver or required_roles(module_id)[0])
+        filename = label_path.name if label_path else f"run-{index + 1}"
         batch_meta.append(
             {
-                "index": index + 1,
-                "label": label_path.name if label_path else f"run-{index + 1}",
+                "filename": filename,
+                "subject_id": subject_id_from_filename(filename),
                 "status": "pending",
                 "started_at": None,
                 "finished_at": None,
@@ -742,7 +752,6 @@ def launch_fsl_job(
                 )
             ),
             "output_path_kind": output_path_kind(module_id),
-            "batch_total": batch_total,
             **parameters,
         },
         batch_items=batch_meta,

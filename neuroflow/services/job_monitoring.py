@@ -35,7 +35,26 @@ def estimated_remaining_seconds(meta: dict[str, Any]) -> int | None:
 
 def batch_items_from_meta(meta: dict[str, Any]) -> list[BatchItemStatus]:
     raw = meta.get("batch_items") or []
-    return [BatchItemStatus.model_validate(item) for item in raw]
+    normalized: list[dict[str, Any]] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        if "filename" in item and "subject_id" in item:
+            normalized.append(item)
+            continue
+        # Legacy FSL batch entries used index/label only.
+        label = item.get("label") or item.get("filename") or f"run-{item.get('index', 0)}"
+        normalized.append(
+            {
+                "filename": str(label),
+                "subject_id": str(item.get("subject_id") or label),
+                "status": item.get("status", "pending"),
+                "started_at": item.get("started_at"),
+                "finished_at": item.get("finished_at"),
+                "error_message": item.get("error_message"),
+            }
+        )
+    return [BatchItemStatus.model_validate(item) for item in normalized]
 
 
 def enrich_status(meta: dict[str, Any], base: JobStatusResponse) -> JobStatusResponse:

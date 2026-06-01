@@ -1,3 +1,7 @@
+#Local files
+data/*
+data/jobs/*
+
 # Environment
 .env
 .env.local
