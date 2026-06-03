@@ -18,12 +18,44 @@ const DIM_PARAM = {
   step: 1,
 };
 
+const VERBOSE_PARAM = {
+  name: "verbose",
+  label: "Verbose (-v)",
+  type: "select",
+  default: "1",
+  group: "advanced",
+  options: [
+    { value: "0", label: "Off" },
+    { value: "1", label: "On" },
+  ],
+};
+
+const SYN_TRANSFORM_OPTIONS = [
+  { value: "t", label: "Translation (t)" },
+  { value: "r", label: "Rigid (r)" },
+  { value: "a", label: "Rigid + affine (a)" },
+  { value: "s", label: "Rigid + affine + SyN (s)" },
+  { value: "sr", label: "Rigid + SyN (sr)" },
+  { value: "so", label: "SyN only (so)" },
+  { value: "b", label: "Rigid + affine + B-spline SyN (b)" },
+  { value: "br", label: "Rigid + B-spline SyN (br)" },
+  { value: "bo", label: "B-spline SyN only (bo)" },
+];
+
 const NIFTI_INPUT = (label, role = "input", multiple = true) => ({
   role,
   label,
   required: true,
   accept: ".nii,.nii.gz",
   multiple,
+});
+
+const OPTIONAL_NIFTI = (label, role) => ({
+  role,
+  label,
+  required: false,
+  accept: ".nii,.nii.gz",
+  multiple: false,
 });
 
 const ANTS_MODULES = {
@@ -36,7 +68,10 @@ const ANTS_MODULES = {
     docsLabel: "N4BiasFieldCorrection — ANTs wiki",
     estimatedHours: 0.25,
     prerequisites: [],
-    inputs: [NIFTI_INPUT("Input image (NIfTI)")],
+    inputs: [
+      NIFTI_INPUT("Input image (NIfTI)"),
+      OPTIONAL_NIFTI("Mask image (-x, optional)", "mask"),
+    ],
     params: [
       DIM_PARAM,
       { name: "shrink_factor", label: "Shrink factor (-s)", type: "number", default: 4 },
@@ -47,12 +82,37 @@ const ANTS_MODULES = {
         type: "text",
         default: "50x50x50x50,0.0",
       },
+      {
+        name: "rescale_intensities",
+        label: "Rescale intensities (-r)",
+        type: "checkbox",
+        default: false,
+        group: "advanced",
+      },
+      {
+        name: "histogram_sharpening",
+        label: "Histogram sharpening (-t)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "spline_order",
+        label: "B-spline order (-b)",
+        type: "number",
+        default: 3,
+        min: 1,
+        max: 5,
+        group: "advanced",
+      },
+      VERBOSE_PARAM,
     ],
+    advancedInputs: [OPTIONAL_NIFTI("Weight image (-w, optional)", "weight")],
   },
   "ants-registration": {
     moduleName: "antsRegistration",
     cliExecutable: "antsRegistration",
-    summary: "Registration with rigid, affine, or SyN preset (simplified portal parameters).",
+    summary: "Registration with rigid, affine, or SyN preset and configurable metric.",
     docsUrl: REG_WIKI,
     docsLabel: "antsRegistration — ANTs wiki",
     estimatedHours: 1,
@@ -60,9 +120,17 @@ const ANTS_MODULES = {
     inputs: [
       NIFTI_INPUT("Fixed image", "fixed", false),
       NIFTI_INPUT("Moving image", "moving", false),
+      OPTIONAL_NIFTI("Fixed mask (-x)", "fixed_mask"),
+      OPTIONAL_NIFTI("Moving mask (-x)", "moving_mask"),
     ],
     params: [
       DIM_PARAM,
+      {
+        name: "metric",
+        label: "Metric (-m)",
+        type: "text",
+        default: "MI[{fixed},{moving},1,32]",
+      },
       {
         name: "transform_preset",
         label: "Transform preset (-t)",
@@ -92,12 +160,59 @@ const ANTS_MODULES = {
         type: "text",
         default: "2x1x0vox",
       },
+      {
+        name: "transform",
+        label: "Custom transform (-t, overrides preset)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "interpolation",
+        label: "Interpolation (-n)",
+        type: "select",
+        default: "Linear",
+        group: "advanced",
+        options: [
+          { value: "Linear", label: "Linear" },
+          { value: "BSpline", label: "BSpline" },
+          { value: "NearestNeighbor", label: "NearestNeighbor" },
+        ],
+      },
+      {
+        name: "histogram_matching",
+        label: "Histogram matching (-u)",
+        type: "checkbox",
+        default: false,
+        group: "advanced",
+      },
+      {
+        name: "winsorize",
+        label: "Winsorize intensities (-w)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "random_seed",
+        label: "Random seed (--random-seed)",
+        type: "number",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "use_float",
+        label: "Use float precision (--float)",
+        type: "checkbox",
+        default: false,
+        group: "advanced",
+      },
     ],
   },
   "ants-apply-transforms": {
     moduleName: "antsApplyTransforms",
     cliExecutable: "antsApplyTransforms",
-    summary: "Apply a transform to warp a moving image into reference space.",
+    summary: "Apply one or more transforms to warp a moving image into reference space.",
     docsUrl: WARP_WIKI,
     docsLabel: "Warping — ANTs wiki",
     estimatedHours: 0.1,
@@ -117,8 +232,57 @@ const ANTS_MODULES = {
         accept: ".mat,.nii,.nii.gz,.txt",
         multiple: false,
       },
+      {
+        role: "transform2",
+        label: "Additional transform 2 (-t, optional)",
+        required: false,
+        accept: ".mat,.nii,.nii.gz,.txt",
+        multiple: false,
+      },
+      {
+        role: "transform3",
+        label: "Additional transform 3 (-t, optional)",
+        required: false,
+        accept: ".mat,.nii,.nii.gz,.txt",
+        multiple: false,
+      },
     ],
-    params: [DIM_PARAM, { name: "linear", label: "Linear interpolation (-n Linear)", type: "checkbox", default: false }],
+    params: [
+      DIM_PARAM,
+      {
+        name: "interpolation",
+        label: "Interpolation (-n)",
+        type: "select",
+        default: "Linear",
+        options: [
+          { value: "Linear", label: "Linear" },
+          { value: "BSpline", label: "BSpline" },
+          { value: "Gaussian", label: "Gaussian" },
+          { value: "NearestNeighbor", label: "NearestNeighbor" },
+        ],
+      },
+      {
+        name: "default_value",
+        label: "Default value (-f)",
+        type: "number",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "output_data_type",
+        label: "Output data type (-u)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "verbose",
+        label: "Verbose (-v)",
+        type: "checkbox",
+        default: false,
+        group: "advanced",
+      },
+    ],
   },
   "ants-registration-syn": {
     moduleName: "antsRegistrationSyN",
@@ -131,6 +295,13 @@ const ANTS_MODULES = {
     inputs: [
       NIFTI_INPUT("Fixed image", "fixed", false),
       NIFTI_INPUT("Moving image", "moving", false),
+      {
+        role: "initial_transform",
+        label: "Initial transform (-i, optional)",
+        required: false,
+        accept: ".mat,.nii,.nii.gz,.txt",
+        multiple: false,
+      },
     ],
     params: [
       DIM_PARAM,
@@ -139,11 +310,15 @@ const ANTS_MODULES = {
         label: "Transform type (-t)",
         type: "select",
         default: "s",
-        options: [
-          { value: "s", label: "SyN (s)" },
-          { value: "so", label: "SyN only (so)" },
-          { value: "b", label: "Both (b)" },
-        ],
+        options: SYN_TRANSFORM_OPTIONS,
+      },
+      {
+        name: "n_threads",
+        label: "Number of threads (-n)",
+        type: "number",
+        default: "",
+        min: 1,
+        group: "advanced",
       },
     ],
   },
@@ -158,6 +333,13 @@ const ANTS_MODULES = {
     inputs: [
       NIFTI_INPUT("Fixed image", "fixed", false),
       NIFTI_INPUT("Moving image", "moving", false),
+      {
+        role: "initial_transform",
+        label: "Initial transform (-i, optional)",
+        required: false,
+        accept: ".mat,.nii,.nii.gz,.txt",
+        multiple: false,
+      },
     ],
     params: [
       DIM_PARAM,
@@ -166,11 +348,15 @@ const ANTS_MODULES = {
         label: "Transform type (-t)",
         type: "select",
         default: "s",
-        options: [
-          { value: "s", label: "SyN (s)" },
-          { value: "r", label: "Rigid (r)" },
-          { value: "a", label: "Affine (a)" },
-        ],
+        options: SYN_TRANSFORM_OPTIONS,
+      },
+      {
+        name: "n_threads",
+        label: "Number of threads (-n)",
+        type: "number",
+        default: "",
+        min: 1,
+        group: "advanced",
       },
     ],
   },
@@ -187,18 +373,61 @@ const ANTS_MODULES = {
     ],
     inputs: [
       NIFTI_INPUT("Input image"),
-      {
-        role: "mask",
-        label: "Brain mask (optional)",
-        required: false,
-        accept: ".nii,.nii.gz",
-        multiple: false,
-      },
+      OPTIONAL_NIFTI("Brain mask (-x, optional)", "mask"),
     ],
     params: [
       DIM_PARAM,
-      { name: "n_iterations", label: "Iterations (-i)", type: "number", default: 5 },
-      { name: "n_classes", label: "Classes (-c)", type: "number", default: 3 },
+      {
+        name: "initialization",
+        label: "Initialization (-i)",
+        type: "select",
+        default: "Random",
+        options: [
+          { value: "Random", label: "Random" },
+          { value: "KMeans", label: "KMeans" },
+          { value: "Otsu", label: "Otsu" },
+        ],
+      },
+      { name: "n_classes", label: "Number of classes", type: "number", default: 3, min: 2 },
+      {
+        name: "convergence",
+        label: "Convergence (-c)",
+        type: "text",
+        default: "5,0.001",
+      },
+      {
+        name: "likelihood_model",
+        label: "Likelihood model (-k)",
+        type: "select",
+        default: "Gaussian",
+        group: "advanced",
+        options: [
+          { value: "Gaussian", label: "Gaussian" },
+          { value: "MultivariateGaussian", label: "MultivariateGaussian" },
+        ],
+      },
+      {
+        name: "mrf",
+        label: "MRF smoothing (-m)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "posterior_formulation",
+        label: "Posterior formulation (-p)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "bspline",
+        label: "B-spline (-b)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      VERBOSE_PARAM,
     ],
   },
   "ants-image-math": {
@@ -226,9 +455,20 @@ const ANTS_MODULES = {
           { value: "Sigma", label: "Sigma" },
           { value: "PadImage", label: "PadImage" },
           { value: "Sharpen", label: "Sharpen" },
+          { value: "D", label: "D" },
+          { value: "M", label: "M" },
+          { value: "G", label: "Gradient magnitude (G)" },
+          { value: "L", label: "Laplacian (L)" },
+          { value: "MorphologicalGradient", label: "MorphologicalGradient" },
+          { value: "Dilate", label: "Dilate" },
+          { value: "Erode", label: "Erode" },
+          { value: "GetLargestComponent", label: "GetLargestComponent" },
+          { value: "TruncateImageIntensity", label: "TruncateImageIntensity" },
+          { value: "ReflectImage", label: "ReflectImage" },
+          { value: "ExtractSlice", label: "ExtractSlice" },
         ],
       },
-      { name: "operand", label: "Optional operand", type: "text", default: "" },
+      { name: "operand", label: "Optional operand", type: "text", default: "", group: "advanced" },
     ],
   },
   "ants-sccan": {
@@ -240,8 +480,41 @@ const ANTS_MODULES = {
     docsLabel: "ANTs wiki",
     estimatedHours: 0.5,
     prerequisites: [],
-    inputs: [NIFTI_INPUT("Input image or matrix")],
-    params: [{ name: "sparse", label: "Sparsity (--sparse)", type: "number", default: 0.05, step: 0.01 }],
+    inputs: [
+      NIFTI_INPUT("Input image or matrix"),
+      OPTIONAL_NIFTI("Mask (--mask, optional)", "mask"),
+    ],
+    params: [
+      { name: "sparse", label: "Sparsity (--sparse)", type: "number", default: 0.05, step: 0.01 },
+      {
+        name: "n_permutations",
+        label: "Permutations (-p)",
+        type: "number",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "iterations",
+        label: "Iterations (-i)",
+        type: "number",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "n_eigenvectors",
+        label: "Eigenvectors (-n)",
+        type: "number",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "smoother",
+        label: "Smoother (-s)",
+        type: "number",
+        default: "",
+        group: "advanced",
+      },
+    ],
   },
   "ants-kelly-kapowski": {
     moduleName: "KellyKapowski",
@@ -252,10 +525,43 @@ const ANTS_MODULES = {
     docsLabel: "ANTs wiki",
     estimatedHours: 1,
     prerequisites: [
-      { text: "Skull-stripped segmentation and preprocessing are recommended first.", moduleId: "ants-brain-extraction" },
+      {
+        text: "Skull-stripped segmentation and preprocessing are recommended first.",
+        moduleId: "ants-brain-extraction",
+      },
     ],
-    inputs: [NIFTI_INPUT("Segmentation / structural input")],
-    params: [DIM_PARAM],
+    inputs: [
+      NIFTI_INPUT("Segmentation / structural input"),
+      OPTIONAL_NIFTI("Gray matter probability (-g)", "gray_matter"),
+      OPTIONAL_NIFTI("White matter probability (-w)", "white_matter"),
+    ],
+    params: [
+      DIM_PARAM,
+      {
+        name: "convergence",
+        label: "Convergence (-c)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "gradient_step",
+        label: "Gradient step (-r)",
+        type: "number",
+        default: "",
+        step: 0.01,
+        group: "advanced",
+      },
+      {
+        name: "smoothing_variance",
+        label: "Smoothing variance (-l)",
+        type: "number",
+        default: "",
+        step: 0.1,
+        group: "advanced",
+      },
+      VERBOSE_PARAM,
+    ],
   },
   "ants-motion-corr": {
     moduleName: "antsMotionCorr",
@@ -267,7 +573,70 @@ const ANTS_MODULES = {
     estimatedHours: 0.25,
     prerequisites: [],
     inputs: [NIFTI_INPUT("4D series (NIfTI)")],
-    params: [DIM_PARAM],
+    params: [
+      DIM_PARAM,
+      {
+        name: "n_images",
+        label: "Images for template (-n)",
+        type: "number",
+        default: "",
+        min: 1,
+      },
+      {
+        name: "use_histogram_matching",
+        label: "Histogram matching",
+        type: "checkbox",
+        default: false,
+      },
+      {
+        name: "metric",
+        label: "Metric (-m)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "transform",
+        label: "Transform (-t)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "iterations",
+        label: "Iterations (-i)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "shrink_factors",
+        label: "Shrink factors (-f)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "smoothing_sigmas",
+        label: "Smoothing sigmas (-s)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "interpolation",
+        label: "Interpolation (-p)",
+        type: "select",
+        default: "Linear",
+        group: "advanced",
+        options: [
+          { value: "Linear", label: "Linear" },
+          { value: "NearestNeighbor", label: "NearestNeighbor" },
+          { value: "BSpline", label: "BSpline" },
+        ],
+      },
+      VERBOSE_PARAM,
+    ],
   },
   "ants-denoise": {
     moduleName: "DenoiseImage",
@@ -278,7 +647,10 @@ const ANTS_MODULES = {
     docsLabel: "ANTs wiki",
     estimatedHours: 0.1,
     prerequisites: [],
-    inputs: [NIFTI_INPUT("Input image")],
+    inputs: [
+      NIFTI_INPUT("Input image"),
+      OPTIONAL_NIFTI("Mask (-x, optional)", "mask"),
+    ],
     params: [
       DIM_PARAM,
       {
@@ -291,6 +663,31 @@ const ANTS_MODULES = {
           { value: "Gaussian", label: "Gaussian" },
         ],
       },
+      {
+        name: "shrink_factor",
+        label: "Shrink factor (-s)",
+        type: "number",
+        default: "",
+        min: 1,
+        group: "advanced",
+      },
+      {
+        name: "patch_radius",
+        label: "Patch radius (-p)",
+        type: "number",
+        default: "",
+        min: 1,
+        group: "advanced",
+      },
+      {
+        name: "search_radius",
+        label: "Search radius (-r)",
+        type: "number",
+        default: "",
+        min: 1,
+        group: "advanced",
+      },
+      VERBOSE_PARAM,
     ],
   },
   "ants-transform-info": {
@@ -310,7 +707,7 @@ const ANTS_MODULES = {
         multiple: false,
       },
     ],
-    params: [],
+    params: [VERBOSE_PARAM],
   },
   "ants-jacobian": {
     moduleName: "CreateJacobianDeterminantImage",
@@ -319,7 +716,12 @@ const ANTS_MODULES = {
     docsUrl: WARP_WIKI,
     docsLabel: "ANTs wiki — warps",
     estimatedHours: 0.1,
-    prerequisites: [{ text: "Run registration first to obtain a warp field.", moduleId: "ants-registration-syn-quick" }],
+    prerequisites: [
+      {
+        text: "Run registration first to obtain a warp field.",
+        moduleId: "ants-registration-syn-quick",
+      },
+    ],
     inputs: [
       {
         role: "transform",
@@ -331,18 +733,38 @@ const ANTS_MODULES = {
     ],
     params: [
       DIM_PARAM,
-      { name: "do_log", label: "Log Jacobian (1=yes)", type: "number", default: 1, min: 0, max: 1 },
+      { name: "do_log", label: "Log Jacobian", type: "number", default: 0, min: 0, max: 1 },
+      {
+        name: "use_geometric",
+        label: "Use geometric Jacobian",
+        type: "number",
+        default: 0,
+        min: 0,
+        max: 1,
+        group: "advanced",
+      },
+      {
+        name: "deformation_gradient",
+        label: "Output deformation gradient matrix",
+        type: "checkbox",
+        default: false,
+        group: "advanced",
+      },
     ],
   },
   "ants-cortical-thickness": {
     moduleName: "antsCorticalThickness",
     cliExecutable: "antsCorticalThickness.sh",
     summary: "Cortical thickness pipeline (requires template, brain, and mask uploads).",
-    docsUrl: "https://github.com/ANTsX/ANTs/wiki/antsCorticalThickness-and-antsLongitudinalCorticalThickness-output",
+    docsUrl:
+      "https://github.com/ANTsX/ANTs/wiki/antsCorticalThickness-and-antsLongitudinalCorticalThickness-output",
     docsLabel: "antsCorticalThickness — ANTs wiki",
     estimatedHours: 4,
     prerequisites: [
-      { text: "Prepare ANTs template and prior images on the host or upload required atlases.", moduleId: null },
+      {
+        text: "Prepare ANTs template and prior images on the host or upload required atlases.",
+        moduleId: null,
+      },
     ],
     inputs: [
       NIFTI_INPUT("Subject T1", "input", false),
@@ -358,6 +780,27 @@ const ANTS_MODULES = {
         type: "text",
         default: "priors%02d.nii.gz",
       },
+      {
+        name: "keep_temp",
+        label: "Keep temporary files (-k)",
+        type: "number",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "single_precision",
+        label: "Single precision (-q)",
+        type: "number",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "suffix",
+        label: "Image suffix (-s)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
     ],
   },
   "ants-brain-extraction": {
@@ -372,15 +815,46 @@ const ANTS_MODULES = {
       NIFTI_INPUT("Input image", "input", false),
       NIFTI_INPUT("Template (-e)", "template", false),
       NIFTI_INPUT("Probability mask (-m)", "prob_mask", false),
+      OPTIONAL_NIFTI("Optional refinement mask (-f)", "mask"),
+    ],
+    params: [
+      DIM_PARAM,
       {
-        role: "mask",
-        label: "Optional refinement mask (-f)",
-        required: false,
-        accept: ".nii,.nii.gz",
-        multiple: false,
+        name: "tissue_classification",
+        label: "Tissue classification (-c)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "single_precision",
+        label: "Single precision (-q)",
+        type: "number",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "suffix",
+        label: "Image suffix (-s)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "keep_temp",
+        label: "Keep temporary files (-k)",
+        type: "number",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "debug_mode",
+        label: "Debug mode (-z, faster but lower quality)",
+        type: "checkbox",
+        default: false,
+        group: "advanced",
       },
     ],
-    params: [DIM_PARAM],
   },
   "ants-template-construction": {
     moduleName: "antsMultivariateTemplateConstruction2",
@@ -401,7 +875,53 @@ const ANTS_MODULES = {
     ],
     params: [
       DIM_PARAM,
-      { name: "gradient_step", label: "Gradient step (-g)", type: "number", default: 0.2, step: 0.05 },
+      {
+        name: "gradient_step",
+        label: "Gradient step (-g)",
+        type: "number",
+        default: 0.2,
+        step: 0.05,
+      },
+      {
+        name: "image_statistic",
+        label: "Image statistic (-a)",
+        type: "select",
+        default: "",
+        group: "advanced",
+        options: [
+          { value: "", label: "Default" },
+          { value: "0", label: "Mean (0)" },
+          { value: "1", label: "Mean of normalized (1)" },
+          { value: "2", label: "Median (2)" },
+        ],
+      },
+      {
+        name: "sharpening",
+        label: "Sharpening (-A)",
+        type: "select",
+        default: "",
+        group: "advanced",
+        options: [
+          { value: "", label: "Default" },
+          { value: "0", label: "None (0)" },
+          { value: "1", label: "Laplacian (1)" },
+          { value: "2", label: "Unsharp mask (2)" },
+        ],
+      },
+      {
+        name: "iterations",
+        label: "Iterations (-i)",
+        type: "number",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "subsample",
+        label: "Subsample (-s)",
+        type: "number",
+        default: "",
+        group: "advanced",
+      },
     ],
   },
   "ants-resample": {
@@ -428,6 +948,23 @@ const ANTS_MODULES = {
           { value: "Linear", label: "Linear" },
           { value: "BSpline", label: "BSpline" },
           { value: "NearestNeighbor", label: "NearestNeighbor" },
+          { value: "0", label: "Linear (0)" },
+          { value: "1", label: "Nearest neighbor (1)" },
+          { value: "4", label: "B-Spline (4)" },
+        ],
+      },
+      {
+        name: "pixel_type",
+        label: "Pixel type",
+        type: "select",
+        default: "",
+        group: "advanced",
+        options: [
+          { value: "", label: "Default (float)" },
+          { value: "6", label: "float (6)" },
+          { value: "7", label: "double (7)" },
+          { value: "1", label: "unsigned char (1)" },
+          { value: "2", label: "short (2)" },
         ],
       },
     ],
@@ -436,18 +973,40 @@ const ANTS_MODULES = {
     moduleName: "ThresholdImage",
     cliExecutable: "ThresholdImage",
     batchDriverRole: "input",
-    summary: "Threshold image intensities.",
+    summary: "Threshold image intensities (inclusive, Otsu, or K-means).",
     docsUrl: ANTS_WIKI,
     docsLabel: "ANTs wiki",
     estimatedHours: 0.05,
     prerequisites: [],
-    inputs: [NIFTI_INPUT("Input image")],
+    inputs: [
+      NIFTI_INPUT("Input image"),
+      OPTIONAL_NIFTI("Mask (Otsu/Kmeans, optional)", "mask"),
+    ],
     params: [
       DIM_PARAM,
+      {
+        name: "mode",
+        label: "Threshold mode",
+        type: "select",
+        default: "inclusive",
+        options: [
+          { value: "inclusive", label: "Inclusive (lower/upper)" },
+          { value: "otsu", label: "Otsu" },
+          { value: "kmeans", label: "K-means" },
+        ],
+      },
       { name: "lower", label: "Lower threshold", type: "number", default: 0 },
       { name: "upper", label: "Upper threshold", type: "number", default: 1 },
       { name: "inside_value", label: "Inside value", type: "number", default: 1 },
       { name: "outside_value", label: "Outside value", type: "number", default: 0 },
+      {
+        name: "n_thresholds",
+        label: "Number of thresholds (Otsu/Kmeans)",
+        type: "number",
+        default: 1,
+        min: 1,
+        group: "advanced",
+      },
     ],
   },
   "ants-smooth": {
@@ -460,7 +1019,24 @@ const ANTS_MODULES = {
     estimatedHours: 0.05,
     prerequisites: [],
     inputs: [NIFTI_INPUT("Input image")],
-    params: [DIM_PARAM, { name: "sigma", label: "Sigma (voxels)", type: "number", default: 1, step: 0.1 }],
+    params: [
+      DIM_PARAM,
+      { name: "sigma", label: "Sigma (voxels)", type: "number", default: 1, step: 0.1 },
+      {
+        name: "sigma_in_spacing_units",
+        label: "Sigma in spacing units",
+        type: "checkbox",
+        default: false,
+        group: "advanced",
+      },
+      {
+        name: "median_filter",
+        label: "Median filter",
+        type: "checkbox",
+        default: false,
+        group: "advanced",
+      },
+    ],
   },
   "ants-convert": {
     moduleName: "ConvertImage",
@@ -499,12 +1075,13 @@ const ANTS_MODULES = {
     inputs: [
       NIFTI_INPUT("Fixed image", "fixed", false),
       NIFTI_INPUT("Moving image", "moving", false),
+      OPTIONAL_NIFTI("Mask (-x, optional)", "mask"),
     ],
     params: [
       DIM_PARAM,
       {
         name: "metric",
-        label: "Metric (-s)",
+        label: "Metric type",
         type: "select",
         default: "MI",
         options: [
@@ -513,6 +1090,14 @@ const ANTS_MODULES = {
           { value: "MSQ", label: "Mean squares" },
         ],
       },
+      {
+        name: "metric_full",
+        label: "Full metric (-m, overrides type)",
+        type: "text",
+        default: "",
+        group: "advanced",
+      },
+      VERBOSE_PARAM,
     ],
   },
   "ants-joint-fusion": {
@@ -522,15 +1107,75 @@ const ANTS_MODULES = {
     docsUrl: ANTS_WIKI,
     docsLabel: "ANTs wiki",
     estimatedHours: 1,
-    prerequisites: [{ text: "Register atlases to subject space before fusion when needed.", moduleId: "ants-registration-syn-quick" }],
+    prerequisites: [
+      {
+        text: "Register atlases to subject space before fusion when needed.",
+        moduleId: "ants-registration-syn-quick",
+      },
+    ],
     inputs: [
       NIFTI_INPUT("Subject image (-t)", "input", false),
       NIFTI_INPUT("Atlas image (-g)", "atlas", false),
       NIFTI_INPUT("Atlas labels (-l)", "atlas_labels", false),
+      OPTIONAL_NIFTI("Mask (-x, optional)", "mask"),
     ],
-    params: [DIM_PARAM, { name: "n_classes", label: "Classes (-c)", type: "number", default: 6 }],
+    params: [
+      DIM_PARAM,
+      { name: "n_classes", label: "Classes (-c)", type: "number", default: 6 },
+      {
+        name: "alpha",
+        label: "Alpha (-a)",
+        type: "number",
+        default: "",
+        step: 0.01,
+        group: "advanced",
+      },
+      {
+        name: "beta",
+        label: "Beta (-b)",
+        type: "number",
+        default: "",
+        step: 0.1,
+        group: "advanced",
+      },
+      {
+        name: "patch_radius",
+        label: "Patch radius (-p)",
+        type: "number",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "search_radius",
+        label: "Search radius (-s)",
+        type: "number",
+        default: "",
+        group: "advanced",
+      },
+      {
+        name: "patch_metric",
+        label: "Patch metric (-m)",
+        type: "select",
+        default: "",
+        group: "advanced",
+        options: [
+          { value: "", label: "Default (PC)" },
+          { value: "PC", label: "PC" },
+          { value: "MSQ", label: "MSQ" },
+        ],
+      },
+      VERBOSE_PARAM,
+    ],
   },
 };
+
+// Merge optional advancedInputs into inputs for modules that define them separately.
+for (const config of Object.values(ANTS_MODULES)) {
+  if (config.advancedInputs) {
+    config.inputs = [...config.inputs, ...config.advancedInputs];
+    delete config.advancedInputs;
+  }
+}
 
 if (typeof window !== "undefined") {
   window.ANTS_MODULES = ANTS_MODULES;

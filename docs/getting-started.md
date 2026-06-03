@@ -38,6 +38,8 @@ On startup the API scans the local host for registered packages (FreeSurfer, FSL
 - ANTs module (example): http://127.0.0.1:8000/tools/ants.html?module=ants-n4
 - OpenAPI: http://127.0.0.1:8000/docs
 
+Each ANTs module page exposes a curated subset of native CLI flags. Common options appear in the main **Parameters** grid; less frequent flags are under **Advanced parameters** (collapsible). For the full command-line reference, see the [ANTs wiki](https://github.com/ANTsX/ANTs/wiki).
+
 After sourcing a tool environment (e.g. FreeSurfer), re-scan without restarting:
 
 ```bash

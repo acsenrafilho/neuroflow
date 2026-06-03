@@ -63,6 +63,14 @@ ROLE_PROB_MASK = "prob_mask"
 ROLE_ATLAS = "atlas"
 ROLE_ATLAS_LABELS = "atlas_labels"
 ROLE_COHORT = "cohort"
+ROLE_WEIGHT = "weight"
+ROLE_TRANSFORM2 = "transform2"
+ROLE_TRANSFORM3 = "transform3"
+ROLE_GRAY_MATTER = "gray_matter"
+ROLE_WHITE_MATTER = "white_matter"
+ROLE_INITIAL_TRANSFORM = "initial_transform"
+ROLE_FIXED_MASK = "fixed_mask"
+ROLE_MOVING_MASK = "moving_mask"
 
 NIFTI_SUFFIXES: tuple[str, ...] = (".nii.gz", ".nii")
 
@@ -75,6 +83,17 @@ IMAGE_MATH_OPERATIONS = frozenset(
         "Sigma",
         "PadImage",
         "Sharpen",
+        "D",
+        "M",
+        "G",
+        "L",
+        "MorphologicalGradient",
+        "Dilate",
+        "Erode",
+        "GetLargestComponent",
+        "TruncateImageIntensity",
+        "ReflectImage",
+        "ExtractSlice",
     }
 )
 
@@ -250,6 +269,61 @@ def _opt_flag(name: str, value: Any) -> list[str]:
     return [name, str(value)]
 
 
+def _registration_transform(parameters: dict[str, Any]) -> str:
+    custom = parameters.get("transform")
+    if custom:
+        return str(custom)
+    preset = parameters.get("transform_preset", "rigid")
+    if preset == "syn":
+        return "SyN[0.1,3,0]"
+    if preset == "affine":
+        return "Affine[0.1]"
+    return "Rigid[0.1]"
+
+
+def _registration_metric(
+    parameters: dict[str, Any],
+    fixed: Path,
+    moving: Path,
+) -> str:
+    metric_full = parameters.get("metric_full") or parameters.get("metric")
+    if metric_full and "[" in str(metric_full):
+        template = str(metric_full)
+    elif metric_full:
+        template = f"{metric_full}[{{fixed}},{{moving}},1,32]"
+    else:
+        template = "MI[{fixed},{moving},1,32]"
+    return template.replace("{fixed}", str(fixed)).replace("{moving}", str(moving))
+
+
+def _similarity_metric(
+    parameters: dict[str, Any],
+    fixed: Path,
+    moving: Path,
+) -> str:
+    metric_full = parameters.get("metric_full")
+    if metric_full:
+        return str(metric_full).replace("{fixed}", str(fixed)).replace("{moving}", str(moving))
+    metric = parameters.get("metric", "MI")
+    if metric == "MSQ":
+        metric = "MeanSquares"
+    return f"{metric}[{fixed},{moving},1,32]"
+
+
+def _atropos_initialization(parameters: dict[str, Any]) -> str:
+    init_type = parameters.get("initialization", "Random")
+    n_classes = parameters.get("n_classes", 3)
+    return f"{init_type}[{n_classes}]"
+
+
+def _n4_bspline(parameters: dict[str, Any]) -> list[str]:
+    distance = parameters.get("spline_distance", 180)
+    order = parameters.get("spline_order")
+    if order is not None and order != "":
+        return ["-b", "[", str(distance), ",", str(order), "]"]
+    return ["-b", "[", str(distance), "]"]
+
+
 def primary_executable(module_id: str) -> str:
     return MODULE_PRIMARY_EXECUTABLE[module_id]
 
@@ -283,18 +357,16 @@ def build_argv(
     if module_id == "ants-n4":
         corrected = _output_image_path(out_dir, f"{base}_corrected", files)
         bias = _output_image_path(out_dir, f"{base}_bias", files)
-        argv: list[str] = [
+        verbose = str(parameters.get("verbose", 1))
+        argv = [
             "N4BiasFieldCorrection",
             "-d",
             dim,
             "-v",
-            "1",
+            verbose,
             "-s",
             str(parameters.get("shrink_factor", 4)),
-            "-b",
-            "[",
-            str(parameters.get("spline_distance", 180)),
-            "]",
+            *_n4_bspline(parameters),
             "-c",
             "[",
             str(parameters.get("convergence", "50x50x50x50,0.0")),
@@ -306,20 +378,18 @@ def build_argv(
         ]
         if ROLE_MASK in files:
             argv.extend(["-x", str(files[ROLE_MASK].resolve())])
+        if ROLE_WEIGHT in files:
+            argv.extend(["-w", str(files[ROLE_WEIGHT].resolve())])
+        if parameters.get("rescale_intensities"):
+            argv.extend(["-r", "1"])
+        argv.extend(_opt_flag("-t", parameters.get("histogram_sharpening")))
         return argv
 
     if module_id == "ants-registration":
         fixed = files[ROLE_FIXED].resolve()
         moving = files[ROLE_MOVING].resolve()
         prefix = str(out_dir / base)
-        preset = parameters.get("transform_preset", "rigid")
-        if preset == "syn":
-            transform = "SyN[0.1,3,0]"
-        elif preset == "affine":
-            transform = "Affine[0.1]"
-        else:
-            transform = "Rigid[0.1]"
-        return [
+        argv = [
             "antsRegistration",
             "-d",
             dim,
@@ -330,9 +400,9 @@ def build_argv(
             f"{prefix}InverseWarp.nii.gz",
             "]",
             "-t",
-            transform,
+            _registration_transform(parameters),
             "-m",
-            f"MI[{fixed},{moving},1,32]",
+            _registration_metric(parameters, fixed, moving),
             "-c",
             "[",
             str(parameters.get("convergence", "1000x1000x1000,1e-6,10")),
@@ -342,9 +412,26 @@ def build_argv(
             "-s",
             str(parameters.get("smoothing_sigmas", "2x1x0vox")),
         ]
+        argv.extend(_opt_flag("-n", parameters.get("interpolation", "Linear")))
+        if parameters.get("histogram_matching"):
+            argv.append("-u")
+        argv.extend(_opt_flag("-w", parameters.get("winsorize")))
+        argv.extend(_opt_flag("--random-seed", parameters.get("random_seed")))
+        if parameters.get("use_float"):
+            argv.append("--float")
+        fixed_mask = files.get(ROLE_FIXED_MASK)
+        moving_mask = files.get(ROLE_MOVING_MASK)
+        if fixed_mask or moving_mask:
+            fixed_part = str(fixed_mask.resolve()) if fixed_mask else "NULL"
+            moving_part = str(moving_mask.resolve()) if moving_mask else "NULL"
+            argv.extend(["-x", "[", fixed_part, ",", moving_part, "]"])
+        return argv
 
     if module_id == "ants-apply-transforms":
         output = _output_image_path(out_dir, base, files)
+        interpolation = parameters.get("interpolation")
+        if not interpolation and parameters.get("linear"):
+            interpolation = "Linear"
         argv = [
             "antsApplyTransforms",
             "-d",
@@ -355,16 +442,20 @@ def build_argv(
             str(files[ROLE_REFERENCE].resolve()),
             "-o",
             str(output),
-            "-t",
-            str(files[ROLE_TRANSFORM].resolve()),
         ]
-        if parameters.get("linear"):
-            argv.extend(["-n", "Linear"])
+        for role in (ROLE_TRANSFORM, ROLE_TRANSFORM2, ROLE_TRANSFORM3):
+            if role in files:
+                argv.extend(["-t", str(files[role].resolve())])
+        argv.extend(_opt_flag("-n", interpolation or "Linear"))
+        argv.extend(_opt_flag("-f", parameters.get("default_value")))
+        argv.extend(_opt_flag("-u", parameters.get("output_data_type")))
+        if parameters.get("verbose"):
+            argv.extend(["-v", "1"])
         return argv
 
     if module_id == "ants-registration-syn":
         prefix = str(out_dir / base)
-        return [
+        argv = [
             "antsRegistrationSyN.sh",
             "-d",
             dim,
@@ -377,10 +468,14 @@ def build_argv(
             "-t",
             str(parameters.get("transform_type", "s")),
         ]
+        argv.extend(_opt_flag("-n", parameters.get("n_threads")))
+        if ROLE_INITIAL_TRANSFORM in files:
+            argv.extend(["-i", str(files[ROLE_INITIAL_TRANSFORM].resolve())])
+        return argv
 
     if module_id == "ants-registration-syn-quick":
         prefix = str(out_dir / base)
-        return [
+        argv = [
             "antsRegistrationSyNQuick.sh",
             "-d",
             dim,
@@ -393,6 +488,10 @@ def build_argv(
             "-t",
             str(parameters.get("transform_type", "s")),
         ]
+        argv.extend(_opt_flag("-n", parameters.get("n_threads")))
+        if ROLE_INITIAL_TRANSFORM in files:
+            argv.extend(["-i", str(files[ROLE_INITIAL_TRANSFORM].resolve())])
+        return argv
 
     if module_id == "ants-atropos":
         prefix = str(out_dir / base)
@@ -404,9 +503,9 @@ def build_argv(
             "-a",
             str(files[ROLE_INPUT].resolve()),
             "-i",
-            str(parameters.get("n_iterations", 5)),
+            _atropos_initialization(parameters),
             "-c",
-            str(parameters.get("n_classes", 3)),
+            str(parameters.get("convergence", "5,0.001")),
             "-o",
             "[",
             str(seg),
@@ -416,6 +515,12 @@ def build_argv(
         ]
         if ROLE_MASK in files:
             argv.extend(["-x", str(files[ROLE_MASK].resolve())])
+        argv.extend(_opt_flag("-k", parameters.get("likelihood_model")))
+        argv.extend(_opt_flag("-m", parameters.get("mrf")))
+        argv.extend(_opt_flag("-p", parameters.get("posterior_formulation")))
+        argv.extend(_opt_flag("-b", parameters.get("bspline")))
+        if parameters.get("verbose"):
+            argv.extend(["-v", "1"])
         return argv
 
     if module_id == "ants-image-math":
@@ -436,19 +541,25 @@ def build_argv(
 
     if module_id == "ants-sccan":
         output = str(out_dir / base)
-        return [
+        argv = [
             "sccan",
-            "-i",
             str(files[ROLE_INPUT].resolve()),
             "-o",
             output,
             "--sparse",
             str(parameters.get("sparse", 0.05)),
         ]
+        argv.extend(_opt_flag("-p", parameters.get("n_permutations")))
+        argv.extend(_opt_flag("-i", parameters.get("iterations")))
+        argv.extend(_opt_flag("-n", parameters.get("n_eigenvectors")))
+        argv.extend(_opt_flag("-s", parameters.get("smoother")))
+        if ROLE_MASK in files:
+            argv.extend(["--mask", str(files[ROLE_MASK].resolve())])
+        return argv
 
     if module_id == "ants-kelly-kapowski":
         output = _output_image_path(out_dir, base, files)
-        return [
+        argv = [
             "KellyKapowski",
             "-d",
             dim,
@@ -457,22 +568,44 @@ def build_argv(
             "-o",
             str(output),
         ]
+        if ROLE_GRAY_MATTER in files:
+            argv.extend(["-g", str(files[ROLE_GRAY_MATTER].resolve())])
+        if ROLE_WHITE_MATTER in files:
+            argv.extend(["-w", str(files[ROLE_WHITE_MATTER].resolve())])
+        argv.extend(_opt_flag("-c", parameters.get("convergence")))
+        argv.extend(_opt_flag("-r", parameters.get("gradient_step")))
+        argv.extend(_opt_flag("-l", parameters.get("smoothing_variance")))
+        if parameters.get("verbose"):
+            argv.extend(["-v", "1"])
+        return argv
 
     if module_id == "ants-motion-corr":
         prefix = str(out_dir / base)
-        return [
+        argv = [
             "antsMotionCorr",
             "-d",
             dim,
+            "-a",
+            str(files[ROLE_INPUT].resolve()),
             "-o",
             prefix,
-            "-m",
-            str(files[ROLE_INPUT].resolve()),
         ]
+        argv.extend(_opt_flag("-n", parameters.get("n_images")))
+        if parameters.get("use_histogram_matching"):
+            argv.append("--use-histogram-matching")
+        argv.extend(_opt_flag("-m", parameters.get("metric")))
+        argv.extend(_opt_flag("-t", parameters.get("transform")))
+        argv.extend(_opt_flag("-i", parameters.get("iterations")))
+        argv.extend(_opt_flag("-f", parameters.get("shrink_factors")))
+        argv.extend(_opt_flag("-s", parameters.get("smoothing_sigmas")))
+        argv.extend(_opt_flag("-p", parameters.get("interpolation")))
+        if parameters.get("verbose"):
+            argv.extend(["-v", "1"])
+        return argv
 
     if module_id == "ants-denoise":
         output = _output_image_path(out_dir, base, files)
-        return [
+        argv = [
             "DenoiseImage",
             "-d",
             dim,
@@ -483,19 +616,35 @@ def build_argv(
             "-n",
             str(parameters.get("noise_model", "Rician")),
         ]
+        if ROLE_MASK in files:
+            argv.extend(["-x", str(files[ROLE_MASK].resolve())])
+        argv.extend(_opt_flag("-s", parameters.get("shrink_factor")))
+        argv.extend(_opt_flag("-p", parameters.get("patch_radius")))
+        argv.extend(_opt_flag("-r", parameters.get("search_radius")))
+        if parameters.get("verbose"):
+            argv.extend(["-v", "1"])
+        return argv
 
     if module_id == "ants-transform-info":
-        return ["antsTransformInfo", str(files[ROLE_TRANSFORM].resolve())]
+        argv = ["antsTransformInfo", str(files[ROLE_TRANSFORM].resolve())]
+        if parameters.get("verbose"):
+            argv.extend(["-v", "1"])
+        return argv
 
     if module_id == "ants-jacobian":
         output = _output_image_path(out_dir, base, files)
-        return [
+        argv = [
             "CreateJacobianDeterminantImage",
             dim,
             str(files[ROLE_TRANSFORM].resolve()),
             str(output),
-            str(parameters.get("do_log", 1)),
+            str(parameters.get("do_log", 0)),
         ]
+        if parameters.get("use_geometric") is not None:
+            argv.append(str(int(parameters["use_geometric"])))
+        if parameters.get("deformation_gradient"):
+            argv.append("1")
+        return argv
 
     if module_id == "ants-brain-extraction":
         prefix = str(out_dir / base)
@@ -514,12 +663,18 @@ def build_argv(
         ]
         if ROLE_MASK in files:
             argv.extend(["-f", str(files[ROLE_MASK].resolve())])
+        argv.extend(_opt_flag("-c", parameters.get("tissue_classification")))
+        argv.extend(_opt_flag("-q", parameters.get("single_precision")))
+        argv.extend(_opt_flag("-s", parameters.get("suffix")))
+        argv.extend(_opt_flag("-k", parameters.get("keep_temp")))
+        if parameters.get("debug_mode"):
+            argv.extend(["-z", "1"])
         return argv
 
     if module_id == "ants-cortical-thickness":
         prefix = str(out_dir / base)
         priors = parameters.get("priors_pattern", f"{prefix}_priors%02d.nii.gz")
-        return [
+        argv = [
             "antsCorticalThickness.sh",
             "-d",
             dim,
@@ -538,6 +693,10 @@ def build_argv(
             "-o",
             prefix,
         ]
+        argv.extend(_opt_flag("-k", parameters.get("keep_temp")))
+        argv.extend(_opt_flag("-q", parameters.get("single_precision")))
+        argv.extend(_opt_flag("-s", parameters.get("suffix")))
+        return argv
 
     if module_id == "ants-template-construction":
         cohort_paths = files[ROLE_COHORT]
@@ -547,31 +706,67 @@ def build_argv(
             encoding="utf-8",
         )
         prefix = str(out_dir / base)
-        return [
+        argv = [
             "antsMultivariateTemplateConstruction2.sh",
             "-d",
             dim,
             "-o",
             prefix,
-            "-i",
-            str(list_path),
             "-g",
             str(parameters.get("gradient_step", 0.2)),
         ]
+        argv.extend(_opt_flag("-a", parameters.get("image_statistic")))
+        argv.extend(_opt_flag("-A", parameters.get("sharpening")))
+        argv.extend(_opt_flag("-i", parameters.get("iterations")))
+        argv.extend(_opt_flag("-s", parameters.get("subsample")))
+        argv.append(str(list_path))
+        return argv
 
     if module_id == "ants-resample":
         output = _output_image_path(out_dir, base, files)
-        return [
+        interp_map = {"0": "0", "1": "1", "2": "2", "3": "3", "4": "4"}
+        interpolation = parameters.get("interpolation", "Linear")
+        if interpolation in interp_map:
+            interpolation = interp_map[interpolation]
+        argv = [
             "ResampleImage",
             dim,
             str(files[ROLE_INPUT].resolve()),
             str(files[ROLE_REFERENCE].resolve()),
             str(output),
-            str(parameters.get("interpolation", "Linear")),
+            str(interpolation),
         ]
+        if parameters.get("pixel_type") is not None and parameters.get("pixel_type") != "":
+            argv.append(str(parameters.get("pixel_type")))
+        return argv
 
     if module_id == "ants-threshold":
         output = _output_image_path(out_dir, base, files)
+        mode = parameters.get("mode", "inclusive")
+        if mode == "otsu":
+            argv = [
+                "ThresholdImage",
+                dim,
+                str(files[ROLE_INPUT].resolve()),
+                str(output),
+                "Otsu",
+                str(parameters.get("n_thresholds", 1)),
+            ]
+            if ROLE_MASK in files:
+                argv.append(str(files[ROLE_MASK].resolve()))
+            return argv
+        if mode == "kmeans":
+            argv = [
+                "ThresholdImage",
+                dim,
+                str(files[ROLE_INPUT].resolve()),
+                str(output),
+                "Kmeans",
+                str(parameters.get("n_thresholds", 3)),
+            ]
+            if ROLE_MASK in files:
+                argv.append(str(files[ROLE_MASK].resolve()))
+            return argv
         return [
             "ThresholdImage",
             dim,
@@ -585,13 +780,18 @@ def build_argv(
 
     if module_id == "ants-smooth":
         output = _output_image_path(out_dir, base, files)
-        return [
+        argv = [
             "SmoothImage",
             dim,
             str(files[ROLE_INPUT].resolve()),
             str(output),
             str(parameters.get("sigma", 1.0)),
         ]
+        if parameters.get("sigma_in_spacing_units"):
+            argv.append("1")
+        if parameters.get("median_filter"):
+            argv.append("1")
+        return argv
 
     if module_id == "ants-convert":
         output = _output_image_path(out_dir, base, files)
@@ -604,21 +804,24 @@ def build_argv(
         ]
 
     if module_id == "ants-measure-similarity":
-        return [
+        fixed = files[ROLE_FIXED].resolve()
+        moving = files[ROLE_MOVING].resolve()
+        argv = [
             "MeasureImageSimilarity",
             "-d",
             dim,
-            "-f",
-            str(files[ROLE_FIXED].resolve()),
             "-m",
-            str(files[ROLE_MOVING].resolve()),
-            "-s",
-            str(parameters.get("metric", "MI")),
+            _similarity_metric(parameters, fixed, moving),
         ]
+        if ROLE_MASK in files:
+            argv.extend(["-x", str(files[ROLE_MASK].resolve())])
+        if parameters.get("verbose"):
+            argv.extend(["-v", "1"])
+        return argv
 
     if module_id == "ants-joint-fusion":
         prefix = str(out_dir / base)
-        return [
+        argv = [
             "antsJointFusion",
             "-d",
             dim,
@@ -633,6 +836,16 @@ def build_argv(
             "-c",
             str(parameters.get("n_classes", 6)),
         ]
+        argv.extend(_opt_flag("-a", parameters.get("alpha")))
+        argv.extend(_opt_flag("-b", parameters.get("beta")))
+        argv.extend(_opt_flag("-p", parameters.get("patch_radius")))
+        argv.extend(_opt_flag("-s", parameters.get("search_radius")))
+        argv.extend(_opt_flag("-m", parameters.get("patch_metric")))
+        if ROLE_MASK in files:
+            argv.extend(["-x", str(files[ROLE_MASK].resolve())])
+        if parameters.get("verbose"):
+            argv.extend(["-v", "1"])
+        return argv
 
     raise ValueError(f"No argv builder for module: {module_id}")
 

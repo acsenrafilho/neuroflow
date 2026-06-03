@@ -11,8 +11,11 @@ from neuroflow.config import Settings
 from neuroflow.tools.ants import (
     ROLE_FIXED,
     ROLE_INPUT,
+    ROLE_MASK,
     ROLE_MOVING,
+    ROLE_REFERENCE,
     ROLE_TRANSFORM,
+    ROLE_TRANSFORM2,
     AntsJobParams,
     build_argv,
     group_uploads_into_batch,
@@ -135,3 +138,122 @@ def test_launch_ants_job_batch_meta(work_dir: Path) -> None:
     meta = store.read_meta("ants", job_id)
     assert meta["batch_total"] == 1
     assert meta["status"] == "running"
+
+
+def test_build_n4_argv_with_mask(work_dir: Path) -> None:
+    input_path = work_dir / "t1.nii.gz"
+    mask_path = work_dir / "mask.nii.gz"
+    input_path.write_bytes(b"x")
+    mask_path.write_bytes(b"x")
+    argv = build_argv(
+        module_id="ants-n4",
+        files={ROLE_INPUT: input_path, ROLE_MASK: mask_path},
+        work_dir=work_dir,
+        output_prefix="subj",
+        parameters={"verbose": 0},
+        settings=Settings(),
+    )
+    assert "-x" in argv
+    assert str(mask_path.resolve()) in argv
+    assert "-v" in argv and argv[argv.index("-v") + 1] == "0"
+
+
+def test_build_atropos_argv(work_dir: Path) -> None:
+    input_path = work_dir / "t1.nii.gz"
+    input_path.write_bytes(b"x")
+    argv = build_argv(
+        module_id="ants-atropos",
+        files={ROLE_INPUT: input_path},
+        work_dir=work_dir,
+        output_prefix="seg",
+        parameters={
+            "initialization": "Random",
+            "n_classes": 3,
+            "convergence": "5,0.001",
+        },
+        settings=Settings(),
+    )
+    assert "-i" in argv
+    assert "Random[3]" in argv
+    assert "-c" in argv
+    assert argv[argv.index("-c") + 1] == "5,0.001"
+
+
+def test_build_registration_custom_metric(work_dir: Path) -> None:
+    fixed = work_dir / "fixed.nii.gz"
+    moving = work_dir / "moving.nii.gz"
+    fixed.write_bytes(b"x")
+    moving.write_bytes(b"x")
+    argv = build_argv(
+        module_id="ants-registration",
+        files={ROLE_FIXED: fixed, ROLE_MOVING: moving},
+        work_dir=work_dir,
+        output_prefix="reg",
+        parameters={
+            "metric": "CC[{fixed},{moving},1,4]",
+            "transform": "Affine[0.25]",
+        },
+        settings=Settings(),
+    )
+    metric_idx = argv.index("-m") + 1
+    assert str(fixed.resolve()) in argv[metric_idx]
+    assert argv[argv.index("-t") + 1] == "Affine[0.25]"
+
+
+def test_build_apply_transforms_multi_transform(work_dir: Path) -> None:
+    moving = work_dir / "moving.nii.gz"
+    reference = work_dir / "ref.nii.gz"
+    t1 = work_dir / "t1.mat"
+    t2 = work_dir / "t2.mat"
+    for path in (moving, reference, t1, t2):
+        path.write_bytes(b"x")
+    argv = build_argv(
+        module_id="ants-apply-transforms",
+        files={
+            ROLE_MOVING: moving,
+            ROLE_REFERENCE: reference,
+            ROLE_TRANSFORM: t1,
+            ROLE_TRANSFORM2: t2,
+        },
+        work_dir=work_dir,
+        output_prefix="warped",
+        parameters={"interpolation": "BSpline"},
+        settings=Settings(),
+    )
+    transform_flags = [i for i, part in enumerate(argv) if part == "-t"]
+    assert len(transform_flags) == 2
+    assert str(t1.resolve()) in argv
+    assert str(t2.resolve()) in argv
+    assert argv[argv.index("-n") + 1] == "BSpline"
+
+
+def test_build_denoise_with_mask(work_dir: Path) -> None:
+    input_path = work_dir / "t1.nii.gz"
+    mask_path = work_dir / "mask.nii.gz"
+    input_path.write_bytes(b"x")
+    mask_path.write_bytes(b"x")
+    argv = build_argv(
+        module_id="ants-denoise",
+        files={ROLE_INPUT: input_path, ROLE_MASK: mask_path},
+        work_dir=work_dir,
+        output_prefix="den",
+        parameters={"patch_radius": 2},
+        settings=Settings(),
+    )
+    assert "-x" in argv
+    assert "-p" in argv
+    assert argv[argv.index("-p") + 1] == "2"
+
+
+def test_build_image_math_whitelist_op(work_dir: Path) -> None:
+    input_path = work_dir / "t1.nii.gz"
+    input_path.write_bytes(b"x")
+    argv = build_argv(
+        module_id="ants-image-math",
+        files={ROLE_INPUT: input_path},
+        work_dir=work_dir,
+        output_prefix="out",
+        parameters={"operation": "G"},
+        settings=Settings(),
+    )
+    assert "G" in argv

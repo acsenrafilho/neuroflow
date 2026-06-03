@@ -200,49 +200,76 @@
     return params;
   }
 
+  function renderParamField(def) {
+    const wrap = document.createElement("div");
+    wrap.className = "flex flex-col gap-2";
+
+    if (def.type === "checkbox") {
+      wrap.innerHTML = `
+        <label class="flex items-center gap-2 font-label-sm text-on-surface">
+          <input type="checkbox" id="param-${def.name}" class="rounded border-outline-variant" ${def.default ? "checked" : ""} />
+          ${def.label}
+        </label>`;
+    } else if (def.type === "select") {
+      const options = (def.options || [])
+        .map(
+          (o) =>
+            `<option value="${o.value}" ${o.value === def.default ? "selected" : ""}>${o.label}</option>`
+        )
+        .join("");
+      wrap.innerHTML = `
+        <label class="font-label-sm text-on-surface" for="param-${def.name}">${def.label}</label>
+        <select id="param-${def.name}" class="rounded-lg border-outline-variant bg-surface-container-lowest font-body-md">${options}</select>`;
+    } else {
+      const step = def.step != null ? `step="${def.step}"` : "";
+      const min = def.min != null ? `min="${def.min}"` : "";
+      const max = def.max != null ? `max="${def.max}"` : "";
+      wrap.innerHTML = `
+        <label class="font-label-sm text-on-surface" for="param-${def.name}">${def.label}</label>
+        <input type="${def.type || "text"}" id="param-${def.name}" class="rounded-lg border-outline-variant bg-surface-container-lowest font-body-md"
+          value="${def.default ?? ""}" ${step} ${min} ${max} />`;
+    }
+    wrap.querySelectorAll("input, select").forEach((el) => {
+      el.addEventListener("input", updateCliPreview);
+      el.addEventListener("change", updateCliPreview);
+    });
+    return wrap;
+  }
+
   function renderParams(config) {
     paramsGrid.innerHTML = "";
+    const existingAdvanced = document.getElementById("params-advanced");
+    if (existingAdvanced) existingAdvanced.remove();
+
     if (!config.params || config.params.length === 0) {
-      paramsSection.classList.add("hidden");
+      paramsSection.classList.remove("hidden");
       return;
     }
     paramsSection.classList.remove("hidden");
 
-    config.params.forEach((def) => {
-      const wrap = document.createElement("div");
-      wrap.className = "flex flex-col gap-2";
+    const basicParams = config.params.filter((def) => def.group !== "advanced");
+    const advancedParams = config.params.filter((def) => def.group === "advanced");
 
-      if (def.type === "checkbox") {
-        wrap.innerHTML = `
-          <label class="flex items-center gap-2 font-label-sm text-on-surface">
-            <input type="checkbox" id="param-${def.name}" class="rounded border-outline-variant" ${def.default ? "checked" : ""} />
-            ${def.label}
-          </label>`;
-      } else if (def.type === "select") {
-        const options = (def.options || [])
-          .map(
-            (o) =>
-              `<option value="${o.value}" ${o.value === def.default ? "selected" : ""}>${o.label}</option>`
-          )
-          .join("");
-        wrap.innerHTML = `
-          <label class="font-label-sm text-on-surface" for="param-${def.name}">${def.label}</label>
-          <select id="param-${def.name}" class="rounded-lg border-outline-variant bg-surface-container-lowest font-body-md">${options}</select>`;
-      } else {
-        const step = def.step != null ? `step="${def.step}"` : "";
-        const min = def.min != null ? `min="${def.min}"` : "";
-        const max = def.max != null ? `max="${def.max}"` : "";
-        wrap.innerHTML = `
-          <label class="font-label-sm text-on-surface" for="param-${def.name}">${def.label}</label>
-          <input type="${def.type || "text"}" id="param-${def.name}" class="rounded-lg border-outline-variant bg-surface-container-lowest font-body-md"
-            value="${def.default ?? ""}" ${step} ${min} ${max} />`;
-      }
-      paramsGrid.appendChild(wrap);
-      wrap.querySelectorAll("input, select").forEach((el) => {
-        el.addEventListener("input", updateCliPreview);
-        el.addEventListener("change", updateCliPreview);
-      });
+    basicParams.forEach((def) => {
+      paramsGrid.appendChild(renderParamField(def));
     });
+
+    if (advancedParams.length > 0) {
+      const details = document.createElement("details");
+      details.id = "params-advanced";
+      details.className =
+        "col-span-full rounded-lg border border-outline-variant/50 bg-surface-container-lowest/50 p-4";
+      details.innerHTML = `
+        <summary class="cursor-pointer font-label-sm font-semibold text-on-surface">
+          Advanced parameters
+        </summary>
+        <div id="params-advanced-grid" class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2"></div>`;
+      paramsSection.appendChild(details);
+      const advancedGrid = details.querySelector("#params-advanced-grid");
+      advancedParams.forEach((def) => {
+        advancedGrid.appendChild(renderParamField(def));
+      });
+    }
   }
 
   function updateCliPreview() {
@@ -286,8 +313,8 @@
 
     activeConfig = modules[activeModuleId];
     if (!activeConfig) {
-      activeModuleId = "ants-bet";
-      activeConfig = modules["ants-bet"];
+      activeModuleId = "ants-n4";
+      activeConfig = modules["ants-n4"];
     }
 
     if (!document.getElementById("page-title").textContent.includes("ANTs")) {
