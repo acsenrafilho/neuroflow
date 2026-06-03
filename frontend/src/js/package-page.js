@@ -12,6 +12,10 @@
       docsLabel: "FSL documentation",
     },
     ants: { docsUrl: null, docsLabel: null },
+    itk: {
+      docsUrl: "https://github.com/CSIM-Toolkits/ITK/tree/master",
+      docsLabel: "CSIM ITK repository",
+    },
   };
 
   function statusLabel(module) {
@@ -84,6 +88,9 @@
       } else if (packageId === "fsl") {
         summaryEl.textContent =
           "Structural, diffusion, and registration tools. Complete prerequisite steps in linked modules before advanced pipelines.";
+      } else if (packageId === "itk") {
+        summaryEl.textContent =
+          "CSIM ITK filters built on the host plus Simple Filters via 3D Slicer. Configure native binaries in config/itk-binaries.json.";
       } else {
         summaryEl.textContent = `Processing modules available under ${packageName}.`;
       }

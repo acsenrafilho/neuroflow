@@ -69,11 +69,7 @@ def _print_scan(settings: Settings) -> None:
     modules_table.add_column("Portal")
     modules_table.add_column("Host ready")
     for module in list_modules():
-        host_ready = module_available(
-            results,
-            module.package_id,
-            required_executable=module.required_executable,
-        )
+        host_ready = module_available(results, module, settings)
         portal = "coming soon" if module.coming_soon else "active"
         ready = "[green]yes[/green]" if host_ready else "[red]no[/red]"
         modules_table.add_row(module.package_name, module.module_name, portal, ready)

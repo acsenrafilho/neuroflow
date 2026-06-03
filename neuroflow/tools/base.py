@@ -71,6 +71,22 @@ def resolve_executable(settings: Settings, name: str) -> Path | None:
     return Path(found) if found else None
 
 
+def resolve_configured_binary(path: Path) -> Path | None:
+    """Validate an absolute path from ITK binaries config (no allowlist name required)."""
+    resolved = path.resolve()
+    if resolved.is_file() and os.access(resolved, os.X_OK):
+        return resolved
+    return None
+
+
+def resolve_job_executable(settings: Settings, argv0: str) -> Path | None:
+    """Resolve argv[0] from ITK config path or allowlisted PATH name."""
+    candidate = Path(argv0)
+    if candidate.is_absolute():
+        return resolve_configured_binary(candidate)
+    return resolve_executable(settings, argv0)
+
+
 def build_env(settings: Settings) -> dict[str, str]:
     env = os.environ.copy()
     if settings.neuroflow_freesurfer_home:
@@ -114,10 +130,9 @@ def start_job_process(
     on_complete: Callable[[int], None] | None = None,
 ) -> int:
     """Start allowlisted process in background; stream output to run.log."""
-    executable_name = argv[0]
-    executable = resolve_executable(settings, executable_name)
+    executable = resolve_job_executable(settings, argv[0])
     if executable is None:
-        raise FileNotFoundError(f"Executable not found on PATH: {executable_name}")
+        raise FileNotFoundError(f"Executable not found: {argv[0]}")
 
     env = build_env(settings)
     if subjects_dir is not None:

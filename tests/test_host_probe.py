@@ -6,12 +6,16 @@ from unittest.mock import patch
 import pytest
 from neuroflow.config import Settings
 from neuroflow.tools.host_probe import (
+    ProbeResult,
+    module_available,
     probe_ants,
     probe_freesurfer,
     probe_fsl,
+    probe_itk,
     probe_slicer,
     scan_all_packages,
 )
+from neuroflow.tools.registry import get_module
 
 
 def test_probe_freesurfer_when_recon_all_resolved(tmp_path: Path) -> None:
@@ -88,6 +92,55 @@ def test_probe_slicer_missing() -> None:
     assert result.available is False
 
 
+def test_probe_itk_no_config() -> None:
+    settings = Settings(neuroflow_itk_binaries_config=None)
+    with patch("neuroflow.tools.itk_binaries.itk_binaries_config_path", return_value=None):
+        result = probe_itk(settings)
+    assert result.available is False
+    assert "itk-binaries" in result.detail
+
+
+def test_probe_itk_with_configured_binary(tmp_path: Path) -> None:
+    binary = tmp_path / "dcm"
+    binary.write_text("#!/bin/sh\n", encoding="utf-8")
+    binary.chmod(0o755)
+    config_path = tmp_path / "itk-binaries.json"
+    config_path.write_text(
+        f'{{"itk-diffusion-complexity-mapping": "{binary}"}}',
+        encoding="utf-8",
+    )
+    settings = Settings(neuroflow_itk_binaries_config=config_path)
+    result = probe_itk(settings)
+    assert result.available is True
+    assert result.resolved_path == str(binary)
+
+
+def test_module_available_itk_binary_and_worker(tmp_path: Path) -> None:
+    binary = tmp_path / "dcm"
+    binary.write_text("#!/bin/sh\n", encoding="utf-8")
+    binary.chmod(0o755)
+    config_path = tmp_path / "itk-binaries.json"
+    config_path.write_text(
+        f'{{"itk-diffusion-complexity-mapping": "{binary}"}}',
+        encoding="utf-8",
+    )
+    settings = Settings(neuroflow_itk_binaries_config=config_path)
+    results = {
+        "itk": ProbeResult("itk", True, resolved_path=str(binary), detail="ok"),
+        "slicer": ProbeResult("slicer", True, resolved_path="/opt/Slicer", detail="ok"),
+    }
+    dcm = get_module("itk-diffusion-complexity-mapping")
+    assert dcm is not None
+    assert module_available(results, dcm, settings) is True
+
+    simple = get_module("itk-simple-filter")
+    assert simple is not None
+    assert module_available(results, simple, settings) is True
+
+    results["slicer"] = ProbeResult("slicer", False, detail="missing")
+    assert module_available(results, simple, settings) is False
+
+
 def test_scan_all_packages_returns_all_ids() -> None:
     settings = Settings()
     with (
@@ -95,12 +148,12 @@ def test_scan_all_packages_returns_all_ids() -> None:
         patch("neuroflow.tools.host_probe.probe_fsl") as mock_fsl,
         patch("neuroflow.tools.host_probe.probe_ants") as mock_ants,
         patch("neuroflow.tools.host_probe.probe_slicer") as mock_slicer,
+        patch("neuroflow.tools.host_probe.probe_itk") as mock_itk,
     ):
-        from neuroflow.tools.host_probe import ProbeResult
-
         mock_fs.return_value = ProbeResult("freesurfer", False, detail="x")
         mock_fsl.return_value = ProbeResult("fsl", False, detail="y")
         mock_ants.return_value = ProbeResult("ants", False, detail="z")
         mock_slicer.return_value = ProbeResult("slicer", False, detail="w")
+        mock_itk.return_value = ProbeResult("itk", False, detail="v")
         results = scan_all_packages(settings)
-    assert set(results.keys()) == {"freesurfer", "fsl", "ants", "slicer"}
+    assert set(results.keys()) == {"freesurfer", "fsl", "ants", "slicer", "itk"}

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroFlow | ITK Module</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body
+    class="flex min-h-screen flex-col items-center bg-background font-body-md text-on-background"
+  >
+    <nav
+      class="fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between border-b border-outline-variant bg-white/80 px-8 backdrop-blur-md"
+    >
+      <div class="flex items-center gap-4">
+        <a href="/packages/itk.html" class="flex items-center gap-4">
+          <img src="/assets/neuroflow_logo.svg" alt="NeuroFlow logo" class="h-8 w-auto" />
+          <span class="font-headline-md tracking-tight text-primary">NeuroFlow</span>
+        </a>
+        <div class="mx-2 h-6 w-px bg-outline-variant"></div>
+        <span class="font-label-sm uppercase tracking-widest text-on-surface-variant" id="nav-module-label"
+          >ITK</span
+        >
+      </div>
+      <a
+        href="/packages/itk.html"
+        class="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-1.5 font-label-sm text-on-surface-variant hover:bg-surface-container-low"
+      >
+        <span class="material-symbols-outlined text-sm">arrow_back</span>
+        All ITK modules
+      </a>
+    </nav>
+
+    <main class="mb-16 mt-24 flex w-full max-w-[800px] flex-col gap-8 px-6">
+      <header class="flex flex-col gap-4">
+        <div class="flex flex-col gap-2">
+          <h1 class="font-headline-xl text-primary-container" id="page-title">ITK</h1>
+          <p class="font-body-md text-on-surface-variant" id="page-summary">Loading…</p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <span id="host-status-badge" class="hidden"></span>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+          <span class="font-label-sm text-on-surface-variant">Official documentation</span>
+          <a
+            id="docs-link"
+            href="https://github.com/CSIM-Toolkits/ITK/tree/master"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 rounded-lg border border-secondary bg-surface-container-lowest px-4 py-2 font-label-sm text-secondary transition-colors hover:bg-secondary/10"
+          >
+            <span class="material-symbols-outlined text-sm">open_in_new</span>
+            <span id="docs-link-label">CSIM ITK repository</span>
+          </a>
+        </div>
+      </header>
+
+      <div id="read-only-sections" class="hidden flex flex-col gap-8">
+        <section
+          id="phase-banner"
+          class="rounded-xl border border-secondary/30 bg-secondary/5 px-6 py-5"
+        >
+          <div class="mb-3 flex items-center gap-2">
+            <span class="material-symbols-outlined text-secondary" id="phase-banner-icon">construction</span>
+            <h2 class="font-headline-md text-on-surface" id="phase-banner-title">Job launch coming soon</h2>
+          </div>
+          <p class="text-sm text-on-surface-variant" id="phase-banner-text"></p>
+        </section>
+
+        <div id="module-extra-content" class="flex flex-col gap-8"></div>
+
+        <section
+          id="host-setup-panel"
+          class="glass-panel flex flex-col gap-4 rounded-xl p-8 shadow-sm"
+        >
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-secondary">dns</span>
+            <h2 class="font-headline-md text-on-surface">Host setup</h2>
+          </div>
+          <div id="host-setup-content" class="space-y-4 text-sm text-on-surface-variant"></div>
+        </section>
+
+        <section
+          id="worker-panel"
+          class="hidden rounded-xl border border-outline-variant bg-surface-container-low px-6 py-5"
+        >
+          <div class="mb-2 flex items-center gap-2">
+            <span class="material-symbols-outlined text-on-surface-variant">view_in_ar</span>
+            <h2 class="font-headline-md text-on-surface">Processing worker</h2>
+          </div>
+          <p id="worker-summary" class="text-sm text-on-surface-variant"></p>
+        </section>
+      </div>
+
+      <section
+        id="prerequisites-panel"
+        class="hidden rounded-xl border border-secondary/30 bg-secondary/5 px-6 py-5"
+      >
+        <div class="mb-3 flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary">info</span>
+          <h2 class="font-headline-md text-on-surface">Before you run</h2>
+        </div>
+        <p class="mb-3 text-sm text-on-surface-variant">
+          Complete these steps manually using other NeuroFlow modules or your own data preparation.
+          Jobs are not chained automatically.
+        </p>
+        <ol id="prerequisites-list" class="list-decimal space-y-2 pl-5 text-sm text-on-surface"></ol>
+      </section>
+
+      <form id="job-form" class="hidden flex flex-col gap-8" novalidate>
+        <section class="glass-panel flex flex-col gap-4 rounded-xl p-8 shadow-sm">
+          <div class="mb-2 flex items-center gap-2">
+            <span
+              class="material-symbols-outlined text-secondary"
+              style="font-variation-settings: 'FILL' 1"
+              >upload_file</span
+            >
+            <h2 class="font-headline-md text-on-surface">Input files (batch supported)</h2>
+          </div>
+          <div id="inputs-section" class="flex flex-col gap-4"></div>
+        </section>
+
+        <section
+          id="params-section"
+          class="glass-panel flex flex-col gap-6 rounded-xl p-8 shadow-sm"
+        >
+          <div class="flex items-center gap-2">
+            <span
+              class="material-symbols-outlined text-secondary"
+              style="font-variation-settings: 'FILL' 1"
+              >settings_input_component</span
+            >
+            <h2 class="font-headline-md text-on-surface">Parameters</h2>
+          </div>
+          <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div class="flex flex-col gap-2 md:col-span-2">
+              <label class="font-label-sm text-on-surface" for="output_prefix">Output prefix</label>
+              <input
+                class="rounded-lg border-outline-variant bg-surface-container-lowest font-body-md focus:border-secondary focus:ring-secondary"
+                id="output_prefix"
+                name="output_prefix"
+                placeholder="result"
+                type="text"
+                value="result"
+              />
+              <p class="text-xs text-on-surface-variant">
+                Base name for outputs under the job output directory.
+                <code class="font-code-mono">.nii</code> or
+                <code class="font-code-mono">.nii.gz</code> is added to match your input image.
+              </p>
+            </div>
+          </div>
+          <div id="params-grid" class="grid grid-cols-1 gap-6 md:grid-cols-2"></div>
+        </section>
+
+        <section class="glass-panel flex flex-col gap-3 rounded-xl p-6 shadow-sm">
+          <h2 class="font-headline-md text-on-surface">CLI preview</h2>
+          <pre
+            id="cli-preview"
+            class="cli-terminal overflow-x-auto rounded-lg bg-slate-900 p-4 font-code-mono text-xs text-teal-400"
+          ># Configure inputs and parameters</pre>
+        </section>
+
+        <div class="flex flex-col items-center gap-4">
+          <button
+            type="submit"
+            class="flex w-full items-center justify-center gap-3 rounded-xl bg-primary py-4 font-headline-md text-on-primary shadow-lg transition-all hover:opacity-95 active:scale-[0.99]"
+            id="run-btn"
+          >
+            <span class="material-symbols-outlined">play_arrow</span>
+            Execute processing
+          </button>
+          <p id="time-estimate" class="text-xs text-on-surface-variant" aria-live="polite"></p>
+          <p class="flex items-center gap-1 text-xs italic text-on-surface-variant">
+            <span class="material-symbols-outlined text-[14px]">bolt</span>
+            Requires the ITK binary configured in config/itk-binaries.json on this host.
+          </p>
+          <p id="form-error" class="hidden text-sm text-error" role="alert"></p>
+        </div>
+      </form>
+
+      <section class="glass-panel hidden overflow-hidden rounded-xl shadow-md" id="status-panel">
+        <div
+          class="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant bg-surface-container-highest px-4 py-2"
+        >
+          <div class="flex items-center gap-2">
+            <span class="h-2 w-2 animate-pulse rounded-full bg-secondary" id="status-dot"></span>
+            <span
+              class="font-code-mono text-xs font-semibold uppercase tracking-wider text-on-surface"
+              >ITK CLI output</span
+            >
+          </div>
+          <div class="flex flex-wrap items-center gap-3 font-code-mono text-xs text-on-surface-variant">
+            <span id="job-status-label">queued</span>
+            <span id="elapsed-label" class="hidden">Elapsed: 00:00:00</span>
+            <span id="batch-label" class="hidden"></span>
+            <span id="eta-label" class="hidden"></span>
+          </div>
+        </div>
+        <div
+          class="cli-terminal h-64 overflow-y-auto bg-slate-900 p-6 font-code-mono text-sm leading-relaxed text-teal-400"
+          id="log-output"
+        ></div>
+        <div class="h-1 w-full bg-surface-container-low">
+          <div class="h-full w-0 bg-secondary transition-all duration-500" id="progress-bar"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="mt-auto w-full border-t border-outline-variant/30 py-8 text-center">
+      <p class="font-label-sm text-xs text-on-surface-variant">
+        NeuroFlow — single-tool CLI facilitation. ITK / CSIM tools must be built and licensed separately.
+      </p>
+    </footer>
+
+    <script src="/js/neuroflow-api.js"></script>
+    <script src="/js/itk-modules-config.js"></script>
+    <script src="/js/itk-tool-page.js"></script>
+  </body>
+</html>

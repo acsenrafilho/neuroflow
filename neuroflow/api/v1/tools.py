@@ -19,6 +19,12 @@ from neuroflow.services.job_monitoring import enrich_log, enrich_status
 from neuroflow.services.jobs import JobStore
 from neuroflow.tools.freesurfer import BatchScan, FreeSurferJobParams, launch_freesurfer_job
 from neuroflow.tools.fsl import FSL_TOOL_ID, FslJobParams, group_uploads_into_batch, launch_fsl_job
+from neuroflow.tools.itk import (
+    ITK_TOOL_ID,
+    ItkJobParams,
+    group_uploads_into_batch as group_itk_uploads_into_batch,
+    launch_itk_job,
+)
 from neuroflow.tools.slicer import (
     SLICER_TOOL_ID,
     SlicerJobParams,
@@ -73,12 +79,9 @@ async def list_registered_tools(request: Request) -> list[ToolInfo]:
 async def list_processing_modules(request: Request) -> list[ModuleInfo]:
     availability = get_tool_availability(request)
     result: list[ModuleInfo] = []
+    settings = get_cached_settings()
     for module in list_modules():
-        available = module_available(
-            availability,
-            module.package_id,
-            required_executable=module.required_executable,
-        )
+        available = module_available(availability, module, settings)
         result.append(
             ModuleInfo(
                 id=module.id,
@@ -572,6 +575,151 @@ async def get_slicer_job_log(
     base = JobLogResponse(
         job_id=job_id,
         log=store.read_log(SLICER_TOOL_ID, job_id),
+        status=meta["status"],
+    )
+    return enrich_log(meta, base)
+
+
+@router.post("/itk/jobs", response_model=JobStatusResponse, status_code=201)
+async def create_itk_job(
+    settings: Annotated[Settings, Depends(get_cached_settings)],
+    store: Annotated[JobStore, Depends(get_job_store)],
+    files: Annotated[list[UploadFile], File()],
+    file_roles: Annotated[str, Form()],
+    module_id: Annotated[str, Form()],
+    output_prefix: Annotated[str, Form()] = "result",
+    parameters: Annotated[str, Form()] = "{}",
+) -> JobStatusResponse:
+    tool = get_tool(ITK_TOOL_ID)
+    if tool is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Tool not found",
+            headers={"X-Error-Code": "tool_not_found"},
+        )
+
+    if not files:
+        raise HTTPException(
+            status_code=422,
+            detail="At least one file is required",
+            headers={"X-Error-Code": "validation_error"},
+        )
+
+    module = get_module(module_id)
+    if module is None or module.coming_soon:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unknown or unavailable module: {module_id}",
+            headers={"X-Error-Code": "validation_error"},
+        )
+
+    parsed_roles = _parse_file_roles(file_roles, len(files))
+    parsed_parameters = _parse_parameters(parameters)
+
+    try:
+        job_params = ItkJobParams(
+            module_id=module_id,
+            output_prefix=output_prefix,
+            parameters=parsed_parameters,
+        )
+    except (ValueError, ValidationError) as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "validation_error"},
+        ) from exc
+
+    job_id = store.create_job(
+        ITK_TOOL_ID,
+        {
+            "module_id": job_params.module_id,
+            "output_prefix": job_params.output_prefix,
+            "parameters": job_params.parameters,
+        },
+    )
+
+    files_by_role: dict[str, list[Path]] = defaultdict(list)
+    try:
+        for upload, role in zip(files, parsed_roles, strict=True):
+            input_path = await store.save_upload(ITK_TOOL_ID, job_id, upload)
+            files_by_role[role].append(input_path)
+        batch_items = group_itk_uploads_into_batch(
+            job_params.module_id, dict(files_by_role)
+        )
+    except ValueError as exc:
+        store.delete_job(ITK_TOOL_ID, job_id)
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "validation_error"},
+        ) from exc
+
+    try:
+        launch_itk_job(
+            settings=settings,
+            store=store,
+            job_id=job_id,
+            module_id=job_params.module_id,
+            batch_items=batch_items,
+            output_prefix=job_params.output_prefix,
+            parameters=job_params.parameters,
+        )
+    except FileNotFoundError as exc:
+        store.update_meta(
+            ITK_TOOL_ID,
+            job_id,
+            status="failed",
+            error_message=str(exc),
+        )
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "tool_not_installed"},
+        ) from exc
+    except ValueError as exc:
+        store.delete_job(ITK_TOOL_ID, job_id)
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "validation_error"},
+        ) from exc
+
+    meta = store.read_meta(ITK_TOOL_ID, job_id)
+    return enrich_status(meta, _meta_to_status(meta))
+
+
+@router.get("/itk/jobs/{job_id}", response_model=JobStatusResponse)
+async def get_itk_job(
+    job_id: str,
+    store: Annotated[JobStore, Depends(get_job_store)],
+) -> JobStatusResponse:
+    try:
+        meta = store.read_meta(ITK_TOOL_ID, job_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Job not found: {job_id}",
+            headers={"X-Error-Code": "job_not_found"},
+        ) from exc
+    return enrich_status(meta, _meta_to_status(meta))
+
+
+@router.get("/itk/jobs/{job_id}/log", response_model=JobLogResponse)
+async def get_itk_job_log(
+    job_id: str,
+    store: Annotated[JobStore, Depends(get_job_store)],
+) -> JobLogResponse:
+    try:
+        meta = store.read_meta(ITK_TOOL_ID, job_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Job not found: {job_id}",
+            headers={"X-Error-Code": "job_not_found"},
+        ) from exc
+    base = JobLogResponse(
+        job_id=job_id,
+        log=store.read_log(ITK_TOOL_ID, job_id),
         status=meta["status"],
     )
     return enrich_log(meta, base)

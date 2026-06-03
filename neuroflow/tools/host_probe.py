@@ -10,14 +10,17 @@ from shutil import which
 
 from neuroflow.config import Settings
 from neuroflow.tools.base import resolve_executable
+from neuroflow.tools.itk_binaries import count_configured_native_binaries, resolve_itk_module_binary
+from neuroflow.tools.registry import ModuleDefinition
 
-PACKAGE_IDS: tuple[str, ...] = ("freesurfer", "fsl", "ants", "slicer")
+PACKAGE_IDS: tuple[str, ...] = ("freesurfer", "fsl", "ants", "slicer", "itk")
 
 _PACKAGE_DISPLAY_NAMES = {
     "freesurfer": "FreeSurfer",
     "fsl": "FSL",
     "ants": "ANTs",
     "slicer": "3D Slicer",
+    "itk": "ITK",
 }
 
 logger = logging.getLogger(__name__)
@@ -165,6 +168,38 @@ def probe_slicer(settings: Settings) -> ProbeResult:
     )
 
 
+def probe_itk(settings: Settings) -> ProbeResult:
+    configured, total = count_configured_native_binaries(settings)
+    if configured > 0:
+        first_path = None
+        for module_id in (
+            "itk-diffusion-complexity-mapping",
+            "itk-anisotropic-anomalous-diffusion",
+        ):
+            resolved = resolve_itk_module_binary(settings, module_id)
+            if resolved is not None:
+                first_path = str(resolved)
+                break
+        return ProbeResult(
+            package_id="itk",
+            available=True,
+            resolved_path=first_path,
+            detail=f"{configured} of {total} native ITK module binary(ies) configured",
+        )
+
+    config_hint = "config/itk-binaries.json"
+    if settings.neuroflow_itk_binaries_config:
+        config_hint = str(settings.neuroflow_itk_binaries_config)
+    return ProbeResult(
+        package_id="itk",
+        available=False,
+        detail=(
+            f"No native ITK binaries configured; copy config/itk-binaries.example.json "
+            f"to {config_hint} and set absolute executable paths"
+        ),
+    )
+
+
 def probe_ants() -> ProbeResult:
     path = _first_on_path(("antsRegistration", "ANTS", "antsApplyTransforms"))
     if path:
@@ -187,6 +222,7 @@ _PROBE_FUNCTIONS = {
     "fsl": lambda settings: probe_fsl(),
     "ants": lambda settings: probe_ants(),
     "slicer": probe_slicer,
+    "itk": probe_itk,
 }
 
 
@@ -227,12 +263,16 @@ def package_available(results: dict[str, ProbeResult], package_id: str) -> bool:
 
 def module_available(
     results: dict[str, ProbeResult],
-    package_id: str,
-    *,
-    required_executable: str | None = None,
+    module: ModuleDefinition,
+    settings: Settings,
 ) -> bool:
-    if required_executable:
-        return which(required_executable) is not None or (
-            required_executable == "eddy" and which("eddy_openmp") is not None
+    if module.required_executable:
+        return which(module.required_executable) is not None or (
+            module.required_executable == "eddy" and which("eddy_openmp") is not None
         )
-    return package_available(results, package_id)
+    if module.availability_mode == "itk_binary":
+        return resolve_itk_module_binary(settings, module.id) is not None
+    if module.availability_mode == "worker_package":
+        worker_id = module.worker_package_id or module.package_id
+        return package_available(results, worker_id)
+    return package_available(results, module.package_id)

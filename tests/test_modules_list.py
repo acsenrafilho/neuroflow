@@ -1,5 +1,7 @@
 """Processing modules API tests."""
 
+from unittest.mock import patch
+
 from fastapi.testclient import TestClient
 from neuroflow.tools.host_probe import TOOL_AVAILABILITY_STATE_KEY, ProbeResult
 
@@ -8,7 +10,7 @@ def test_list_modules(client: TestClient) -> None:
     response = client.get("/api/v1/modules")
     assert response.status_code == 200
     modules = response.json()
-    assert len(modules) >= 18
+    assert len(modules) >= 21
     fs_modules = [m for m in modules if m["package_id"] == "freesurfer" and not m["coming_soon"]]
     assert len(fs_modules) == 4
     fsl_modules = [m for m in modules if m["package_id"] == "fsl" and not m["coming_soon"]]
@@ -21,6 +23,13 @@ def test_list_modules(client: TestClient) -> None:
         "slicer-dwi-convert",
         "slicer-dwi-mask",
         "slicer-dwi-to-dti",
+    }
+    itk_modules = [m for m in modules if m["package_id"] == "itk" and not m["coming_soon"]]
+    assert len(itk_modules) == 3
+    assert {m["id"] for m in itk_modules} == {
+        "itk-diffusion-complexity-mapping",
+        "itk-anisotropic-anomalous-diffusion",
+        "itk-simple-filter",
     }
 
 
@@ -51,9 +60,15 @@ def test_modules_use_cached_host_probe(client: TestClient) -> None:
             resolved_path="/opt/Slicer",
             detail="ok",
         ),
+        "itk": ProbeResult(
+            package_id="itk",
+            available=False,
+            detail="no native binaries",
+        ),
     }
 
-    response = client.get("/api/v1/modules")
+    with patch("neuroflow.tools.host_probe.resolve_itk_module_binary", return_value=None):
+        response = client.get("/api/v1/modules")
     assert response.status_code == 200
     modules = response.json()
 
@@ -72,6 +87,12 @@ def test_modules_use_cached_host_probe(client: TestClient) -> None:
     slicer_convert = next(m for m in modules if m["id"] == "slicer-dwi-convert")
     assert slicer_convert["available"] is True
 
+    itk_simple = next(m for m in modules if m["id"] == "itk-simple-filter")
+    assert itk_simple["available"] is True
+
+    itk_dcm = next(m for m in modules if m["id"] == "itk-diffusion-complexity-mapping")
+    assert itk_dcm["available"] is False
+
 
 def test_host_rescan_updates_cache(client: TestClient) -> None:
     client.app.state.tool_availability = {
@@ -79,9 +100,10 @@ def test_host_rescan_updates_cache(client: TestClient) -> None:
         "fsl": ProbeResult("fsl", available=False, detail="before"),
         "ants": ProbeResult("ants", available=False, detail="before"),
         "slicer": ProbeResult("slicer", available=False, detail="before"),
+        "itk": ProbeResult("itk", available=False, detail="before"),
     }
 
     response = client.post("/api/v1/host/rescan")
     assert response.status_code == 200
-    assert len(response.json()["packages"]) == 4
+    assert len(response.json()["packages"]) == 5
     assert hasattr(client.app.state, TOOL_AVAILABILITY_STATE_KEY)

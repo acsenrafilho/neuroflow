@@ -1,0 +1,4 @@
+{
+  "itk-diffusion-complexity-mapping": "/opt/csim-itk/build/DiffusionComplexityMapping",
+  "itk-anisotropic-anomalous-diffusion": "/opt/csim-itk/build/AnisotropicAnomalousDiffusion"
+}

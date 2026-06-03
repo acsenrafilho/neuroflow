@@ -7,6 +7,7 @@
     { id: "fsl", name: "FSL", icon: "science", href: "/packages/fsl.html", enabled: true },
     { id: "ants", name: "ANTs", icon: "transform", href: "/packages/ants.html", enabled: true },
     { id: "slicer", name: "3D Slicer", icon: "view_in_ar", href: "/packages/slicer.html", enabled: true },
+    { id: "itk", name: "ITK", icon: "filter_alt", href: "/packages/itk.html", enabled: true },
   ];
 
   const LOGO_SRC = "/assets/neuroflow_logo.png";

@@ -6,6 +6,9 @@ data/jobs/*
 .env
 .env.local
 
+# Host-specific ITK binary paths (use config/itk-binaries.example.json as template)
+config/itk-binaries.json
+
 # Python
 __pycache__/
 *.py[cod]

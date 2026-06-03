@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 ReconOption = Literal["all", "autorecon1", "autorecon2", "autorecon3"]
+AvailabilityMode = Literal["package", "itk_binary", "worker_package"]
 
 
 @dataclass(frozen=True)
@@ -34,6 +35,8 @@ class ModuleDefinition:
     estimated_hours_per_scan: float = 1.0
     coming_soon: bool = False
     required_executable: str | None = None
+    availability_mode: AvailabilityMode = "package"
+    worker_package_id: str | None = None
 
 
 TOOLS: dict[str, ToolDefinition] = {
@@ -77,6 +80,14 @@ TOOLS: dict[str, ToolDefinition] = {
         page_path="/tools/slicer.html",
         executable="Slicer",
         probe_binaries=("Slicer", "slicer"),
+    ),
+    "itk": ToolDefinition(
+        id="itk",
+        name="ITK",
+        description=(
+            "CSIM ITK toolkits — locally compiled filters and Slicer-backed Simple Filters."
+        ),
+        page_path="/tools/itk.html",
     ),
 }
 
@@ -306,6 +317,43 @@ MODULES: tuple[ModuleDefinition, ...] = (
         description="Estimate a diffusion tensor volume (DTI) from DWI, mask, and baseline NRRD inputs.",
         page_path="/tools/slicer.html",
         estimated_hours_per_scan=0.25,
+    ),
+    ModuleDefinition(
+        id="itk-diffusion-complexity-mapping",
+        package_id="itk",
+        package_name="ITK",
+        module_name="Diffusion Complexity Mapping",
+        description=(
+            "Diffusion complexity mapping from diffusion MRI (CSIM ITK Features module)."
+        ),
+        page_path="/tools/itk.html",
+        availability_mode="itk_binary",
+        estimated_hours_per_scan=0.5,
+    ),
+    ModuleDefinition(
+        id="itk-anisotropic-anomalous-diffusion",
+        package_id="itk",
+        package_name="ITK",
+        module_name="Anisotropic Anomalous Diffusion Image Filter",
+        description=(
+            "Anisotropic anomalous diffusion denoising filter (CSIM ITK Filtering — AAD)."
+        ),
+        page_path="/tools/itk.html",
+        availability_mode="itk_binary",
+        estimated_hours_per_scan=0.25,
+    ),
+    ModuleDefinition(
+        id="itk-simple-filter",
+        package_id="itk",
+        package_name="ITK",
+        module_name="Simple Filters",
+        description=(
+            "Hundreds of ITK image filters through the built-in 3D Slicer Simple Filters module."
+        ),
+        page_path="/tools/itk.html",
+        availability_mode="worker_package",
+        worker_package_id="slicer",
+        estimated_hours_per_scan=0.1,
     ),
 )
 

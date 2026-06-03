@@ -27,7 +27,7 @@ make api
 # or: poetry run uvicorn neuroflow.api.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-On startup the API scans the local host for registered packages (FreeSurfer, FSL, ANTs) and caches the result. The home page **Processing modules** table uses `GET /api/v1/modules` to show **Ready** when the corresponding software is installed, even for portal placeholders that are not yet executable from the UI.
+On startup the API scans the local host for registered packages (FreeSurfer, FSL, ANTs, 3D Slicer, ITK) and caches the result. The home page **Processing modules** table uses `GET /api/v1/modules` to show **Ready** when the corresponding software is installed, even for portal placeholders that are not yet executable from the UI.
 
 - Tool hub: http://127.0.0.1:8000/
 - FreeSurfer module: http://127.0.0.1:8000/tools/freesurfer.html
