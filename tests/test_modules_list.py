@@ -8,13 +8,20 @@ def test_list_modules(client: TestClient) -> None:
     response = client.get("/api/v1/modules")
     assert response.status_code == 200
     modules = response.json()
-    assert len(modules) >= 15
+    assert len(modules) >= 18
     fs_modules = [m for m in modules if m["package_id"] == "freesurfer" and not m["coming_soon"]]
     assert len(fs_modules) == 4
     fsl_modules = [m for m in modules if m["package_id"] == "fsl" and not m["coming_soon"]]
     assert len(fsl_modules) == 15
     recon_options = {m["recon_options"] for m in fs_modules}
     assert recon_options == {"all", "autorecon1", "autorecon2", "autorecon3"}
+    slicer_modules = [m for m in modules if m["package_id"] == "slicer" and not m["coming_soon"]]
+    assert len(slicer_modules) == 3
+    assert {m["id"] for m in slicer_modules} == {
+        "slicer-dwi-convert",
+        "slicer-dwi-mask",
+        "slicer-dwi-to-dti",
+    }
 
 
 def test_modules_alias_under_tools(client: TestClient) -> None:
@@ -38,6 +45,12 @@ def test_modules_use_cached_host_probe(client: TestClient) -> None:
             detail="ok",
         ),
         "ants": ProbeResult(package_id="ants", available=False, detail="missing"),
+        "slicer": ProbeResult(
+            package_id="slicer",
+            available=True,
+            resolved_path="/opt/Slicer",
+            detail="ok",
+        ),
     }
 
     response = client.get("/api/v1/modules")
@@ -56,15 +69,19 @@ def test_modules_use_cached_host_probe(client: TestClient) -> None:
     assert ants["coming_soon"] is True
     assert ants["available"] is False
 
+    slicer_convert = next(m for m in modules if m["id"] == "slicer-dwi-convert")
+    assert slicer_convert["available"] is True
+
 
 def test_host_rescan_updates_cache(client: TestClient) -> None:
     client.app.state.tool_availability = {
         "freesurfer": ProbeResult("freesurfer", available=False, detail="before"),
         "fsl": ProbeResult("fsl", available=False, detail="before"),
         "ants": ProbeResult("ants", available=False, detail="before"),
+        "slicer": ProbeResult("slicer", available=False, detail="before"),
     }
 
     response = client.post("/api/v1/host/rescan")
     assert response.status_code == 200
-    assert len(response.json()["packages"]) == 3
+    assert len(response.json()["packages"]) == 4
     assert hasattr(client.app.state, TOOL_AVAILABILITY_STATE_KEY)

@@ -10,6 +10,7 @@ NeuroFlow is a **web portal** that wraps neuroimaging **CLI tools**—one indepe
 - [Node.js](https://nodejs.org/) 18+ (frontend Tailwind build)
 - **FreeSurfer** on the host for the FreeSurfer module (`recon-all` on `PATH`, or set `NEUROFLOW_RECON_ALL_BIN`)
 - **FSL** on the host for FSL modules (`bet`, `flirt`, etc. on `PATH`, or set `NEUROFLOW_FSLDIR` / `FSLDIR`)
+- **3D Slicer** on the host for Slicer modules (`Slicer` on `PATH`, or set `NEUROFLOW_SLICER_HOME` / `SLICER_HOME`)
 
 ## Quick start
 
@@ -74,6 +75,7 @@ tests/
 - Tools: `GET /api/v1/tools`
 - FreeSurfer job: `POST /api/v1/tools/freesurfer/jobs` (multipart: file + form fields)
 - FSL job: `POST /api/v1/tools/fsl/jobs` (multipart: files, `file_roles`, `module_id`, `parameters`)
+- 3D Slicer job: `POST /api/v1/tools/slicer/jobs` (multipart: files, `file_roles`, `module_id`, `parameters`)
 
 ## Adding a tool
 
@@ -84,4 +86,4 @@ tests/
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Third-party neuroimaging tools (FSL, ANTs, FreeSurfer) have separate licenses; see [doc/licenses/](doc/licenses/).
+MIT — see [LICENSE](LICENSE). Third-party neuroimaging tools (FSL, ANTs, FreeSurfer, 3D Slicer) have separate licenses; see [doc/licenses/](doc/licenses/).

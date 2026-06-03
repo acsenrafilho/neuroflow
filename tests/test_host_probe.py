@@ -9,6 +9,7 @@ from neuroflow.tools.host_probe import (
     probe_ants,
     probe_freesurfer,
     probe_fsl,
+    probe_slicer,
     scan_all_packages,
 )
 
@@ -61,17 +62,45 @@ def test_probe_ants_found() -> None:
     assert result.available is True
 
 
+def test_probe_slicer_on_path() -> None:
+    with patch("neuroflow.tools.host_probe.resolve_executable", return_value=Path("/opt/Slicer")):
+        result = probe_slicer(Settings())
+    assert result.available is True
+    assert result.resolved_path == "/opt/Slicer"
+
+
+def test_probe_slicer_via_home(tmp_path: Path) -> None:
+    slicer_bin = tmp_path / "Slicer"
+    slicer_bin.write_text("#!/bin/sh\n", encoding="utf-8")
+    slicer_bin.chmod(0o755)
+    settings = Settings(neuroflow_slicer_home=tmp_path)
+    with patch("neuroflow.tools.host_probe.resolve_executable", return_value=None):
+        with patch("neuroflow.tools.host_probe._first_on_path", return_value=None):
+            result = probe_slicer(settings)
+    assert result.available is True
+    assert result.resolved_path == str(slicer_bin)
+
+
+def test_probe_slicer_missing() -> None:
+    with patch("neuroflow.tools.host_probe.resolve_executable", return_value=None):
+        with patch("neuroflow.tools.host_probe._first_on_path", return_value=None):
+            result = probe_slicer(Settings())
+    assert result.available is False
+
+
 def test_scan_all_packages_returns_all_ids() -> None:
     settings = Settings()
     with (
         patch("neuroflow.tools.host_probe.probe_freesurfer") as mock_fs,
         patch("neuroflow.tools.host_probe.probe_fsl") as mock_fsl,
         patch("neuroflow.tools.host_probe.probe_ants") as mock_ants,
+        patch("neuroflow.tools.host_probe.probe_slicer") as mock_slicer,
     ):
         from neuroflow.tools.host_probe import ProbeResult
 
         mock_fs.return_value = ProbeResult("freesurfer", False, detail="x")
         mock_fsl.return_value = ProbeResult("fsl", False, detail="y")
         mock_ants.return_value = ProbeResult("ants", False, detail="z")
+        mock_slicer.return_value = ProbeResult("slicer", False, detail="w")
         results = scan_all_packages(settings)
-    assert set(results.keys()) == {"freesurfer", "fsl", "ants"}
+    assert set(results.keys()) == {"freesurfer", "fsl", "ants", "slicer"}

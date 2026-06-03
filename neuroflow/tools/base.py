@@ -32,6 +32,7 @@ ALLOWLISTED_EXECUTABLES = frozenset(
         "bedpostx",
         "tbss_1_preproc",
         "bianca",
+        "Slicer",
     }
 )
 
@@ -54,6 +55,18 @@ def resolve_executable(settings: Settings, name: str) -> Path | None:
             if candidate.is_file() and os.access(candidate, os.X_OK):
                 return candidate
 
+    if name == "Slicer":
+        if settings.neuroflow_slicer_home:
+            home = settings.neuroflow_slicer_home.resolve()
+            for slicer_name in ("Slicer", "slicer"):
+                candidate = home / slicer_name
+                if candidate.is_file() and os.access(candidate, os.X_OK):
+                    return candidate
+        for slicer_name in ("Slicer", "slicer"):
+            found = which(slicer_name)
+            if found:
+                return Path(found)
+
     found = which(name)
     return Path(found) if found else None
 
@@ -73,6 +86,18 @@ def build_env(settings: Settings) -> dict[str, str]:
         fs_bin = Path(fsldir) / "bin"
         if fs_bin.is_dir():
             env["PATH"] = f"{fs_bin}{os.pathsep}{env.get('PATH', '')}"
+
+    slicer_home = settings.neuroflow_slicer_home
+    if slicer_home is None:
+        for var in ("NEUROFLOW_SLICER_HOME", "SLICER_HOME"):
+            value = os.environ.get(var)
+            if value and Path(value).is_dir():
+                slicer_home = Path(value)
+                break
+    if slicer_home is not None:
+        home = str(slicer_home.resolve())
+        env["SLICER_HOME"] = home
+        env["PATH"] = f"{home}{os.pathsep}{env.get('PATH', '')}"
 
     return env
 

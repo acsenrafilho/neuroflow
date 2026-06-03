@@ -18,6 +18,9 @@ JobStatus = Literal["queued", "running", "completed", "failed"]
 ALLOWED_UPLOAD_SUFFIXES = (
     ".nii",
     ".nii.gz",
+    ".nrrd",
+    ".bval",
+    ".bvec",
     ".dcm",
     ".txt",
     ".mat",

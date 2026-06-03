@@ -70,6 +70,14 @@ TOOLS: dict[str, ToolDefinition] = {
         executable="antsRegistration",
         probe_binaries=("antsRegistration", "ANTS", "antsApplyTransforms"),
     ),
+    "slicer": ToolDefinition(
+        id="slicer",
+        name="3D Slicer",
+        description="3D Slicer CLI modules for diffusion MRI (DWI pipeline).",
+        page_path="/tools/slicer.html",
+        executable="Slicer",
+        probe_binaries=("Slicer", "slicer"),
+    ),
 }
 
 MODULES: tuple[ModuleDefinition, ...] = (
@@ -271,6 +279,33 @@ MODULES: tuple[ModuleDefinition, ...] = (
         description="Advanced Normalization Tools — registration and segmentation — coming soon.",
         page_path="/tools/ants.html",
         coming_soon=True,
+    ),
+    ModuleDefinition(
+        id="slicer-dwi-convert",
+        package_id="slicer",
+        package_name="3D Slicer",
+        module_name="DWIConvert",
+        description="Convert FSL-format DWI (NIfTI + bvals/bvecs) to NRRD for Slicer diffusion tools.",
+        page_path="/tools/slicer.html",
+        estimated_hours_per_scan=0.1,
+    ),
+    ModuleDefinition(
+        id="slicer-dwi-mask",
+        package_id="slicer",
+        package_name="3D Slicer",
+        module_name="DiffusionWeightedVolumeMasking",
+        description="Generate a brain mask and baseline volume from a DWI NRRD volume.",
+        page_path="/tools/slicer.html",
+        estimated_hours_per_scan=0.1,
+    ),
+    ModuleDefinition(
+        id="slicer-dwi-to-dti",
+        package_id="slicer",
+        package_name="3D Slicer",
+        module_name="DWIToDTIEstimation",
+        description="Estimate a diffusion tensor volume (DTI) from DWI, mask, and baseline NRRD inputs.",
+        page_path="/tools/slicer.html",
+        estimated_hours_per_scan=0.25,
     ),
 )
 

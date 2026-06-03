@@ -11,12 +11,13 @@ from shutil import which
 from neuroflow.config import Settings
 from neuroflow.tools.base import resolve_executable
 
-PACKAGE_IDS: tuple[str, ...] = ("freesurfer", "fsl", "ants")
+PACKAGE_IDS: tuple[str, ...] = ("freesurfer", "fsl", "ants", "slicer")
 
 _PACKAGE_DISPLAY_NAMES = {
     "freesurfer": "FreeSurfer",
     "fsl": "FSL",
     "ants": "ANTs",
+    "slicer": "3D Slicer",
 }
 
 logger = logging.getLogger(__name__)
@@ -107,6 +108,63 @@ def probe_fsl() -> ProbeResult:
     )
 
 
+def _slicer_executable_in_dir(dir_path: str) -> str | None:
+    root = Path(dir_path)
+    for name in ("Slicer", "slicer"):
+        candidate = root / name
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return str(candidate)
+    return None
+
+
+def probe_slicer(settings: Settings) -> ProbeResult:
+    resolved = resolve_executable(settings, "Slicer")
+    if resolved is not None:
+        return ProbeResult(
+            package_id="slicer",
+            available=True,
+            resolved_path=str(resolved),
+            detail="Slicer found",
+        )
+
+    path = _first_on_path(("Slicer", "slicer"))
+    if path:
+        return ProbeResult(
+            package_id="slicer",
+            available=True,
+            resolved_path=path,
+            detail="Slicer binary found on PATH",
+        )
+
+    if settings.neuroflow_slicer_home:
+        found = _slicer_executable_in_dir(str(settings.neuroflow_slicer_home.resolve()))
+        if found:
+            return ProbeResult(
+                package_id="slicer",
+                available=True,
+                resolved_path=found,
+                detail="Slicer found under NEUROFLOW_SLICER_HOME",
+            )
+
+    for var in ("NEUROFLOW_SLICER_HOME", "SLICER_HOME"):
+        value = os.environ.get(var)
+        if value:
+            found = _slicer_executable_in_dir(value)
+            if found:
+                return ProbeResult(
+                    package_id="slicer",
+                    available=True,
+                    resolved_path=found,
+                    detail=f"Slicer found under {var}",
+                )
+
+    return ProbeResult(
+        package_id="slicer",
+        available=False,
+        detail="No Slicer binary on PATH; set NEUROFLOW_SLICER_HOME or SLICER_HOME",
+    )
+
+
 def probe_ants() -> ProbeResult:
     path = _first_on_path(("antsRegistration", "ANTS", "antsApplyTransforms"))
     if path:
@@ -128,6 +186,7 @@ _PROBE_FUNCTIONS = {
     "freesurfer": probe_freesurfer,
     "fsl": lambda settings: probe_fsl(),
     "ants": lambda settings: probe_ants(),
+    "slicer": probe_slicer,
 }
 
 

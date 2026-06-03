@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     neuroflow_freesurfer_home: Path | None = None
     neuroflow_recon_all_bin: str = "recon-all"
     neuroflow_fsldir: Path | None = None
+    neuroflow_slicer_home: Path | None = None
 
     @property
     def data_root(self) -> Path:
