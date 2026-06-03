@@ -103,16 +103,51 @@
       available: false,
     },
     {
-      id: "ants-placeholder",
+      id: "ants-n4",
       package_id: "ants",
       package_name: "ANTs",
-      module_name: "—",
-      description:
-        "Advanced Normalization Tools — registration and segmentation — coming soon.",
+      module_name: "N4BiasFieldCorrection",
+      description: "N4 bias field correction for structural MRI.",
       page_path: "/tools/ants.html",
       recon_options: null,
-      estimated_hours_per_scan: 1,
-      coming_soon: true,
+      estimated_hours_per_scan: 0.25,
+      coming_soon: false,
+      available: false,
+    },
+    {
+      id: "ants-registration-syn-quick",
+      package_id: "ants",
+      package_name: "ANTs",
+      module_name: "antsRegistrationSyNQuick",
+      description: "Fast SyN pairwise registration.",
+      page_path: "/tools/ants.html",
+      recon_options: null,
+      estimated_hours_per_scan: 0.5,
+      coming_soon: false,
+      available: false,
+    },
+    {
+      id: "ants-apply-transforms",
+      package_id: "ants",
+      package_name: "ANTs",
+      module_name: "antsApplyTransforms",
+      description: "Apply transforms to warp images.",
+      page_path: "/tools/ants.html",
+      recon_options: null,
+      estimated_hours_per_scan: 0.1,
+      coming_soon: false,
+      available: false,
+    },
+    {
+      id: "ants-brain-extraction",
+      package_id: "ants",
+      package_name: "ANTs",
+      module_name: "antsBrainExtraction",
+      description: "Skull-stripping with atlas templates.",
+      page_path: "/tools/ants.html",
+      recon_options: null,
+      estimated_hours_per_scan: 0.5,
+      coming_soon: false,
       available: false,
     },
     {
@@ -229,11 +264,36 @@
     return base;
   }
 
+  async function killJob(toolId, jobId) {
+    let lastNetworkError = null;
+    for (const base of candidateBases()) {
+      try {
+        const res = await fetch(`${base}/api/v1/tools/${toolId}/jobs/${jobId}/kill`, {
+          method: "POST",
+        });
+        sessionStorage.setItem(STORAGE_KEY, base);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.detail || `HTTP ${res.status}`);
+        }
+        return data;
+      } catch (err) {
+        if (err instanceof TypeError) {
+          lastNetworkError = err;
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw lastNetworkError || new Error("API unavailable");
+  }
+
   global.NeuroflowApi = {
     MODULES_FALLBACK,
     candidateBases,
     fetchApi,
     fetchJson,
     getApiBase,
+    killJob,
   };
 })(window);

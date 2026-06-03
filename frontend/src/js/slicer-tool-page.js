@@ -24,6 +24,8 @@
   let activeModuleId = queryModuleId || "slicer-dwi-convert";
   let hoursPerScan = 0.1;
   let pollTimer = null;
+  let currentJobId = null;
+  const TOOL_ID = "slicer";
 
   /** @type {Map<string, File[]>} */
   const filesByRole = new Map();
@@ -377,8 +379,12 @@
       const widths = { queued: "5%", running: "40%", completed: "100%", failed: "100%" };
       progressBar.style.width = widths[status] || "10%";
     }
-    if (status === "failed") progressBar.classList.add("bg-error");
+    if (status === "failed" || status === "cancelled") progressBar.classList.add("bg-error");
     else progressBar.classList.remove("bg-error");
+
+    if (global.NeuroflowJobControls) {
+      global.NeuroflowJobControls.updateKillButtonVisibility(statusData, logData);
+    }
   }
 
   async function pollJob(jobId) {
@@ -392,11 +398,14 @@
       logOutput.textContent = `$ ${statusData.command_preview}\n\n`;
     }
 
-    if (logData.status === "completed" || logData.status === "failed") {
+    if (global.NeuroflowJobControls?.isTerminalStatus(logData.status)) {
       clearInterval(pollTimer);
       pollTimer = null;
       resetRunButton();
-      if (logData.status === "failed" && statusData.error_message) {
+      if (
+        (logData.status === "failed" || logData.status === "cancelled") &&
+        statusData.error_message
+      ) {
         logOutput.textContent += `\n${statusData.error_message}`;
       }
     }
@@ -467,6 +476,7 @@
       if (data.command_preview) {
         logOutput.textContent = `$ ${data.command_preview}\n\n`;
       }
+      currentJobId = data.job_id;
       pollTimer = setInterval(() => pollJob(data.job_id), 2000);
       pollJob(data.job_id);
     } catch {
@@ -474,6 +484,14 @@
       resetRunButton();
     }
   });
+
+  if (global.NeuroflowJobControls) {
+    global.NeuroflowJobControls.wireKillButton({
+      toolId: TOOL_ID,
+      getJobId: () => currentJobId,
+      onKilled: (jobId) => pollJob(jobId),
+    });
+  }
 
   loadModule();
 })(window);

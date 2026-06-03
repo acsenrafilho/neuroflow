@@ -52,17 +52,49 @@ def test_probe_fsl_via_fsldir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
 
 
 def test_probe_ants_missing() -> None:
-    with patch("neuroflow.tools.host_probe._first_on_path", return_value=None):
-        result = probe_ants()
+    settings = Settings()
+    with (
+        patch("neuroflow.tools.base.resolve_executable", return_value=None),
+        patch("neuroflow.tools.host_probe._first_on_path", return_value=None),
+        patch("neuroflow.tools.base._ants_bin_dir", return_value=None),
+    ):
+        result = probe_ants(settings)
     assert result.available is False
 
 
-def test_probe_ants_found() -> None:
+def test_probe_ants_found_via_resolve() -> None:
+    settings = Settings()
     with patch(
-        "neuroflow.tools.host_probe._first_on_path",
-        return_value="/usr/bin/antsRegistration",
+        "neuroflow.tools.base.resolve_executable",
+        return_value=Path("/usr/bin/antsRegistration"),
     ):
-        result = probe_ants()
+        result = probe_ants(settings)
+    assert result.available is True
+
+
+def test_probe_ants_found_on_path() -> None:
+    settings = Settings()
+    with (
+        patch("neuroflow.tools.base.resolve_executable", return_value=None),
+        patch(
+            "neuroflow.tools.host_probe._first_on_path",
+            return_value="/usr/bin/antsRegistration",
+        ),
+    ):
+        result = probe_ants(settings)
+    assert result.available is True
+
+
+def test_probe_ants_via_antspath(tmp_path: Path) -> None:
+    binary = tmp_path / "antsRegistration"
+    binary.write_text("#!/bin/sh\n", encoding="utf-8")
+    binary.chmod(0o755)
+    settings = Settings(neuroflow_antspath=tmp_path)
+    with (
+        patch("neuroflow.tools.base.resolve_executable", return_value=binary),
+        patch("neuroflow.tools.host_probe._first_on_path", return_value=None),
+    ):
+        result = probe_ants(settings)
     assert result.available is True
 
 

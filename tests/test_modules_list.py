@@ -10,7 +10,9 @@ def test_list_modules(client: TestClient) -> None:
     response = client.get("/api/v1/modules")
     assert response.status_code == 200
     modules = response.json()
-    assert len(modules) >= 21
+    assert len(modules) >= 42
+    ants_modules = [m for m in modules if m["package_id"] == "ants" and not m["coming_soon"]]
+    assert len(ants_modules) == 22
     fs_modules = [m for m in modules if m["package_id"] == "freesurfer" and not m["coming_soon"]]
     assert len(fs_modules) == 4
     fsl_modules = [m for m in modules if m["package_id"] == "fsl" and not m["coming_soon"]]
@@ -67,7 +69,10 @@ def test_modules_use_cached_host_probe(client: TestClient) -> None:
         ),
     }
 
-    with patch("neuroflow.tools.host_probe.resolve_itk_module_binary", return_value=None):
+    with (
+        patch("neuroflow.tools.host_probe.resolve_itk_module_binary", return_value=None),
+        patch("neuroflow.tools.host_probe.which", return_value=None),
+    ):
         response = client.get("/api/v1/modules")
     assert response.status_code == 200
     modules = response.json()
@@ -78,11 +83,28 @@ def test_modules_use_cached_host_probe(client: TestClient) -> None:
 
     fsl_bet = next(m for m in modules if m["id"] == "fsl-bet")
     assert fsl_bet["coming_soon"] is False
-    assert fsl_bet["available"] is True
+    assert fsl_bet["available"] is False
 
-    ants = next(m for m in modules if m["id"] == "ants-placeholder")
-    assert ants["coming_soon"] is True
-    assert ants["available"] is False
+    ants_n4 = next(m for m in modules if m["id"] == "ants-n4")
+    assert ants_n4["coming_soon"] is False
+    assert ants_n4["available"] is False
+
+    client.app.state.tool_availability["ants"] = ProbeResult(
+        package_id="ants",
+        available=True,
+        resolved_path="/usr/bin/antsRegistration",
+        detail="ok",
+    )
+    with (
+        patch("neuroflow.tools.host_probe.resolve_itk_module_binary", return_value=None),
+        patch(
+            "neuroflow.tools.host_probe.which",
+            return_value="/usr/bin/N4BiasFieldCorrection",
+        ),
+    ):
+        response2 = client.get("/api/v1/modules")
+    ants_n4_ready = next(m for m in response2.json() if m["id"] == "ants-n4")
+    assert ants_n4_ready["available"] is True
 
     slicer_convert = next(m for m in modules if m["id"] == "slicer-dwi-convert")
     assert slicer_convert["available"] is True

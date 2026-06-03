@@ -11,7 +11,10 @@
       docsUrl: "https://fsl.fmrib.ox.ac.uk/fsl/docs/index.html",
       docsLabel: "FSL documentation",
     },
-    ants: { docsUrl: null, docsLabel: null },
+    ants: {
+      docsUrl: "https://github.com/ANTsX/ANTs/wiki",
+      docsLabel: "ANTs wiki",
+    },
     itk: {
       docsUrl: "https://github.com/CSIM-Toolkits/ITK/tree/master",
       docsLabel: "CSIM ITK repository",

@@ -186,6 +186,13 @@
             >
           </div>
           <div class="flex flex-wrap items-center gap-3 font-code-mono text-xs text-on-surface-variant">
+            <button
+              type="button"
+              id="kill-job-btn"
+              class="hidden rounded border border-error/40 px-2 py-0.5 font-label-sm text-error transition-colors hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Kill processing
+            </button>
             <span id="job-status-label">queued</span>
             <span id="elapsed-label" class="hidden">Elapsed: 00:00:00</span>
             <span id="batch-label" class="hidden"></span>
@@ -213,6 +220,7 @@
     </footer>
 
     <script src="/js/neuroflow-api.js"></script>
+    <script src="/js/job-controls.js"></script>
     <script>
       const form = document.getElementById("job-form");
       const runBtn = document.getElementById("run-btn");
@@ -233,6 +241,8 @@
       /** @type {{ file: File, subjectId: string }[]} */
       let fileQueue = [];
       let pollTimer = null;
+      let currentJobId = null;
+      const TOOL_ID = "freesurfer";
       let activeModule = null;
       let hoursPerScan = 8;
 
@@ -449,11 +459,15 @@
           const widths = { queued: "5%", running: "40%", completed: "100%", failed: "100%" };
           progressBar.style.width = widths[status] || "10%";
         }
-        if (status === "failed") progressBar.classList.add("bg-error");
+        if (status === "failed" || status === "cancelled") progressBar.classList.add("bg-error");
         else progressBar.classList.remove("bg-error");
 
+        if (NeuroflowJobControls) {
+          NeuroflowJobControls.updateKillButtonVisibility(statusData, logData);
+        }
+
         const dot = document.getElementById("status-dot");
-        if (status === "completed" || status === "failed") {
+        if (status === "completed" || status === "failed" || status === "cancelled") {
           dot.classList.remove("animate-pulse");
         }
       }
@@ -473,11 +487,14 @@
           logOutput.textContent = `$ ${statusData.command_preview}\n\n`;
         }
 
-        if (logData.status === "completed" || logData.status === "failed") {
+        if (NeuroflowJobControls?.isTerminalStatus(logData.status)) {
           clearInterval(pollTimer);
           pollTimer = null;
           resetRunButton();
-          if (logData.status === "failed" && statusData.error_message) {
+          if (
+            (logData.status === "failed" || logData.status === "cancelled") &&
+            statusData.error_message
+          ) {
             logOutput.textContent += `\n${statusData.error_message}`;
           }
         }
@@ -537,6 +554,7 @@
           if (data.command_preview) {
             logOutput.textContent = `$ ${data.command_preview}\n\n`;
           }
+          currentJobId = data.job_id;
           pollTimer = setInterval(() => pollJob(data.job_id), 2000);
           pollJob(data.job_id);
         } catch {
@@ -544,6 +562,14 @@
           resetRunButton();
         }
       });
+
+      if (NeuroflowJobControls) {
+        NeuroflowJobControls.wireKillButton({
+          toolId: TOOL_ID,
+          getJobId: () => currentJobId,
+          onKilled: (jobId) => pollJob(jobId),
+        });
+      }
 
       loadModuleFromQuery();
     </script>

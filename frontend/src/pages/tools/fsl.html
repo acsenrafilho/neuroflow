@@ -160,6 +160,13 @@
             >
           </div>
           <div class="flex flex-wrap items-center gap-3 font-code-mono text-xs text-on-surface-variant">
+            <button
+              type="button"
+              id="kill-job-btn"
+              class="hidden rounded border border-error/40 px-2 py-0.5 font-label-sm text-error transition-colors hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Kill processing
+            </button>
             <span id="job-status-label">queued</span>
             <span id="elapsed-label" class="hidden">Elapsed: 00:00:00</span>
             <span id="batch-label" class="hidden"></span>
@@ -183,6 +190,7 @@
     </footer>
 
     <script src="/js/neuroflow-api.js"></script>
+    <script src="/js/job-controls.js"></script>
     <script src="/js/fsl-modules-config.js"></script>
     <script src="/js/fsl-tool-page.js"></script>
   </body>

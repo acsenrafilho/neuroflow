@@ -89,6 +89,14 @@ Includes monitoring fields: `elapsed_seconds`, `pid`, `batch_current_index`, `ba
 
 Returns log text, `status`, and the same monitoring fields as status (for polling).
 
+### Stop a running job
+
+`POST /api/v1/tools/{tool_id}/jobs/{job_id}/kill`
+
+Terminates the job subprocess (SIGTERM, then SIGKILL if needed) and sets `status` to `cancelled`. Works for any registered tool (`freesurfer`, `fsl`, `ants`, `slicer`, `itk`) while the job is `queued` or `running`.
+
+Returns `200` with the updated job status. Returns `409` if the job has already finished.
+
 ### Errors
 
 ```json
@@ -99,7 +107,7 @@ Returns log text, `status`, and the same monitoring fields as status (for pollin
 }
 ```
 
-Common codes: `validation_error`, `tool_not_installed`, `job_not_found`.
+Common codes: `validation_error`, `tool_not_installed`, `job_not_found`, `job_not_killable`.
 
 ## Interactive docs
 

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NeuroFlow | 3D Slicer Module</title>
+    <title>NeuroFlow | ANTs Module</title>
     <link rel="stylesheet" href="/assets/app.css" />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
@@ -21,41 +21,41 @@
       class="fixed left-0 top-0 z-50 flex h-16 w-full items-center justify-between border-b border-outline-variant bg-white/80 px-8 backdrop-blur-md"
     >
       <div class="flex items-center gap-4">
-        <a href="/packages/slicer.html" class="flex items-center gap-4">
+        <a href="/packages/ants.html" class="flex items-center gap-4">
           <img src="/assets/neuroflow_logo.svg" alt="NeuroFlow logo" class="h-8 w-auto" />
           <span class="font-headline-md tracking-tight text-primary">NeuroFlow</span>
         </a>
         <div class="mx-2 h-6 w-px bg-outline-variant"></div>
         <span class="font-label-sm uppercase tracking-widest text-on-surface-variant" id="nav-module-label"
-          >3D Slicer</span
+          >ANTs</span
         >
       </div>
       <a
-        href="/packages/slicer.html"
+        href="/packages/ants.html"
         class="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-1.5 font-label-sm text-on-surface-variant hover:bg-surface-container-low"
       >
         <span class="material-symbols-outlined text-sm">arrow_back</span>
-        All 3D Slicer modules
+        All ANTs modules
       </a>
     </nav>
 
     <main class="mb-16 mt-24 flex w-full max-w-[800px] flex-col gap-8 px-6">
       <header class="flex flex-col gap-4">
         <div class="flex flex-col gap-2">
-          <h1 class="font-headline-xl text-primary-container" id="page-title">3D Slicer</h1>
+          <h1 class="font-headline-xl text-primary-container" id="page-title">ANTs</h1>
           <p class="font-body-md text-on-surface-variant" id="page-summary">Loading…</p>
         </div>
         <div class="flex flex-wrap items-center gap-3">
           <span class="font-label-sm text-on-surface-variant">Official documentation</span>
           <a
             id="docs-link"
-            href="https://slicer.readthedocs.io/en/latest/"
+            href="https://github.com/ANTsX/ANTs/wiki"
             target="_blank"
             rel="noopener noreferrer"
             class="inline-flex items-center gap-2 rounded-lg border border-secondary bg-surface-container-lowest px-4 py-2 font-label-sm text-secondary transition-colors hover:bg-secondary/10"
           >
             <span class="material-symbols-outlined text-sm">open_in_new</span>
-            3D Slicer documentation
+            ANTs documentation
           </a>
         </div>
       </header>
@@ -107,15 +107,14 @@
                 class="rounded-lg border-outline-variant bg-surface-container-lowest font-body-md focus:border-secondary focus:ring-secondary"
                 id="output_prefix"
                 name="output_prefix"
-                placeholder="dwi"
+                placeholder="result"
                 type="text"
-                value="dwi"
+                value="result"
               />
               <p class="text-xs text-on-surface-variant">
-                Base name for outputs under the job output directory. Slicer modules write
-                <code class="font-code-mono">.nrrd</code> files; masking also creates
-                <code class="font-code-mono">_baseline</code> and
-                <code class="font-code-mono">_brain_mask</code> suffixes from this prefix.
+                Base name for outputs under the job output directory. Image utilities receive
+                <code class="font-code-mono">.nii</code> or <code class="font-code-mono">.nii.gz</code>
+                from your uploads; registration modules use a prefix for transforms and warps.
               </p>
             </div>
           </div>
@@ -142,7 +141,7 @@
           <p id="time-estimate" class="text-xs text-on-surface-variant" aria-live="polite"></p>
           <p class="flex items-center gap-1 text-xs italic text-on-surface-variant">
             <span class="material-symbols-outlined text-[14px]">bolt</span>
-            Requires 3D Slicer on this host. Run prerequisite modules separately when needed.
+            Requires ANTs on this host. Run prerequisite modules separately when needed.
           </p>
           <p id="form-error" class="hidden text-sm text-error" role="alert"></p>
         </div>
@@ -156,7 +155,7 @@
             <span class="h-2 w-2 animate-pulse rounded-full bg-secondary" id="status-dot"></span>
             <span
               class="font-code-mono text-xs font-semibold uppercase tracking-wider text-on-surface"
-              >3D Slicer CLI output</span
+              >ANTs CLI output</span
             >
           </div>
           <div class="flex flex-wrap items-center gap-3 font-code-mono text-xs text-on-surface-variant">
@@ -185,13 +184,13 @@
 
     <footer class="mt-auto w-full border-t border-outline-variant/30 py-8 text-center">
       <p class="font-label-sm text-xs text-on-surface-variant">
-        NeuroFlow — single-tool CLI facilitation. 3D Slicer must be licensed separately.
+        NeuroFlow — single-tool CLI facilitation. ANTs must be licensed separately.
       </p>
     </footer>
 
     <script src="/js/neuroflow-api.js"></script>
     <script src="/js/job-controls.js"></script>
-    <script src="/js/slicer-modules-config.js"></script>
-    <script src="/js/slicer-tool-page.js"></script>
+    <script src="/js/ants-modules-config.js"></script>
+    <script src="/js/ants-tool-page.js"></script>
   </body>
 </html>

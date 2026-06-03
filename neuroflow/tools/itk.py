@@ -11,6 +11,7 @@ from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 from neuroflow.config import Settings
+from neuroflow.services.job_kill import is_job_cancelled, skip_if_cancelled
 from neuroflow.services.jobs import JobStore
 from neuroflow.tools.base import build_env, resolve_configured_binary
 from neuroflow.tools.itk_binaries import resolve_itk_module_binary
@@ -246,6 +247,7 @@ def _run_one_itk(
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
+            start_new_session=True,
         )
         store.update_meta(ITK_TOOL_ID, job_id, pid=proc.pid)
         if proc.stdout:
@@ -322,6 +324,9 @@ def launch_itk_job(
         exit_code = 0
         try:
             for index, files in enumerate(batch_items, start=1):
+                if skip_if_cancelled(store, ITK_TOOL_ID, job_id):
+                    return
+
                 prefix = output_prefix_for_batch(
                     output_prefix,
                     files,
@@ -352,6 +357,8 @@ def launch_itk_job(
                     label=label,
                 )
                 finished = datetime.now(timezone.utc).isoformat()
+                if skip_if_cancelled(store, ITK_TOOL_ID, job_id):
+                    return
                 if code != 0:
                     exit_code = code
                     batch_meta[index - 1]["status"] = "failed"
@@ -370,6 +377,9 @@ def launch_itk_job(
                 batch_meta[index - 1]["status"] = "completed"
                 batch_meta[index - 1]["finished_at"] = finished
                 store.update_meta(ITK_TOOL_ID, job_id, batch_items=batch_meta)
+
+            if is_job_cancelled(store.read_meta(ITK_TOOL_ID, job_id)):
+                return
 
             store.update_meta(
                 ITK_TOOL_ID,

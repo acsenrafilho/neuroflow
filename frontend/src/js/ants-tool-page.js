@@ -1,8 +1,8 @@
 /**
- * FSL tool page: dynamic form per module, batch uploads, job submit, log polling.
+ * ANTs tool page: dynamic form per module, batch uploads, job submit, log polling.
  */
 (function (global) {
-  const modules = global.FSL_MODULES || {};
+  const modules = global.ANTS_MODULES || {};
 
   const form = document.getElementById("job-form");
   const runBtn = document.getElementById("run-btn");
@@ -21,11 +21,11 @@
 
   const queryModuleId = new URLSearchParams(global.location.search).get("module");
   let activeConfig = null;
-  let activeModuleId = queryModuleId || "fsl-bet";
+  let activeModuleId = queryModuleId || "ants-n4";
   let hoursPerScan = 0.1;
   let pollTimer = null;
   let currentJobId = null;
-  const TOOL_ID = "fsl";
+  const TOOL_ID = "ants";
 
   /** @type {Map<string, File[]>} */
   const filesByRole = new Map();
@@ -44,7 +44,7 @@
   }
 
   function modulePageUrl(moduleId) {
-    return `/tools/fsl.html?module=${encodeURIComponent(moduleId)}`;
+    return `/tools/ants.html?module=${encodeURIComponent(moduleId)}`;
   }
 
   function allowsMultiple(inputDef) {
@@ -77,7 +77,7 @@
       .map((step, index) => {
         const link =
           step.moduleId != null
-            ? `<a href="${modulePageUrl(step.moduleId)}" class="font-semibold text-secondary hover:underline">${step.moduleId.replace("fsl-", "").toUpperCase()} module</a>`
+            ? `<a href="${modulePageUrl(step.moduleId)}" class="font-semibold text-secondary hover:underline">${step.moduleId.replace("ants-", "").toUpperCase()} module</a>`
             : "";
         const suffix = step.moduleId ? ` — open the ${link}` : "";
         return `<li><span class="font-semibold text-on-surface">${index + 1}.</span> ${step.text}${suffix}</li>`;
@@ -143,7 +143,7 @@
         <label class="font-label-sm text-on-surface">${inputDef.label}${requiredMark}</label>
         <input
           type="file"
-          class="fsl-file-input rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-sm"
+          class="ants-file-input rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-sm"
           data-role="${inputDef.role}"
           accept="${inputDef.accept || ".nii,.nii.gz,.gz"}"
           ${multi ? "multiple" : ""}
@@ -152,7 +152,7 @@
       `;
       inputsSection.appendChild(block);
 
-      const fileInput = block.querySelector(".fsl-file-input");
+      const fileInput = block.querySelector(".ants-file-input");
       const listEl = block.querySelector(`[data-filename="${inputDef.role}"]`);
 
       fileInput.addEventListener("change", () => {
@@ -249,7 +249,6 @@
     if (!activeConfig) return;
     const prefix = outputPrefixInput?.value.trim() || "result";
     const params = collectParameters();
-    const betMode = params.bet_mode === "bet2" ? "bet2" : "bet";
     const n = batchRunCount();
     const lines = [
       `# Module: ${activeConfig.moduleName}`,
@@ -260,11 +259,8 @@
       files.forEach((file) => lines.push(`# ${role}: ${file.name}`));
     });
     lines.push(`# Parameters: ${JSON.stringify(params)}`);
-    const exe =
-      activeModuleId === "fsl-bet"
-        ? betMode
-        : activeModuleId.replace("fsl-", "").replace(/-/g, "_");
-    lines.push(`${exe} … (same command per input, run sequentially on host)`);
+    const exe = activeConfig.cliExecutable || activeModuleId.replace("ants-", "");
+    lines.push(`${exe} … (command built on host; see job log for full argv)`);
     cliPreview.textContent = lines.join("\n");
   }
 
@@ -280,7 +276,7 @@
       const apiModule = apiModules.find((m) => m.id === activeModuleId);
       if (apiModule) {
         hoursPerScan = apiModule.estimated_hours_per_scan || hoursPerScan;
-        document.getElementById("page-title").textContent = `FSL · ${apiModule.module_name}`;
+        document.getElementById("page-title").textContent = `ANTs · ${apiModule.module_name}`;
         document.getElementById("page-summary").textContent = apiModule.description;
         document.getElementById("nav-module-label").textContent = apiModule.module_name;
       }
@@ -290,12 +286,12 @@
 
     activeConfig = modules[activeModuleId];
     if (!activeConfig) {
-      activeModuleId = "fsl-bet";
-      activeConfig = modules["fsl-bet"];
+      activeModuleId = "ants-bet";
+      activeConfig = modules["ants-bet"];
     }
 
-    if (!document.getElementById("page-title").textContent.includes("FSL")) {
-      document.getElementById("page-title").textContent = `FSL · ${activeConfig.moduleName}`;
+    if (!document.getElementById("page-title").textContent.includes("ANTs")) {
+      document.getElementById("page-title").textContent = `ANTs · ${activeConfig.moduleName}`;
       document.getElementById("page-summary").textContent = activeConfig.summary;
       document.getElementById("nav-module-label").textContent = activeConfig.moduleName;
     }
@@ -304,7 +300,7 @@
     const docsLink = document.getElementById("docs-link");
     if (docsLink && activeConfig.docsUrl) {
       docsLink.href = activeConfig.docsUrl;
-      docsLink.textContent = activeConfig.docsLabel || "FSL documentation";
+      docsLink.textContent = activeConfig.docsLabel || "ANTs documentation";
     }
 
     renderPrerequisites(activeConfig);
@@ -392,8 +388,8 @@
   }
 
   async function pollJob(jobId) {
-    const logData = await NeuroflowApi.fetchJson(`/api/v1/tools/fsl/jobs/${jobId}/log`);
-    const statusData = await NeuroflowApi.fetchJson(`/api/v1/tools/fsl/jobs/${jobId}`);
+    const logData = await NeuroflowApi.fetchJson(`/api/v1/tools/ants/jobs/${jobId}/log`);
+    const statusData = await NeuroflowApi.fetchJson(`/api/v1/tools/ants/jobs/${jobId}`);
     logOutput.textContent = logData.log || "(waiting for output…)";
     logOutput.scrollTop = logOutput.scrollHeight;
     updateMonitoring(statusData, logData);
@@ -467,7 +463,7 @@
     updateMonitoring({ status: "queued" }, { status: "queued" });
 
     try {
-      const { res } = await NeuroflowApi.fetchApi("/api/v1/tools/fsl/jobs", {
+      const { res } = await NeuroflowApi.fetchApi("/api/v1/tools/ants/jobs", {
         method: "POST",
         body: formData,
       });

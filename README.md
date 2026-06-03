@@ -10,6 +10,7 @@ NeuroFlow is a **web portal** that wraps neuroimaging **CLI tools**—one indepe
 - [Node.js](https://nodejs.org/) 18+ (frontend Tailwind build)
 - **FreeSurfer** on the host for the FreeSurfer module (`recon-all` on `PATH`, or set `NEUROFLOW_RECON_ALL_BIN`)
 - **FSL** on the host for FSL modules (`bet`, `flirt`, etc. on `PATH`, or set `NEUROFLOW_FSLDIR` / `FSLDIR`)
+- **ANTs** precompiled binaries on `PATH`, or set `NEUROFLOW_ANTSPATH` / `ANTSPATH` to the `bin` directory
 - **3D Slicer** on the host for Slicer modules (`Slicer` on `PATH`, or set `NEUROFLOW_SLICER_HOME` / `SLICER_HOME`)
 - **ITK (CSIM)** native filters: locally compiled binaries configured in `config/itk-binaries.json` (see `config/itk-binaries.example.json`); **Simple Filters** uses the same Slicer install as above
 
@@ -76,6 +77,7 @@ tests/
 - Tools: `GET /api/v1/tools`
 - FreeSurfer job: `POST /api/v1/tools/freesurfer/jobs` (multipart: file + form fields)
 - FSL job: `POST /api/v1/tools/fsl/jobs` (multipart: files, `file_roles`, `module_id`, `parameters`)
+- ANTs job: `POST /api/v1/tools/ants/jobs` (multipart: files, `file_roles`, `module_id`, `parameters`)
 - 3D Slicer job: `POST /api/v1/tools/slicer/jobs` (multipart: files, `file_roles`, `module_id`, `parameters`)
 - ITK job: `POST /api/v1/tools/itk/jobs` (multipart: files, `file_roles`, `module_id`, `parameters`; binary paths in `config/itk-binaries.json`)
 

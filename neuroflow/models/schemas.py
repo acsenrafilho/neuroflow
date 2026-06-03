@@ -52,7 +52,7 @@ class HostScanResponse(BaseModel):
 class BatchItemStatus(BaseModel):
     filename: str
     subject_id: str
-    status: Literal["pending", "running", "completed", "failed"] = "pending"
+    status: Literal["pending", "running", "completed", "failed", "cancelled"] = "pending"
     started_at: datetime | None = None
     finished_at: datetime | None = None
     error_message: str | None = None
@@ -61,7 +61,7 @@ class BatchItemStatus(BaseModel):
 class JobStatusResponse(BaseModel):
     job_id: str
     tool_id: str
-    status: Literal["queued", "running", "completed", "failed"]
+    status: Literal["queued", "running", "completed", "failed", "cancelled"]
     command: list[str]
     command_preview: str
     created_at: datetime
@@ -83,7 +83,7 @@ class JobStatusResponse(BaseModel):
 class JobLogResponse(BaseModel):
     job_id: str
     log: str
-    status: Literal["queued", "running", "completed", "failed"]
+    status: Literal["queued", "running", "completed", "failed", "cancelled"]
     elapsed_seconds: int | None = None
     pid: int | None = None
     batch_current_index: int = 0

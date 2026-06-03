@@ -11,6 +11,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, field_validator
 
 from neuroflow.config import Settings
+from neuroflow.services.job_kill import is_job_cancelled, skip_if_cancelled
 from neuroflow.services.jobs import JobStore
 from neuroflow.tools.base import build_env, resolve_executable
 from neuroflow.tools.registry import get_module
@@ -317,6 +318,7 @@ def _run_one_slicer(
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
+            start_new_session=True,
         )
         store.update_meta(SLICER_TOOL_ID, job_id, pid=proc.pid)
         if proc.stdout:
@@ -418,6 +420,9 @@ def launch_slicer_job(
         final_exit = 0
         try:
             for index, item_files in enumerate(batch_items, start=1):
+                if skip_if_cancelled(store, SLICER_TOOL_ID, job_id):
+                    return
+
                 meta = store.read_meta(SLICER_TOOL_ID, job_id)
                 items = meta.get("batch_items") or []
                 if index - 1 < len(items):
@@ -466,6 +471,9 @@ def launch_slicer_job(
                         )
                     store.update_meta(SLICER_TOOL_ID, job_id, batch_items=items)
 
+                if skip_if_cancelled(store, SLICER_TOOL_ID, job_id):
+                    return
+
                 if exit_code != 0:
                     final_exit = exit_code
                     store.append_log(
@@ -486,6 +494,9 @@ def launch_slicer_job(
                 finished_at=datetime.now(timezone.utc).isoformat(),
                 pid=None,
             )
+            return
+
+        if is_job_cancelled(store.read_meta(SLICER_TOOL_ID, job_id)):
             return
 
         status = "completed" if final_exit == 0 else "failed"

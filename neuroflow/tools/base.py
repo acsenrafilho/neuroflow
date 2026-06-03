@@ -10,6 +10,7 @@ from pathlib import Path
 from shutil import which
 
 from neuroflow.config import Settings
+from neuroflow.services.job_kill import is_job_cancelled, skip_if_cancelled
 from neuroflow.services.jobs import JobStore
 
 ALLOWLISTED_EXECUTABLES = frozenset(
@@ -33,8 +34,57 @@ ALLOWLISTED_EXECUTABLES = frozenset(
         "tbss_1_preproc",
         "bianca",
         "Slicer",
+        "antsRegistration",
+        "antsApplyTransforms",
+        "N4BiasFieldCorrection",
+        "Atropos",
+        "ImageMath",
+        "sccan",
+        "KellyKapowski",
+        "antsMotionCorr",
+        "DenoiseImage",
+        "antsTransformInfo",
+        "CreateJacobianDeterminantImage",
+        "ResampleImage",
+        "ThresholdImage",
+        "SmoothImage",
+        "ConvertImage",
+        "MeasureImageSimilarity",
+        "antsJointFusion",
+        "antsRegistrationSyN.sh",
+        "antsRegistrationSyNQuick.sh",
+        "antsCorticalThickness.sh",
+        "antsBrainExtraction.sh",
+        "antsMultivariateTemplateConstruction2.sh",
     }
 )
+
+
+def _ants_bin_dir(settings: Settings) -> Path | None:
+    if settings.neuroflow_antspath is not None:
+        root = settings.neuroflow_antspath.resolve()
+        if root.is_dir():
+            return root
+    for var in ("NEUROFLOW_ANTSPATH", "ANTSPATH"):
+        value = os.environ.get(var)
+        if not value:
+            continue
+        root = Path(value.rstrip("/"))
+        if root.is_dir():
+            return root
+        parent = root.parent
+        if parent.is_dir() and (parent / "antsRegistration").is_file():
+            return parent
+    return None
+
+
+def _apply_antspath_env(env: dict[str, str], bin_dir: Path) -> None:
+    antspath = str(bin_dir.resolve())
+    if not antspath.endswith(os.sep):
+        antspath += os.sep
+    env["ANTSPATH"] = antspath
+    env["PATH"] = f"{bin_dir.resolve()}{os.pathsep}{env.get('PATH', '')}"
+
 
 def resolve_executable(settings: Settings, name: str) -> Path | None:
     if name not in ALLOWLISTED_EXECUTABLES:
@@ -66,6 +116,12 @@ def resolve_executable(settings: Settings, name: str) -> Path | None:
             found = which(slicer_name)
             if found:
                 return Path(found)
+
+    ants_bin = _ants_bin_dir(settings)
+    if ants_bin is not None:
+        candidate = ants_bin / name
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return candidate
 
     found = which(name)
     return Path(found) if found else None
@@ -115,6 +171,10 @@ def build_env(settings: Settings) -> dict[str, str]:
         env["SLICER_HOME"] = home
         env["PATH"] = f"{home}{os.pathsep}{env.get('PATH', '')}"
 
+    ants_bin = _ants_bin_dir(settings)
+    if ants_bin is not None:
+        _apply_antspath_env(env, ants_bin)
+
     return env
 
 
@@ -155,6 +215,8 @@ def start_job_process(
     def _run() -> None:
         exit_code = 1
         try:
+            if skip_if_cancelled(store, tool_id, job_id):
+                return
             with log_path.open("a", encoding="utf-8") as log_file:
                 proc = subprocess.Popen(
                     cmd,
@@ -164,6 +226,7 @@ def start_job_process(
                     stderr=subprocess.STDOUT,
                     text=True,
                     bufsize=1,
+                    start_new_session=True,
                 )
                 store.update_meta(tool_id, job_id, pid=proc.pid)
                 if proc.stdout:
@@ -182,6 +245,9 @@ def start_job_process(
             )
             if on_complete:
                 on_complete(exit_code)
+            return
+
+        if is_job_cancelled(store.read_meta(tool_id, job_id)):
             return
 
         status = "completed" if exit_code == 0 else "failed"

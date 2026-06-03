@@ -13,7 +13,7 @@ from fastapi import UploadFile
 
 from neuroflow.config import Settings
 
-JobStatus = Literal["queued", "running", "completed", "failed"]
+JobStatus = Literal["queued", "running", "completed", "failed", "cancelled"]
 
 ALLOWED_UPLOAD_SUFFIXES = (
     ".nii",

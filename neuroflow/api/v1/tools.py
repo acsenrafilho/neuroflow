@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated
 
@@ -15,24 +15,37 @@ from neuroflow.api.deps import get_cached_settings, get_job_store
 from neuroflow.api.host_state import get_tool_availability
 from neuroflow.config import Settings
 from neuroflow.models.schemas import JobLogResponse, JobStatusResponse, ModuleInfo, ToolInfo
+from neuroflow.services.job_kill import JobKillError, request_job_kill
 from neuroflow.services.job_monitoring import enrich_log, enrich_status
 from neuroflow.services.jobs import JobStore
+from neuroflow.tools.ants import (
+    ANTS_TOOL_ID,
+    AntsJobParams,
+    launch_ants_job,
+)
+from neuroflow.tools.ants import (
+    group_uploads_into_batch as group_ants_uploads_into_batch,
+)
 from neuroflow.tools.freesurfer import BatchScan, FreeSurferJobParams, launch_freesurfer_job
 from neuroflow.tools.fsl import FSL_TOOL_ID, FslJobParams, group_uploads_into_batch, launch_fsl_job
+from neuroflow.tools.host_probe import module_available
 from neuroflow.tools.itk import (
     ITK_TOOL_ID,
     ItkJobParams,
-    group_uploads_into_batch as group_itk_uploads_into_batch,
     launch_itk_job,
 )
+from neuroflow.tools.itk import (
+    group_uploads_into_batch as group_itk_uploads_into_batch,
+)
+from neuroflow.tools.registry import get_module, get_tool, list_modules, list_tools
 from neuroflow.tools.slicer import (
     SLICER_TOOL_ID,
     SlicerJobParams,
-    group_uploads_into_batch as group_slicer_uploads_into_batch,
     launch_slicer_job,
 )
-from neuroflow.tools.host_probe import module_available
-from neuroflow.tools.registry import get_module, get_tool, list_modules, list_tools
+from neuroflow.tools.slicer import (
+    group_uploads_into_batch as group_slicer_uploads_into_batch,
+)
 
 router = APIRouter(prefix="/tools", tags=["tools"])
 
@@ -434,6 +447,151 @@ async def get_fsl_job_log(
     return enrich_log(meta, base)
 
 
+@router.post("/ants/jobs", response_model=JobStatusResponse, status_code=201)
+async def create_ants_job(
+    settings: Annotated[Settings, Depends(get_cached_settings)],
+    store: Annotated[JobStore, Depends(get_job_store)],
+    files: Annotated[list[UploadFile], File()],
+    file_roles: Annotated[str, Form()],
+    module_id: Annotated[str, Form()],
+    output_prefix: Annotated[str, Form()] = "result",
+    parameters: Annotated[str, Form()] = "{}",
+) -> JobStatusResponse:
+    tool = get_tool(ANTS_TOOL_ID)
+    if tool is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Tool not found",
+            headers={"X-Error-Code": "tool_not_found"},
+        )
+
+    if not files:
+        raise HTTPException(
+            status_code=422,
+            detail="At least one file is required",
+            headers={"X-Error-Code": "validation_error"},
+        )
+
+    module = get_module(module_id)
+    if module is None or module.coming_soon:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unknown or unavailable module: {module_id}",
+            headers={"X-Error-Code": "validation_error"},
+        )
+
+    parsed_roles = _parse_file_roles(file_roles, len(files))
+    parsed_parameters = _parse_parameters(parameters)
+
+    try:
+        job_params = AntsJobParams(
+            module_id=module_id,
+            output_prefix=output_prefix,
+            parameters=parsed_parameters,
+        )
+    except (ValueError, ValidationError) as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "validation_error"},
+        ) from exc
+
+    job_id = store.create_job(
+        ANTS_TOOL_ID,
+        {
+            "module_id": job_params.module_id,
+            "output_prefix": job_params.output_prefix,
+            "parameters": job_params.parameters,
+        },
+    )
+
+    files_by_role: dict[str, list[Path]] = defaultdict(list)
+    try:
+        for upload, role in zip(files, parsed_roles, strict=True):
+            input_path = await store.save_upload(ANTS_TOOL_ID, job_id, upload)
+            files_by_role[role].append(input_path)
+        batch_items = group_ants_uploads_into_batch(
+            job_params.module_id, dict(files_by_role)
+        )
+    except ValueError as exc:
+        store.delete_job(ANTS_TOOL_ID, job_id)
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "validation_error"},
+        ) from exc
+
+    try:
+        launch_ants_job(
+            settings=settings,
+            store=store,
+            job_id=job_id,
+            module_id=job_params.module_id,
+            batch_items=batch_items,
+            output_prefix=job_params.output_prefix,
+            parameters=job_params.parameters,
+        )
+    except FileNotFoundError as exc:
+        store.update_meta(
+            ANTS_TOOL_ID,
+            job_id,
+            status="failed",
+            error_message=str(exc),
+        )
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "tool_not_installed"},
+        ) from exc
+    except ValueError as exc:
+        store.delete_job(ANTS_TOOL_ID, job_id)
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "validation_error"},
+        ) from exc
+
+    meta = store.read_meta(ANTS_TOOL_ID, job_id)
+    return enrich_status(meta, _meta_to_status(meta))
+
+
+@router.get("/ants/jobs/{job_id}", response_model=JobStatusResponse)
+async def get_ants_job(
+    job_id: str,
+    store: Annotated[JobStore, Depends(get_job_store)],
+) -> JobStatusResponse:
+    try:
+        meta = store.read_meta(ANTS_TOOL_ID, job_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Job not found: {job_id}",
+            headers={"X-Error-Code": "job_not_found"},
+        ) from exc
+    return enrich_status(meta, _meta_to_status(meta))
+
+
+@router.get("/ants/jobs/{job_id}/log", response_model=JobLogResponse)
+async def get_ants_job_log(
+    job_id: str,
+    store: Annotated[JobStore, Depends(get_job_store)],
+) -> JobLogResponse:
+    try:
+        meta = store.read_meta(ANTS_TOOL_ID, job_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Job not found: {job_id}",
+            headers={"X-Error-Code": "job_not_found"},
+        ) from exc
+    base = JobLogResponse(
+        job_id=job_id,
+        log=store.read_log(ANTS_TOOL_ID, job_id),
+        status=meta["status"],
+    )
+    return enrich_log(meta, base)
+
+
 @router.post("/slicer/jobs", response_model=JobStatusResponse, status_code=201)
 async def create_slicer_job(
     settings: Annotated[Settings, Depends(get_cached_settings)],
@@ -744,3 +902,26 @@ async def get_freesurfer_job_log(
         status=meta["status"],
     )
     return enrich_log(meta, base)
+
+
+@router.post("/{tool_id}/jobs/{job_id}/kill", response_model=JobStatusResponse)
+async def kill_tool_job(
+    tool_id: str,
+    job_id: str,
+    store: Annotated[JobStore, Depends(get_job_store)],
+) -> JobStatusResponse:
+    if get_tool(tool_id) is None:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unknown tool: {tool_id}",
+            headers={"X-Error-Code": "validation_error"},
+        )
+    try:
+        meta = request_job_kill(store, tool_id, job_id)
+    except JobKillError as exc:
+        raise HTTPException(
+            status_code=exc.status_code,
+            detail=exc.message,
+            headers={"X-Error-Code": exc.code},
+        ) from exc
+    return enrich_status(meta, _meta_to_status(meta))

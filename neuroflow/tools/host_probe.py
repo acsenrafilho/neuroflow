@@ -200,7 +200,18 @@ def probe_itk(settings: Settings) -> ProbeResult:
     )
 
 
-def probe_ants() -> ProbeResult:
+def probe_ants(settings: Settings) -> ProbeResult:
+    from neuroflow.tools.base import _ants_bin_dir, resolve_executable
+
+    resolved = resolve_executable(settings, "antsRegistration")
+    if resolved is not None:
+        return ProbeResult(
+            package_id="ants",
+            available=True,
+            resolved_path=str(resolved),
+            detail="antsRegistration found",
+        )
+
     path = _first_on_path(("antsRegistration", "ANTS", "antsApplyTransforms"))
     if path:
         return ProbeResult(
@@ -210,17 +221,28 @@ def probe_ants() -> ProbeResult:
             detail="ANTs binary found on PATH",
         )
 
+    ants_bin = _ants_bin_dir(settings)
+    if ants_bin is not None:
+        candidate = ants_bin / "antsRegistration"
+        if candidate.is_file():
+            return ProbeResult(
+                package_id="ants",
+                available=False,
+                resolved_path=None,
+                detail=f"ANTSPATH configured ({ants_bin}) but antsRegistration not executable",
+            )
+
     return ProbeResult(
         package_id="ants",
         available=False,
-        detail="No ANTs binary on PATH",
+        detail="No ANTs binary on PATH; set NEUROFLOW_ANTSPATH or ANTSPATH",
     )
 
 
 _PROBE_FUNCTIONS = {
     "freesurfer": probe_freesurfer,
     "fsl": lambda settings: probe_fsl(),
-    "ants": lambda settings: probe_ants(),
+    "ants": probe_ants,
     "slicer": probe_slicer,
     "itk": probe_itk,
 }

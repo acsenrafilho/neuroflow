@@ -7,6 +7,7 @@
 - Node.js 18+ (frontend build)
 - FreeSurfer with `recon-all` available (for the FreeSurfer module)
 - FSL with binaries on `PATH` or `FSLDIR` / `NEUROFLOW_FSLDIR` set (for FSL modules)
+- ANTs precompiled binaries on `PATH` or `NEUROFLOW_ANTSPATH` / `ANTSPATH` pointing at the install `bin` directory (for ANTs modules)
 
 ## Setup
 
@@ -27,12 +28,14 @@ make api
 # or: poetry run uvicorn neuroflow.api.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-On startup the API scans the local host for registered packages (FreeSurfer, FSL, ANTs, 3D Slicer, ITK) and caches the result. The home page **Processing modules** table uses `GET /api/v1/modules` to show **Ready** when the corresponding software is installed, even for portal placeholders that are not yet executable from the UI.
+On startup the API scans the local host for registered packages (FreeSurfer, FSL, ANTs, 3D Slicer, ITK) and caches the result. The home page **Processing modules** table uses `GET /api/v1/modules` to show **Ready** when the corresponding binary is available on the host.
 
 - Tool hub: http://127.0.0.1:8000/
 - FreeSurfer module: http://127.0.0.1:8000/tools/freesurfer.html
 - FSL package: http://127.0.0.1:8000/packages/fsl.html
 - FSL module (example): http://127.0.0.1:8000/tools/fsl.html?module=fsl-bet
+- ANTs package: http://127.0.0.1:8000/packages/ants.html
+- ANTs module (example): http://127.0.0.1:8000/tools/ants.html?module=ants-n4
 - OpenAPI: http://127.0.0.1:8000/docs
 
 After sourcing a tool environment (e.g. FreeSurfer), re-scan without restarting:
@@ -54,7 +57,7 @@ poetry run neuroflow scan
 # or: ./scripts/check-host-tools.sh
 ```
 
-Prints package and module readiness for the current machine. Probes use `PATH`, optional `.env` overrides (`NEUROFLOW_RECON_ALL_BIN`, `NEUROFLOW_FREESURFER_HOME`, `NEUROFLOW_FSLDIR`), and common env vars such as `FSLDIR`.
+Prints package and module readiness for the current machine. Probes use `PATH`, optional `.env` overrides (`NEUROFLOW_RECON_ALL_BIN`, `NEUROFLOW_FREESURFER_HOME`, `NEUROFLOW_FSLDIR`, `NEUROFLOW_ANTSPATH`), and common env vars such as `FSLDIR` and `ANTSPATH`.
 
 FSL modules document prerequisite steps (e.g. TOPUP before EDDY, FDT before BEDPOSTX) on each tool page. Run each stage as a separate job; NeuroFlow does not chain pipelines automatically.
 
