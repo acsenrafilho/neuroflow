@@ -11,12 +11,14 @@ def test_list_modules(client: TestClient) -> None:
     assert response.status_code == 200
     modules = response.json()
     packages = {m["package_id"] for m in modules}
-    assert packages == {"freesurfer", "fsl"}
+    assert packages == {"freesurfer", "fsl", "sct"}
     assert not any(m["package_id"] in {"ants", "slicer", "itk"} for m in modules)
     fs_modules = [m for m in modules if m["package_id"] == "freesurfer" and not m["coming_soon"]]
     assert len(fs_modules) == 4
     fsl_modules = [m for m in modules if m["package_id"] == "fsl" and not m["coming_soon"]]
     assert len(fsl_modules) == 15
+    sct_modules = [m for m in modules if m["package_id"] == "sct" and not m["coming_soon"]]
+    assert len(sct_modules) == 9
     recon_options = {m["recon_options"] for m in fs_modules}
     assert recon_options == {"all", "autorecon1", "autorecon2", "autorecon3"}
 
@@ -53,6 +55,11 @@ def test_modules_use_cached_host_probe(client: TestClient) -> None:
             available=False,
             detail="no native binaries",
         ),
+        "sct": ProbeResult(
+            package_id="sct",
+            available=False,
+            detail="missing",
+        ),
     }
 
     with (
@@ -79,9 +86,10 @@ def test_host_rescan_updates_cache(client: TestClient) -> None:
         "ants": ProbeResult("ants", available=False, detail="before"),
         "slicer": ProbeResult("slicer", available=False, detail="before"),
         "itk": ProbeResult("itk", available=False, detail="before"),
+        "sct": ProbeResult("sct", available=False, detail="before"),
     }
 
     response = client.post("/api/v1/host/rescan")
     assert response.status_code == 200
-    assert len(response.json()["packages"]) == 5
+    assert len(response.json()["packages"]) == 6
     assert hasattr(client.app.state, TOOL_AVAILABILITY_STATE_KEY)

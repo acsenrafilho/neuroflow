@@ -56,6 +56,16 @@ ALLOWLISTED_EXECUTABLES = frozenset(
         "antsCorticalThickness.sh",
         "antsBrainExtraction.sh",
         "antsMultivariateTemplateConstruction2.sh",
+        "sct_version",
+        "sct_deepseg",
+        "sct_propseg",
+        "sct_get_centerline",
+        "sct_create_mask",
+        "sct_label_vertebrae",
+        "sct_register_to_template",
+        "sct_warp_template",
+        "sct_apply_transfo",
+        "sct_process_segmentation",
     }
 )
 
@@ -84,6 +94,18 @@ def _apply_antspath_env(env: dict[str, str], bin_dir: Path) -> None:
         antspath += os.sep
     env["ANTSPATH"] = antspath
     env["PATH"] = f"{bin_dir.resolve()}{os.pathsep}{env.get('PATH', '')}"
+
+
+def _sct_root_dir(settings: Settings) -> Path | None:
+    if settings.neuroflow_sct_dir is not None:
+        root = settings.neuroflow_sct_dir.resolve()
+        if root.is_dir():
+            return root
+    for var in ("NEUROFLOW_SCT_DIR", "SCT_DIR"):
+        value = os.environ.get(var)
+        if value and Path(value).is_dir():
+            return Path(value).resolve()
+    return None
 
 
 def resolve_executable(settings: Settings, name: str) -> Path | None:
@@ -122,6 +144,13 @@ def resolve_executable(settings: Settings, name: str) -> Path | None:
         candidate = ants_bin / name
         if candidate.is_file() and os.access(candidate, os.X_OK):
             return candidate
+
+    sct_root = _sct_root_dir(settings)
+    if sct_root is not None:
+        for sub in ("bin", ""):
+            candidate = sct_root / sub / name if sub else sct_root / name
+            if candidate.is_file() and os.access(candidate, os.X_OK):
+                return candidate
 
     found = which(name)
     return Path(found) if found else None
@@ -174,6 +203,15 @@ def build_env(settings: Settings) -> dict[str, str]:
     ants_bin = _ants_bin_dir(settings)
     if ants_bin is not None:
         _apply_antspath_env(env, ants_bin)
+
+    sct_root = _sct_root_dir(settings)
+    if sct_root is not None:
+        env["SCT_DIR"] = str(sct_root)
+        sct_bin = sct_root / "bin"
+        if sct_bin.is_dir():
+            env["PATH"] = f"{sct_bin}{os.pathsep}{env.get('PATH', '')}"
+        else:
+            env["PATH"] = f"{sct_root}{os.pathsep}{env.get('PATH', '')}"
 
     return env
 

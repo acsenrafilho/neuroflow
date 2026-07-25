@@ -12,6 +12,7 @@ from neuroflow.tools.host_probe import (
     probe_freesurfer,
     probe_fsl,
     probe_itk,
+    probe_sct,
     probe_slicer,
     scan_all_packages,
 )
@@ -147,6 +148,36 @@ def test_probe_itk_with_configured_binary(tmp_path: Path) -> None:
     assert result.resolved_path == str(binary)
 
 
+def test_probe_sct_binary_on_path() -> None:
+    with patch(
+        "neuroflow.tools.host_probe._first_on_path",
+        return_value="/home/user/sct_7.3/bin/sct_version",
+    ):
+        result = probe_sct(Settings())
+    assert result.available is True
+    assert result.resolved_path == "/home/user/sct_7.3/bin/sct_version"
+
+
+def test_probe_sct_via_sct_dir(tmp_path: Path) -> None:
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    version_bin = bin_dir / "sct_version"
+    version_bin.write_text("#!/bin/sh\n", encoding="utf-8")
+    version_bin.chmod(0o755)
+    settings = Settings(neuroflow_sct_dir=tmp_path)
+    with patch("neuroflow.tools.host_probe._first_on_path", return_value=None):
+        result = probe_sct(settings)
+    assert result.available is True
+    assert result.resolved_path == str(version_bin)
+
+
+def test_probe_sct_missing() -> None:
+    with patch("neuroflow.tools.host_probe._first_on_path", return_value=None):
+        with patch("neuroflow.tools.host_probe._sct_bin_dir", return_value=None):
+            result = probe_sct(Settings())
+    assert result.available is False
+
+
 def test_module_available_itk_binary_and_worker(tmp_path: Path) -> None:
     binary = tmp_path / "dcm"
     binary.write_text("#!/bin/sh\n", encoding="utf-8")
@@ -181,11 +212,13 @@ def test_scan_all_packages_returns_all_ids() -> None:
         patch("neuroflow.tools.host_probe.probe_ants") as mock_ants,
         patch("neuroflow.tools.host_probe.probe_slicer") as mock_slicer,
         patch("neuroflow.tools.host_probe.probe_itk") as mock_itk,
+        patch("neuroflow.tools.host_probe.probe_sct") as mock_sct,
     ):
         mock_fs.return_value = ProbeResult("freesurfer", False, detail="x")
         mock_fsl.return_value = ProbeResult("fsl", False, detail="y")
         mock_ants.return_value = ProbeResult("ants", False, detail="z")
         mock_slicer.return_value = ProbeResult("slicer", False, detail="w")
         mock_itk.return_value = ProbeResult("itk", False, detail="v")
+        mock_sct.return_value = ProbeResult("sct", False, detail="u")
         results = scan_all_packages(settings)
-    assert set(results.keys()) == {"freesurfer", "fsl", "ants", "slicer", "itk"}
+    assert set(results.keys()) == {"freesurfer", "fsl", "ants", "slicer", "itk", "sct"}

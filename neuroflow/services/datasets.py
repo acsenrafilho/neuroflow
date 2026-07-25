@@ -63,7 +63,7 @@ def modality_for_module(package_id: str, module_id: str) -> Modality:
 
 def module_folder_name(module_id: str) -> str:
     """Short folder name under derivatives/<package>/ (e.g. fsl-bet -> bet)."""
-    for prefix in ("fsl-", "freesurfer-", "ants-", "slicer-", "itk-"):
+    for prefix in ("fsl-", "freesurfer-", "ants-", "slicer-", "itk-", "sct-"):
         if module_id.startswith(prefix):
             return module_id[len(prefix) :]
     return module_id

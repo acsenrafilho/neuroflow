@@ -23,7 +23,7 @@ Local development: `http://127.0.0.1:8000`
 
 `GET /api/v1/tools`
 
-Lists **portal-visible** packages (FreeSurfer and FSL) and whether each executable is available on `PATH`.
+Lists **portal-visible** packages (FreeSurfer, FSL, and SCT) and whether each executable is available on `PATH`.
 
 ### Processing modules
 
@@ -82,6 +82,12 @@ Returns `201` with job status, including `command_preview`, `batch_total`, and `
 `POST /api/v1/tools/fsl/jobs`
 
 Requires `workspace`, `subject_id`, `module_id`, `file_roles`, and `files`. Outputs land under `derivatives/fsl/<module>/`.
+
+### SCT — create job
+
+`POST /api/v1/tools/sct/jobs`
+
+Requires `workspace`, `subject_id`, `module_id`, `file_roles`, and `files`. Outputs land under `derivatives/sct/<module>/`. Typical Phase 1 modules include `sct-deepseg`, `sct-propseg`, and `sct-register-to-template`.
 
 ### Job status / log
 

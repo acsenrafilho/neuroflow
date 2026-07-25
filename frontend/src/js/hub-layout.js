@@ -5,6 +5,7 @@
   const PACKAGES = [
     { id: "freesurfer", name: "FreeSurfer", icon: "neurology", href: "/packages/freesurfer.html", enabled: true },
     { id: "fsl", name: "FSL", icon: "science", href: "/packages/fsl.html", enabled: true },
+    { id: "sct", name: "SCT", icon: "accessibility_new", href: "/packages/sct.html", enabled: true },
     { id: "ants", name: "ANTs", icon: "transform", href: "/packages/ants.html", enabled: false },
     { id: "slicer", name: "3D Slicer", icon: "view_in_ar", href: "/packages/slicer.html", enabled: false },
     { id: "itk", name: "ITK", icon: "filter_alt", href: "/packages/itk.html", enabled: false },

@@ -144,4 +144,4 @@ def test_list_tools(client: TestClient) -> None:
     assert response.status_code == 200
     tools = response.json()
     ids = {t["id"] for t in tools}
-    assert ids == {"freesurfer", "fsl"}
+    assert ids == {"freesurfer", "fsl", "sct"}

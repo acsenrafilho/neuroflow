@@ -13,7 +13,7 @@ from neuroflow.tools.base import resolve_executable
 from neuroflow.tools.itk_binaries import count_configured_native_binaries, resolve_itk_module_binary
 from neuroflow.tools.registry import ModuleDefinition
 
-PACKAGE_IDS: tuple[str, ...] = ("freesurfer", "fsl", "ants", "slicer", "itk")
+PACKAGE_IDS: tuple[str, ...] = ("freesurfer", "fsl", "ants", "slicer", "itk", "sct")
 
 _PACKAGE_DISPLAY_NAMES = {
     "freesurfer": "FreeSurfer",
@@ -21,6 +21,7 @@ _PACKAGE_DISPLAY_NAMES = {
     "ants": "ANTs",
     "slicer": "3D Slicer",
     "itk": "ITK",
+    "sct": "Spinal Cord Toolbox",
 }
 
 logger = logging.getLogger(__name__)
@@ -239,12 +240,67 @@ def probe_ants(settings: Settings) -> ProbeResult:
     )
 
 
+def _sct_bin_dir(settings: Settings) -> Path | None:
+    if settings.neuroflow_sct_dir is not None:
+        root = settings.neuroflow_sct_dir.resolve()
+        if root.is_dir():
+            return root
+    for var in ("NEUROFLOW_SCT_DIR", "SCT_DIR"):
+        value = os.environ.get(var)
+        if value and Path(value).is_dir():
+            return Path(value).resolve()
+    return None
+
+
+def _sct_executable_in_dir(dir_path: Path, name: str = "sct_version") -> str | None:
+    for sub in ("bin", ""):
+        candidate = dir_path / sub / name if sub else dir_path / name
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return str(candidate)
+    return None
+
+
+def probe_sct(settings: Settings) -> ProbeResult:
+    path = _first_on_path(("sct_version", "sct_deepseg"))
+    if path:
+        return ProbeResult(
+            package_id="sct",
+            available=True,
+            resolved_path=path,
+            detail="SCT binary found on PATH",
+        )
+
+    sct_root = _sct_bin_dir(settings)
+    if sct_root is not None:
+        found = _sct_executable_in_dir(sct_root)
+        if found:
+            return ProbeResult(
+                package_id="sct",
+                available=True,
+                resolved_path=found,
+                detail="SCT found under SCT_DIR / NEUROFLOW_SCT_DIR",
+            )
+        return ProbeResult(
+            package_id="sct",
+            available=False,
+            resolved_path=None,
+            detail=f"SCT_DIR configured ({sct_root}) but sct_version not executable",
+        )
+
+    return ProbeResult(
+        package_id="sct",
+        available=False,
+        detail="No SCT binary on PATH; set NEUROFLOW_SCT_DIR or SCT_DIR",
+    )
+
+
 _PROBE_FUNCTIONS = {
     "freesurfer": probe_freesurfer,
     "fsl": lambda settings: probe_fsl(),
     "ants": probe_ants,
     "slicer": probe_slicer,
     "itk": probe_itk,
+    "sct": probe_sct,
 }
 
 

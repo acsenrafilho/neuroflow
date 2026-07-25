@@ -11,6 +11,10 @@
       docsUrl: "https://fsl.fmrib.ox.ac.uk/fsl/docs/index.html",
       docsLabel: "FSL documentation",
     },
+    sct: {
+      docsUrl: "https://spinalcordtoolbox.com/stable/",
+      docsLabel: "Spinal Cord Toolbox documentation",
+    },
     ants: {
       docsUrl: "https://github.com/ANTsX/ANTs/wiki",
       docsLabel: "ANTs wiki",
@@ -89,6 +93,9 @@
       } else if (packageId === "fsl") {
         summaryEl.textContent =
           "Structural, diffusion, and registration tools. Complete prerequisite steps in linked modules before advanced pipelines.";
+      } else if (packageId === "sct") {
+        summaryEl.textContent =
+          "Spinal cord MRI segmentation, labeling, template registration, and morphometrics. Run prerequisite modules separately when needed.";
       } else if (packageId === "itk") {
         summaryEl.textContent =
           "CSIM ITK filters built on the host plus Simple Filters via 3D Slicer. Configure native binaries in config/itk-binaries.json.";
@@ -103,7 +110,9 @@
         ? "/help/modules.html#freesurfer"
         : packageId === "fsl"
           ? "/help/modules.html#fsl"
-          : "/help/modules.html";
+          : packageId === "sct"
+            ? "/help/modules.html#sct"
+            : "/help/modules.html";
     if (docsEl) {
       const official = meta?.docsUrl
         ? `<a href="${meta.docsUrl}" target="_blank" rel="noopener noreferrer"

@@ -76,13 +76,15 @@ Stop a background instance:
 
 ### URLs
 
-On startup the API scans the local host for registered packages and caches the result. The home page **Processing modules** table currently lists **FreeSurfer** and **FSL** only (other packages remain in the codebase but are hidden from the portal).
+On startup the API scans the local host for registered packages and caches the result. The home page **Processing modules** table currently lists **FreeSurfer**, **FSL**, and **SCT** (other packages remain in the codebase but are hidden from the portal).
 
 - Tool hub: http://127.0.0.1:8000/
 - In-app user guide: http://127.0.0.1:8000/help/
 - FreeSurfer module: http://127.0.0.1:8000/tools/freesurfer.html
 - FSL package: http://127.0.0.1:8000/packages/fsl.html
 - FSL module (example): http://127.0.0.1:8000/tools/fsl.html?module=fsl-bet
+- SCT package: http://127.0.0.1:8000/packages/sct.html
+- SCT module (example): http://127.0.0.1:8000/tools/sct.html?module=sct-deepseg
 - OpenAPI: http://127.0.0.1:8000/docs
 
 After sourcing a tool environment (e.g. FreeSurfer), re-scan without restarting:
@@ -93,12 +95,13 @@ curl -X POST http://127.0.0.1:8000/api/v1/host/rescan
 
 ## Host tools (optional)
 
-NeuroFlow does **not** install FreeSurfer, FSL, ANTs, 3D Slicer, or ITK. Install them with their official procedures, then ensure binaries are on `PATH` or set overrides in `.env`:
+NeuroFlow does **not** install FreeSurfer, FSL, SCT, ANTs, 3D Slicer, or ITK. Install them with their official procedures, then ensure binaries are on `PATH` or set overrides in `.env`:
 
 | Package | Typical probe / override |
 |---------|--------------------------|
 | FreeSurfer | `recon-all` on `PATH`, or `NEUROFLOW_RECON_ALL_BIN` / `NEUROFLOW_FREESURFER_HOME` |
 | FSL | `FSLDIR` / `NEUROFLOW_FSLDIR` |
+| Spinal Cord Toolbox (SCT) | `sct_version` on `PATH`, or `SCT_DIR` / `NEUROFLOW_SCT_DIR` |
 | ANTs | `ANTSPATH` / `NEUROFLOW_ANTSPATH` |
 | 3D Slicer | `SLICER_HOME` / `NEUROFLOW_SLICER_HOME` |
 | ITK (CSIM) | paths in `config/itk-binaries.json` |

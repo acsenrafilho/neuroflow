@@ -5,6 +5,7 @@
   const PACKAGE_ICONS = {
     freesurfer: { icon: "neurology", active: true },
     fsl: { icon: "science", active: true },
+    sct: { icon: "accessibility_new", active: true },
   };
 
   function statusLabel(module) {

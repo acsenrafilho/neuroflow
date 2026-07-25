@@ -99,6 +99,51 @@
             </ul>
           </section>
 
+          <section id="sct" class="scroll-mt-28 space-y-3">
+            <h3 class="font-headline-md text-on-surface">Spinal Cord Toolbox (SCT)</h3>
+            <p class="text-on-surface-variant">
+              Spinal cord MRI segmentation, vertebral labeling, PAM50 template registration, and
+              morphometrics. NeuroFlow exposes one module page per Phase 1 CLI
+              (<code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">sct_deepseg</code>,
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">sct_propseg</code>,
+              and others). Run each stage as a separate job; the portal does not chain pipelines
+              automatically.
+            </p>
+            <div
+              class="rounded-xl border border-outline-variant bg-surface-container-low px-5 py-4 text-sm text-on-surface-variant"
+            >
+              Ensure SCT is installed with the official installer, then verify
+              <code class="rounded bg-surface-container px-1">sct_version</code> is on
+              <code class="rounded bg-surface-container px-1">PATH</code> or set
+              <code class="rounded bg-surface-container px-1">SCT_DIR</code> /
+              <code class="rounded bg-surface-container px-1">NEUROFLOW_SCT_DIR</code>.
+            </div>
+            <ul class="list-disc space-y-2 pl-5 text-on-surface-variant">
+              <li>
+                Package overview:
+                <a href="/packages/sct.html" class="text-primary underline-offset-2 hover:underline">/packages/sct.html</a>
+              </li>
+              <li>
+                Example module:
+                <a
+                  href="/tools/sct.html?module=sct-deepseg"
+                  class="text-primary underline-offset-2 hover:underline"
+                  >/tools/sct.html?module=sct-deepseg</a
+                >
+              </li>
+              <li>
+                Vendor docs:
+                <a
+                  href="https://spinalcordtoolbox.com/stable/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-primary underline-offset-2 hover:underline"
+                  >Spinal Cord Toolbox documentation</a
+                >
+              </li>
+            </ul>
+          </section>
+
           <section class="space-y-3">
             <h3 class="font-headline-md text-on-surface">Other packages</h3>
             <p class="text-on-surface-variant">

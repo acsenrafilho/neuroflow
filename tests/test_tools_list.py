@@ -11,7 +11,7 @@ def test_registry_lists_freesurfer() -> None:
 def test_portal_only_hides_ants() -> None:
     portal = list_tools(portal_only=True)
     ids = {t.id for t in portal}
-    assert ids == {"freesurfer", "fsl"}
+    assert ids == {"freesurfer", "fsl", "sct"}
 
 
 def test_get_unknown_tool() -> None:

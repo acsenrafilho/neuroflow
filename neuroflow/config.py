@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     neuroflow_slicer_home: Path | None = None
     neuroflow_itk_binaries_config: Path | None = None
     neuroflow_antspath: Path | None = None
+    neuroflow_sct_dir: Path | None = None
 
     @property
     def data_root(self) -> Path:
