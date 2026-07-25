@@ -100,6 +100,72 @@
           class="overflow-hidden rounded-xl border border-outline-variant/60 bg-surface-container-lowest shadow-sm"
         >
           <div
+            class="flex flex-col gap-4 border-b border-outline-variant bg-surface-container-low px-6 py-4"
+          >
+            <div class="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h3 class="font-headline-md text-on-surface">Workspaces</h3>
+                <p class="mt-1 text-sm text-on-surface-variant">
+                  Create a workspace folder for your project or user name. Jobs write under
+                  <code class="rounded bg-surface-container px-1 text-xs">data/datasets/&lt;name&gt;/</code>.
+                </p>
+              </div>
+              <span class="font-label-sm text-on-surface-variant" id="workspaces-count">Loading…</span>
+            </div>
+            <form
+              id="workspace-create-form"
+              class="flex flex-wrap items-end gap-3"
+              autocomplete="off"
+            >
+              <div class="flex min-w-[220px] flex-1 flex-col gap-1">
+                <label class="font-label-sm text-on-surface-variant" for="workspace-create-name"
+                  >Project / User name</label
+                >
+                <input
+                  type="text"
+                  id="workspace-create-name"
+                  name="workspace"
+                  placeholder="e.g. lab_a or ana_silva"
+                  maxlength="128"
+                  class="w-full rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-sm focus:border-secondary focus:ring-secondary"
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition-all hover:opacity-90"
+              >
+                <span class="material-symbols-outlined text-sm">create_new_folder</span>
+                Create
+              </button>
+            </form>
+            <p id="workspaces-status" class="font-label-sm text-on-surface-variant" aria-live="polite"></p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-left text-sm">
+              <thead class="bg-surface-container-low/80 text-xs uppercase tracking-wider text-on-surface-variant">
+                <tr>
+                  <th class="px-6 py-3">Name</th>
+                  <th class="px-6 py-3">Subjects</th>
+                  <th class="px-6 py-3">Path</th>
+                  <th class="px-6 py-3"></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-outline-variant/40" id="workspaces-body">
+                <tr>
+                  <td class="px-6 py-6 text-center text-on-surface-variant" colspan="4">
+                    Loading workspaces…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section
+          class="overflow-hidden rounded-xl border border-outline-variant/60 bg-surface-container-lowest shadow-sm"
+        >
+          <div
             class="flex flex-wrap items-center justify-between gap-4 border-b border-outline-variant bg-surface-container-low px-6 py-4"
           >
             <h3 class="font-headline-md text-on-surface">Active processes</h3>
@@ -263,10 +329,15 @@
 
     <script src="/js/neuroflow-api.js"></script>
     <script src="/js/toaster.js"></script>
+    <script src="/js/workspace.js"></script>
+    <script src="/js/workspaces-panel.js"></script>
     <script src="/js/hub-layout.js"></script>
     <script src="/js/modules-table.js"></script>
     <script>
       HubLayout.init({ active: "home", title: "Home", showApi: true });
+
+      const workspacesPanel = new WorkspacesPanel();
+      workspacesPanel.init();
 
       const table = new ModulesTable({ countId: "tools-count", tbodyId: "tools-table-body" });
       const activeBody = document.getElementById("active-jobs-body");

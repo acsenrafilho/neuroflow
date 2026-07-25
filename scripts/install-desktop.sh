@@ -4,7 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TEMPLATE="${ROOT}/packaging/neuroflow.desktop.in"
-ICON_PATH="${ROOT}/assets/images/neuroflow_logo.svg"
+ICON_PATH="${ROOT}/assets/images/neuroflow_icon.png"
 APPS_DIR="${HOME}/.local/share/applications"
 DESKTOP_DIR="${HOME}/Desktop"
 TARGET_APPS="${APPS_DIR}/neuroflow.desktop"

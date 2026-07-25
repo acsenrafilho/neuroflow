@@ -98,6 +98,8 @@ Reference: `frontend/src/pages/tools/freesurfer.html`.
 
 Hub (`index.html`) table columns: **Package** | **Module** | Description | Status | Action. Rows from `GET /api/v1/modules`; action links to `/tools/<page>?module=<id>`. Toolbar: global search, per-column filters (package, module, status), sortable headers. Shared chrome via `frontend/src/js/hub-layout.js`.
 
+Home also has a **Workspaces** panel (above Active processes): create project/user folders, list existing workspaces under `NEUROFLOW_DATASETS_ROOT`, **Use** (persists name in `localStorage`), and **Open folder** (host file manager via API).
+
 Package pages (`frontend/src/pages/packages/<id>.html`): list modules for one package; sidebar highlights package; FreeSurfer links to official docs.
 
 ---
@@ -434,5 +436,6 @@ Use when adding or updating pages under `doc/mockup/`:
 | 2026-06-01 | — | Hub Package/Module table; batch upload; official docs button; job monitoring fields |
 | 2026-06-01 | — | Wider hub (`max-w-[1400px]`); PNG logo; package pages; modules table filters and sort |
 | 2026-07-25 | — | In-app Help wiki at `/help/`; sidebar Help vs Open API; NeuroFlow guide on tool/package pages |
+| 2026-07-25 | — | Home Workspaces panel: create/list folders; Use + Open folder via `/api/v1/workspaces` |
 
 **Last updated:** 2026-07-25

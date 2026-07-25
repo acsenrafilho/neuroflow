@@ -45,6 +45,20 @@ Use `status=completed,failed,cancelled` for the **History** page. On API startup
 
 Current host RAM/CPU percentages, configured limits, and whether new jobs may start (or must wait in the queue).
 
+### Workspaces
+
+`GET /api/v1/workspaces`
+
+Lists folders under `NEUROFLOW_DATASETS_ROOT` (project / user names). Each item includes `name`, absolute `path`, and `subject_count` (`sub-*` directories).
+
+`POST /api/v1/workspaces`
+
+Body: `{ "name": "lab_a" }`. Creates the folder (idempotent if it already exists). Returns `201` with the same shape as a list item. Invalid names return `422` (`validation_error`).
+
+`POST /api/v1/workspaces/{name}/open`
+
+Opens the workspace directory in the host file manager (`xdg-open` on Linux). Returns `{ "ok": true }`. Missing workspace → `404`; opener failure → `500`.
+
 ### FreeSurfer — create job
 
 `POST /api/v1/tools/freesurfer/jobs`

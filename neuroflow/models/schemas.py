@@ -118,3 +118,17 @@ class HostResourcesResponse(BaseModel):
     block_reason: str | None = None
     queued_jobs: int = 0
     max_queued_jobs: int = 20
+
+
+class WorkspaceCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=128)
+
+
+class WorkspaceInfo(BaseModel):
+    name: str
+    path: str
+    subject_count: int = 0
+
+
+class WorkspaceOpenResponse(BaseModel):
+    ok: bool = True

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 import shutil
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
@@ -13,6 +14,13 @@ Modality = Literal["anat", "dwi"]
 
 _WORKSPACE_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
 _SUBJECT_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
+
+
+@dataclass(frozen=True)
+class WorkspaceSummary:
+    name: str
+    path: Path
+    subject_count: int
 
 # FSL modules that primarily operate on diffusion data.
 _DWI_MODULE_IDS = frozenset(
@@ -71,6 +79,53 @@ class DatasetStore:
     @property
     def root(self) -> Path:
         return self._root
+
+    def _subject_count(self, workspace_path: Path) -> int:
+        if not workspace_path.is_dir():
+            return 0
+        return sum(
+            1
+            for child in workspace_path.iterdir()
+            if child.is_dir() and child.name.startswith("sub-")
+        )
+
+    def _summary_for(self, workspace_path: Path) -> WorkspaceSummary:
+        return WorkspaceSummary(
+            name=workspace_path.name,
+            path=workspace_path.resolve(),
+            subject_count=self._subject_count(workspace_path),
+        )
+
+    def list_workspaces(self) -> list[WorkspaceSummary]:
+        if not self._root.is_dir():
+            return []
+        summaries: list[WorkspaceSummary] = []
+        for child in sorted(self._root.iterdir(), key=lambda p: p.name.lower()):
+            if not child.is_dir():
+                continue
+            if child.name == "derivatives":
+                continue
+            if not _WORKSPACE_RE.match(child.name):
+                continue
+            summaries.append(self._summary_for(child))
+        return summaries
+
+    def create_workspace(self, name: str) -> WorkspaceSummary:
+        safe = sanitize_workspace(name)
+        path = self._root / safe
+        path.mkdir(parents=True, exist_ok=True)
+        return self._summary_for(path)
+
+    def resolve_workspace_dir(self, name: str) -> Path:
+        """Return an existing workspace directory under the datasets root."""
+        safe = sanitize_workspace(name)
+        root = self._root.resolve()
+        path = (self._root / safe).resolve()
+        if path == root or root not in path.parents:
+            raise ValueError("Workspace path escapes the datasets root")
+        if not path.is_dir():
+            raise FileNotFoundError(f"Workspace not found: {safe}")
+        return path
 
     def workspace_dir(self, workspace: str) -> Path:
         safe = sanitize_workspace(workspace)
