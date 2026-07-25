@@ -744,6 +744,8 @@ async def create_ants_job(
     files: Annotated[list[UploadFile], File()],
     file_roles: Annotated[str, Form()],
     module_id: Annotated[str, Form()],
+    workspace: Annotated[str, Form()],
+    subject_id: Annotated[str, Form()],
     output_prefix: Annotated[str, Form()] = "result",
     parameters: Annotated[str, Form()] = "{}",
 ) -> JobStatusResponse:
@@ -761,6 +763,16 @@ async def create_ants_job(
             detail="At least one file is required",
             headers={"X-Error-Code": "validation_error"},
         )
+
+    safe_workspace = _parse_workspace(workspace)
+    try:
+        safe_subject = normalize_subject_id(subject_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "validation_error"},
+        ) from exc
 
     module = get_module(module_id)
     if module is None or module.coming_soon:
@@ -792,7 +804,15 @@ async def create_ants_job(
             "module_id": job_params.module_id,
             "output_prefix": job_params.output_prefix,
             "parameters": job_params.parameters,
+            "workspace": safe_workspace,
+            "subject_id": safe_subject,
         },
+    )
+    store.update_meta(
+        ANTS_TOOL_ID,
+        job_id,
+        workspace=safe_workspace,
+        subject_id=safe_subject,
     )
 
     files_by_role: dict[str, list[Path]] = defaultdict(list)
@@ -820,6 +840,8 @@ async def create_ants_job(
             batch_items=batch_items,
             output_prefix=job_params.output_prefix,
             parameters=job_params.parameters,
+            workspace=safe_workspace,
+            subject_id=safe_subject,
         )
     except FileNotFoundError as exc:
         store.update_meta(
@@ -889,6 +911,8 @@ async def create_slicer_job(
     files: Annotated[list[UploadFile], File()],
     file_roles: Annotated[str, Form()],
     module_id: Annotated[str, Form()],
+    workspace: Annotated[str, Form()],
+    subject_id: Annotated[str, Form()],
     output_prefix: Annotated[str, Form()] = "result",
     parameters: Annotated[str, Form()] = "{}",
 ) -> JobStatusResponse:
@@ -906,6 +930,16 @@ async def create_slicer_job(
             detail="At least one file is required",
             headers={"X-Error-Code": "validation_error"},
         )
+
+    safe_workspace = _parse_workspace(workspace)
+    try:
+        safe_subject = normalize_subject_id(subject_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "validation_error"},
+        ) from exc
 
     module = get_module(module_id)
     if module is None or module.coming_soon:
@@ -937,7 +971,15 @@ async def create_slicer_job(
             "module_id": job_params.module_id,
             "output_prefix": job_params.output_prefix,
             "parameters": job_params.parameters,
+            "workspace": safe_workspace,
+            "subject_id": safe_subject,
         },
+    )
+    store.update_meta(
+        SLICER_TOOL_ID,
+        job_id,
+        workspace=safe_workspace,
+        subject_id=safe_subject,
     )
 
     files_by_role: dict[str, list[Path]] = defaultdict(list)
@@ -965,6 +1007,8 @@ async def create_slicer_job(
             batch_items=batch_items,
             output_prefix=job_params.output_prefix,
             parameters=job_params.parameters,
+            workspace=safe_workspace,
+            subject_id=safe_subject,
         )
     except FileNotFoundError as exc:
         store.update_meta(
@@ -1035,6 +1079,8 @@ async def create_itk_job(
     files: Annotated[list[UploadFile], File()],
     file_roles: Annotated[str, Form()],
     module_id: Annotated[str, Form()],
+    workspace: Annotated[str, Form()],
+    subject_id: Annotated[str, Form()],
     output_prefix: Annotated[str, Form()] = "result",
     parameters: Annotated[str, Form()] = "{}",
 ) -> JobStatusResponse:
@@ -1052,6 +1098,16 @@ async def create_itk_job(
             detail="At least one file is required",
             headers={"X-Error-Code": "validation_error"},
         )
+
+    safe_workspace = _parse_workspace(workspace)
+    try:
+        safe_subject = normalize_subject_id(subject_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "validation_error"},
+        ) from exc
 
     module = get_module(module_id)
     if module is None or module.coming_soon:
@@ -1083,7 +1139,15 @@ async def create_itk_job(
             "module_id": job_params.module_id,
             "output_prefix": job_params.output_prefix,
             "parameters": job_params.parameters,
+            "workspace": safe_workspace,
+            "subject_id": safe_subject,
         },
+    )
+    store.update_meta(
+        ITK_TOOL_ID,
+        job_id,
+        workspace=safe_workspace,
+        subject_id=safe_subject,
     )
 
     files_by_role: dict[str, list[Path]] = defaultdict(list)
@@ -1111,6 +1175,8 @@ async def create_itk_job(
             batch_items=batch_items,
             output_prefix=job_params.output_prefix,
             parameters=job_params.parameters,
+            workspace=safe_workspace,
+            subject_id=safe_subject,
         )
     except FileNotFoundError as exc:
         store.update_meta(

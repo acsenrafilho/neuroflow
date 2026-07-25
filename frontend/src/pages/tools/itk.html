@@ -158,6 +158,35 @@
             <h2 class="font-headline-md text-on-surface">Parameters</h2>
           </div>
           <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label class="font-label-sm text-on-surface" for="workspace">Project / User name</label>
+              <input
+                class="rounded-lg border-outline-variant bg-surface-container-lowest font-body-md focus:border-secondary focus:ring-secondary"
+                id="workspace"
+                name="workspace"
+                placeholder="e.g. ana_silva"
+                type="text"
+                required
+              />
+              <p class="text-xs text-on-surface-variant">
+                Dataset root folder under <code class="font-code-mono">data/datasets/</code>. Set a
+                workspace on Home or enter one here; saved in this browser.
+              </p>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="font-label-sm text-on-surface" for="subject_id">Subject ID</label>
+              <input
+                class="rounded-lg border-outline-variant bg-surface-container-lowest font-body-md focus:border-secondary focus:ring-secondary"
+                id="subject_id"
+                name="subject_id"
+                placeholder="sub-001"
+                type="text"
+                required
+              />
+              <p class="text-xs text-on-surface-variant">
+                Prefer BIDS-style IDs (<code class="font-code-mono">sub-001</code>). A <code class="font-code-mono">sub-</code> prefix is added if missing.
+              </p>
+            </div>
             <div class="flex flex-col gap-2 md:col-span-2">
               <label class="font-label-sm text-on-surface" for="output_prefix">Output prefix</label>
               <input
@@ -169,7 +198,8 @@
                 value="result"
               />
               <p class="text-xs text-on-surface-variant">
-                Base name for outputs under the job output directory.
+                Base name for outputs under
+                <code class="font-code-mono">sub-…/derivatives/itk/&lt;module&gt;/</code>.
                 <code class="font-code-mono">.nii</code> or
                 <code class="font-code-mono">.nii.gz</code> is added to match your input image.
               </p>
@@ -246,6 +276,7 @@
     </footer>
 
     <script src="/js/neuroflow-api.js"></script>
+    <script src="/js/workspace.js"></script>
     <script src="/js/job-controls.js"></script>
     <script src="/js/itk-modules-config.js"></script>
     <script src="/js/itk-tool-page.js"></script>

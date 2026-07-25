@@ -73,7 +73,7 @@ Opens the workspace directory in the host file manager (`xdg-open` on Linux). Re
 | `recon_options` | string | `all`, `autorecon1`, `autorecon2`, `autorecon3` |
 | `module_id` | string | Optional; overrides `recon_options` from the module catalog |
 
-Scans run **sequentially** in one job. Outputs go under `derivatives/freesurfer/`. When host RAM/CPU exceeds the configured limit, the job is **queued** until resources free (`503` with `queue_full` if the queue is full).
+Scans run **sequentially** in one job. Outputs go under `sub-<id>/derivatives/freesurfer/` (recon-all `-s freesurfer`). When host RAM/CPU exceeds the configured limit, the job is **queued** until resources free (`503` with `queue_full` if the queue is full).
 
 Returns `201` with job status, including `command_preview`, `batch_total`, and `elapsed_seconds` when applicable.
 
@@ -81,14 +81,19 @@ Returns `201` with job status, including `command_preview`, `batch_total`, and `
 
 `POST /api/v1/tools/fsl/jobs`
 
-Requires `workspace`, `subject_id`, `module_id`, `file_roles`, and `files`. Outputs land under `derivatives/fsl/<module>/`.
+Requires `workspace`, `subject_id`, `module_id`, `file_roles`, and `files`. Outputs land under `sub-<id>/derivatives/fsl/<module>/`.
 
 ### SCT — create job
 
 `POST /api/v1/tools/sct/jobs`
 
-Requires `workspace`, `subject_id`, `module_id`, `file_roles`, and `files`. Outputs land under `derivatives/sct/<module>/`. Typical Phase 1 modules include `sct-deepseg`, `sct-propseg`, and `sct-register-to-template`.
+Requires `workspace`, `subject_id`, `module_id`, `file_roles`, and `files`. Outputs land under `sub-<id>/derivatives/sct/<module>/`. Typical Phase 1 modules include `sct-deepseg`, `sct-propseg`, and `sct-register-to-template`.
 
+### ANTs / Slicer / ITK — create job
+
+`POST /api/v1/tools/ants/jobs`, `POST /api/v1/tools/slicer/jobs`, `POST /api/v1/tools/itk/jobs`
+
+Same required fields as FSL (`workspace`, `subject_id`, `module_id`, `file_roles`, `files`). Outputs land under `sub-<id>/derivatives/<package>/<module>/`.
 ### Job status / log
 
 `GET /api/v1/tools/{tool_id}/jobs/{job_id}`

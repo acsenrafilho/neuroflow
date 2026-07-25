@@ -11,23 +11,23 @@ from neuroflow.tools.freesurfer import FreeSurferJobParams, build_recon_all_argv
 
 def test_build_recon_all_argv_full() -> None:
     argv = build_recon_all_argv(
-        subject_id="sub-001",
         input_path=Path("/data/input/sub-001_T1w.nii.gz"),
         recon_options="all",
     )
     assert argv[0] == "recon-all"
-    assert "-s" in argv and "sub-001" in argv
+    assert argv[1:3] == ["-s", "freesurfer"]
     assert "-i" in argv
     assert "-all" in argv
     assert "-openmp" not in argv
+    assert "sub-001" not in argv
 
 
 def test_build_recon_all_argv_autorecon1() -> None:
     argv = build_recon_all_argv(
-        subject_id="patient01",
         input_path=Path("/tmp/t1.nii.gz"),
         recon_options="autorecon1",
     )
+    assert argv[1:3] == ["-s", "freesurfer"]
     assert "-autorecon1" in argv
 
 

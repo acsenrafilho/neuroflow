@@ -24,6 +24,7 @@ NeuroFlow is a **facilitation portal** for neuroscience medical image processing
 |------|------|
 | `backend.mdc` | Python, API, Poetry |
 | `frontend.mdc` | HTML/CSS, design system |
+| `datasets-layout.mdc` | Dataset paths, tool launches, `/api/v1/tools` |
 
 ## Stack (summary)
 

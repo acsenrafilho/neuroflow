@@ -18,6 +18,7 @@
   const cliPreview = document.getElementById("cli-preview");
   const outputPrefixInput = document.getElementById("output_prefix");
   const timeEstimateEl = document.getElementById("time-estimate");
+  const subjectIdInput = document.getElementById("subject_id");
 
   const queryModuleId = new URLSearchParams(global.location.search).get("module");
   let activeConfig = null;
@@ -29,6 +30,10 @@
 
   /** @type {Map<string, File[]>} */
   const filesByRole = new Map();
+
+  if (global.NeuroflowWorkspace) {
+    global.NeuroflowWorkspace.bindWorkspaceInput("workspace");
+  }
 
   function formatDuration(seconds) {
     if (seconds == null || seconds < 0) return "—";
@@ -425,6 +430,30 @@
       return;
     }
 
+    let workspace;
+    try {
+      workspace = global.NeuroflowWorkspace
+        ? global.NeuroflowWorkspace.requireWorkspace()
+        : document.getElementById("workspace")?.value?.trim();
+    } catch (err) {
+      showError(err.message || "Workspace is required.");
+      return;
+    }
+    if (!workspace) {
+      showError("Enter a Project / User name before running.");
+      return;
+    }
+
+    const rawSubject = subjectIdInput?.value?.trim() || "";
+    const subjectId = global.NeuroflowWorkspace
+      ? global.NeuroflowWorkspace.normalizeSubjectId(rawSubject)
+      : rawSubject;
+    if (!subjectId) {
+      showError("Enter a Subject ID (e.g. sub-001).");
+      return;
+    }
+    if (subjectIdInput) subjectIdInput.value = subjectId;
+
     const requiredRoles = activeConfig.inputs.filter((i) => i.required).map((i) => i.role);
     const missing = requiredRoles.filter((role) => !(filesByRole.get(role) || []).length);
     if (missing.length) {
@@ -455,6 +484,8 @@
 
     formData.append("file_roles", JSON.stringify(roles));
     formData.append("module_id", activeModuleId);
+    formData.append("workspace", workspace);
+    formData.append("subject_id", subjectId);
     formData.append("output_prefix", outputPrefixInput?.value.trim() || "result");
     formData.append("parameters", JSON.stringify(collectParameters()));
 

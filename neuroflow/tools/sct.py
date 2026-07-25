@@ -487,7 +487,9 @@ def launch_sct_job(
     estimated_total_seconds = int(batch_total * estimated_hours * 3600)
 
     job_dir = store.job_dir(SCT_TOOL_ID, job_id)
-    derivative = datasets.derivative_dir(workspace, SCT_TOOL_ID, module_id)
+    derivative = datasets.derivative_dir(
+        workspace, subject_id, SCT_TOOL_ID, module_id
+    )
     datasets.link_job_output_to_derivatives(job_dir / "output", derivative)
 
     first_files = batch_items[0]

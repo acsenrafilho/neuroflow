@@ -106,25 +106,35 @@ def test_create_ants_job_api(mock_launch: object, client: TestClient) -> None:
                 "file_roles": json.dumps(["input"]),
                 "module_id": "ants-n4",
                 "output_prefix": "corrected",
+                "workspace": "demo_lab",
+                "subject_id": "sub-001",
             },
             files=[("files", ("t1.nii.gz", handle, "application/octet-stream"))],
         )
 
     assert response.status_code == 201, response.text
     assert mock_launch.call_args.kwargs["module_id"] == "ants-n4"
+    assert mock_launch.call_args.kwargs["workspace"] == "demo_lab"
+    assert mock_launch.call_args.kwargs["subject_id"] == "sub-001"
 
 
-def test_launch_ants_job_batch_meta(work_dir: Path) -> None:
+def test_launch_ants_job_batch_meta(work_dir: Path, tmp_path: Path) -> None:
     from neuroflow.services.jobs import JobStore
     from neuroflow.tools.ants import launch_ants_job
 
-    settings = Settings()
+    settings = Settings(
+        neuroflow_data_root=tmp_path / "jobs",
+        neuroflow_datasets_root=tmp_path / "datasets",
+    )
     store = JobStore(settings)
     job_id = store.create_job("ants", {"module_id": "ants-n4"})
     input_path = work_dir / "sub-001_T1w.nii.gz"
     input_path.write_bytes(b"x")
 
-    with patch("neuroflow.tools.ants._run_one_ants", return_value=0):
+    with (
+        patch("neuroflow.tools.ants._run_one_ants", return_value=0),
+        patch("neuroflow.tools.ants.ensure_module_available"),
+    ):
         launch_ants_job(
             settings=settings,
             store=store,
@@ -133,11 +143,16 @@ def test_launch_ants_job_batch_meta(work_dir: Path) -> None:
             batch_items=[{ROLE_INPUT: input_path}],
             output_prefix="n4",
             parameters={},
+            workspace="demo_lab",
+            subject_id="sub-001",
         )
 
     meta = store.read_meta("ants", job_id)
     assert meta["batch_total"] == 1
     assert meta["status"] == "running"
+    assert meta["subject_id"] == "sub-001"
+    assert "sub-001/derivatives/ants/n4" in meta["dataset_output_dir"].replace("\\", "/")
+    assert (tmp_path / "datasets" / "demo_lab" / "sub-001" / "anat").is_dir()
 
 
 def test_build_n4_argv_with_mask(work_dir: Path) -> None:

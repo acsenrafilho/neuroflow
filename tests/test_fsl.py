@@ -143,6 +143,9 @@ def test_batch_meta_matches_batch_item_status_schema(work_dir: Path) -> None:
     assert len(items) == 1
     assert items[0].filename == "sub-001_T1w.nii.gz"
     assert items[0].subject_id == "sub-001"
+    assert "sub-001/derivatives/fsl/bet" in str(meta.get("dataset_output_dir", "")).replace(
+        "\\", "/"
+    )
 
 
 @patch("neuroflow.tools.fsl.ensure_module_available")

@@ -11,6 +11,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, field_validator
 
 from neuroflow.config import Settings
+from neuroflow.services.datasets import DatasetStore, modality_for_module, normalize_subject_id
 from neuroflow.services.job_kill import is_job_cancelled, skip_if_cancelled
 from neuroflow.services.jobs import JobStore
 from neuroflow.tools.base import build_env, resolve_executable
@@ -337,12 +338,25 @@ def launch_slicer_job(
     batch_items: list[dict[str, Path]],
     output_prefix: str,
     parameters: dict[str, Any],
+    workspace: str,
+    subject_id: str,
 ) -> list[str]:
     """Run one or more Slicer --launch commands sequentially in a background job."""
     if not batch_items:
         raise ValueError("At least one input set is required")
 
     resolve_slicer_executable(settings)
+    subject_id = normalize_subject_id(subject_id)
+    datasets = DatasetStore(settings)
+    modality = modality_for_module(SLICER_TOOL_ID, module_id)
+    for item_files in batch_items:
+        for path in item_files.values():
+            datasets.stage_input(
+                workspace=workspace,
+                subject_id=subject_id,
+                modality=modality,
+                source=path,
+            )
 
     module_def = get_module(module_id)
     estimated_hours = module_def.estimated_hours_per_scan if module_def else 1.0
@@ -350,6 +364,11 @@ def launch_slicer_job(
     estimated_total_seconds = int(batch_total * estimated_hours * 3600)
 
     job_dir = store.job_dir(SLICER_TOOL_ID, job_id)
+    derivative = datasets.derivative_dir(
+        workspace, subject_id, SLICER_TOOL_ID, module_id
+    )
+    datasets.link_job_output_to_derivatives(job_dir / "output", derivative)
+
     slicer = resolve_slicer_executable(settings)
     slicer_cwd = slicer.parent
 
@@ -380,7 +399,7 @@ def launch_slicer_job(
         batch_meta.append(
             {
                 "filename": filename,
-                "subject_id": subject_id_from_filename(filename),
+                "subject_id": subject_id,
                 "status": "pending",
                 "started_at": None,
                 "finished_at": None,
@@ -395,8 +414,13 @@ def launch_slicer_job(
         job_id,
         command=[str(slicer), *first_argv],
         command_preview=preview,
+        workspace=workspace,
+        subject_id=subject_id,
+        dataset_output_dir=str(derivative),
         parameters={
             "module_id": module_id,
+            "workspace": workspace,
+            "subject_id": subject_id,
             "output_prefix": output_prefix,
             "resolved_outputs": [
                 str(p) for p in resolve_slicer_output_paths(module_id, out_dir, first_prefix)

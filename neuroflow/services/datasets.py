@@ -1,4 +1,4 @@
-"""BIDS-inspired dataset paths under NEUROFLOW_DATASETS_ROOT."""
+"""Subject-centered dataset paths under NEUROFLOW_DATASETS_ROOT."""
 
 from __future__ import annotations
 
@@ -11,6 +11,9 @@ from typing import Literal
 from neuroflow.config import Settings
 
 Modality = Literal["anat", "dwi"]
+
+# FreeSurfer recon-all -s name so outputs land at sub-XXX/derivatives/freesurfer/.
+FREESURFER_PIPELINE_SUBJECT = "freesurfer"
 
 _WORKSPACE_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
 _SUBJECT_RE = re.compile(r"^[a-zA-Z0-9_-]+$")
@@ -62,7 +65,7 @@ def modality_for_module(package_id: str, module_id: str) -> Modality:
 
 
 def module_folder_name(module_id: str) -> str:
-    """Short folder name under derivatives/<package>/ (e.g. fsl-bet -> bet)."""
+    """Short folder name under sub-XXX/derivatives/<package>/ (e.g. fsl-bet -> bet)."""
     for prefix in ("fsl-", "freesurfer-", "ants-", "slicer-", "itk-", "sct-"):
         if module_id.startswith(prefix):
             return module_id[len(prefix) :]
@@ -70,7 +73,7 @@ def module_folder_name(module_id: str) -> str:
 
 
 class DatasetStore:
-    """Resolve and create BIDS-inspired workspace / subject trees."""
+    """Resolve and create subject-centered workspace / subject trees."""
 
     def __init__(self, settings: Settings) -> None:
         self._root = settings.datasets_root
@@ -162,14 +165,23 @@ class DatasetStore:
             shutil.copy2(source, dest)
         return dest
 
-    def derivative_dir(self, workspace: str, package_id: str, module_id: str) -> Path:
+    def derivative_dir(
+        self, workspace: str, subject_id: str, package_id: str, module_id: str
+    ) -> Path:
+        """<workspace>/sub-XXX/derivatives/<package>/<module>/"""
         folder = module_folder_name(module_id)
-        path = self.workspace_dir(workspace) / "derivatives" / package_id / folder
+        path = (
+            self.subject_dir(workspace, subject_id)
+            / "derivatives"
+            / package_id
+            / folder
+        )
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def freesurfer_subjects_dir(self, workspace: str) -> Path:
-        path = self.workspace_dir(workspace) / "derivatives" / "freesurfer"
+    def freesurfer_subjects_dir(self, workspace: str, subject_id: str) -> Path:
+        """SUBJECTS_DIR for recon-all: <workspace>/sub-XXX/derivatives."""
+        path = self.subject_dir(workspace, subject_id) / "derivatives"
         path.mkdir(parents=True, exist_ok=True)
         return path
 

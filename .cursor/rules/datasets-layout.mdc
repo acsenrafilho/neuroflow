@@ -1,0 +1,29 @@
+---
+description: Subject-centered dataset paths for workspaces and tool launches
+globs: neuroflow/services/datasets.py,neuroflow/tools/**/*.py,neuroflow/api/v1/tools.py
+alwaysApply: false
+---
+
+# Subject-centered datasets
+
+Canonical researcher-facing tree under `NEUROFLOW_DATASETS_ROOT`:
+
+```text
+<data/datasets>/<workspace>/
+  sub-<id>/
+    anat/ | dwi/
+    derivatives/
+      <package>/<module>/…     # FSL, SCT, ANTs, ITK, Slicer, …
+      freesurfer/…             # recon-all native tree (mri, surf, …)
+```
+
+## Rules
+
+- Resolve all dataset paths via `DatasetStore` — do not hardcode `derivatives/` under the workspace root.
+- `derivative_dir(workspace, subject_id, package_id, module_id)` → `sub-<id>/derivatives/<package>/<module>/`.
+- Every `launch_*_job` must accept `workspace` + `subject_id`, call `stage_input`, then `link_job_output_to_derivatives` (or FreeSurfer SUBJECTS_DIR equivalent).
+- Job runtime stays under `data/jobs/<tool>/<job_id>/`; that does **not** replace the dataset tree.
+- FreeSurfer: `SUBJECTS_DIR = <workspace>/sub-<id>/derivatives`, recon-all `-s freesurfer` (`FREESURFER_PIPELINE_SUBJECT`).
+- New tool packages must take the same Form fields (`workspace`, `subject_id`) and follow this layout; update tests when paths change.
+
+Legacy `<workspace>/derivatives/…` (sibling to subjects) is obsolete for new jobs.

@@ -126,6 +126,8 @@ def test_create_slicer_job_api(mock_launch: object, client: TestClient) -> None:
             "module_id": "slicer-dwi-convert",
             "output_prefix": "dwi",
             "parameters": json.dumps({"conversion_mode": "FSLToNrrd"}),
+            "workspace": "demo_lab",
+            "subject_id": "sub-001",
         },
         files=[
             ("files", ("dwi.nii.gz", b"fake", "application/octet-stream")),
@@ -137,7 +139,8 @@ def test_create_slicer_job_api(mock_launch: object, client: TestClient) -> None:
     body = response.json()
     assert body["tool_id"] == "slicer"
     assert body["job_id"]
-
+    assert mock_launch.call_args.kwargs["workspace"] == "demo_lab"
+    assert mock_launch.call_args.kwargs["subject_id"] == "sub-001"
     status = client.get(f"/api/v1/tools/slicer/jobs/{body['job_id']}")
     assert status.status_code == 200
 

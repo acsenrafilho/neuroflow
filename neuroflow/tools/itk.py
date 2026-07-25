@@ -11,6 +11,7 @@ from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 from neuroflow.config import Settings
+from neuroflow.services.datasets import DatasetStore, modality_for_module, normalize_subject_id
 from neuroflow.services.job_kill import is_job_cancelled, skip_if_cancelled
 from neuroflow.services.jobs import JobStore
 from neuroflow.tools.base import build_env, resolve_configured_binary
@@ -266,11 +267,24 @@ def launch_itk_job(
     batch_items: list[dict[str, Path]],
     output_prefix: str,
     parameters: dict[str, Any],
+    workspace: str,
+    subject_id: str,
 ) -> list[str]:
     if not batch_items:
         raise ValueError("At least one input set is required")
 
     ensure_module_available(settings, module_id)
+    subject_id = normalize_subject_id(subject_id)
+    datasets = DatasetStore(settings)
+    modality = modality_for_module(ITK_TOOL_ID, module_id)
+    for item_files in batch_items:
+        for path in item_files.values():
+            datasets.stage_input(
+                workspace=workspace,
+                subject_id=subject_id,
+                modality=modality,
+                source=path,
+            )
 
     module_def = get_module(module_id)
     estimated_hours = module_def.estimated_hours_per_scan if module_def else 0.5
@@ -278,6 +292,11 @@ def launch_itk_job(
     estimated_total_seconds = int(batch_total * estimated_hours * 3600)
 
     job_dir = store.job_dir(ITK_TOOL_ID, job_id)
+    derivative = datasets.derivative_dir(
+        workspace, subject_id, ITK_TOOL_ID, module_id
+    )
+    datasets.link_job_output_to_derivatives(job_dir / "output", derivative)
+
     first_files = batch_items[0]
     first_prefix = output_prefix_for_batch(
         output_prefix,
@@ -299,11 +318,10 @@ def launch_itk_job(
 
     batch_meta = []
     for index, files in enumerate(batch_items):
-        label = subject_id_from_filename(files[ROLE_INPUT].name)
         batch_meta.append(
             {
                 "filename": files[ROLE_INPUT].name,
-                "subject_id": label,
+                "subject_id": subject_id,
                 "status": "pending",
             }
         )
@@ -312,12 +330,22 @@ def launch_itk_job(
         ITK_TOOL_ID,
         job_id,
         status="running",
+        workspace=workspace,
+        subject_id=subject_id,
+        dataset_output_dir=str(derivative),
         batch_items=batch_meta,
         batch_total=batch_total,
         batch_current_index=0,
         estimated_total_seconds=estimated_total_seconds,
         command_preview=preview,
         input_files=[str(p) for p in first_files.values()],
+        parameters={
+            "module_id": module_id,
+            "workspace": workspace,
+            "subject_id": subject_id,
+            "output_prefix": output_prefix,
+            **parameters,
+        },
     )
 
     def _worker() -> None:
@@ -341,7 +369,7 @@ def launch_itk_job(
                     parameters=parameters,
                     settings=settings,
                 )
-                label = subject_id_from_filename(files[ROLE_INPUT].name)
+                label = subject_id
                 batch_meta[index - 1]["status"] = "running"
                 batch_meta[index - 1]["started_at"] = datetime.now(timezone.utc).isoformat()
                 store.update_meta(ITK_TOOL_ID, job_id, batch_items=batch_meta)

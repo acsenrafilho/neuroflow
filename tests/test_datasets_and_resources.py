@@ -38,10 +38,11 @@ def test_dataset_store_trees(tmp_path: Path) -> None:
     anat = store.ensure_subject_tree("lab_a", "001", "anat")
     assert anat.name == "anat"
     assert anat.parent.name == "sub-001"
-    deriv = store.derivative_dir("lab_a", "fsl", "fsl-bet")
-    assert deriv.as_posix().endswith("derivatives/fsl/bet")
-    fs_dir = store.freesurfer_subjects_dir("lab_a")
-    assert fs_dir.name == "freesurfer"
+    deriv = store.derivative_dir("lab_a", "sub-001", "fsl", "fsl-bet")
+    assert deriv.as_posix().endswith("sub-001/derivatives/fsl/bet")
+    fs_dir = store.freesurfer_subjects_dir("lab_a", "sub-001")
+    assert fs_dir.as_posix().endswith("sub-001/derivatives")
+    assert fs_dir.name == "derivatives"
 
 
 def test_host_resources_endpoint(client: TestClient) -> None:

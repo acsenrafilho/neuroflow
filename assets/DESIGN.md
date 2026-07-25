@@ -100,6 +100,8 @@ Hub (`index.html`) table columns: **Package** | **Module** | Description | Statu
 
 Home also has a **Workspaces** panel (above Active processes): create project/user folders, list existing workspaces under `NEUROFLOW_DATASETS_ROOT`, **Use** (persists name in `localStorage`), and **Open folder** (host file manager via API).
 
+Dataset layout is **subject-centered**: under each workspace, inputs and tool outputs live under `sub-<id>/` (including `sub-<id>/derivatives/<package>/<module>/`) so processings stay traceable per subject.
+
 Package pages (`frontend/src/pages/packages/<id>.html`): list modules for one package; sidebar highlights package; FreeSurfer links to official docs.
 
 ---
@@ -437,5 +439,6 @@ Use when adding or updating pages under `doc/mockup/`:
 | 2026-06-01 | — | Wider hub (`max-w-[1400px]`); PNG logo; package pages; modules table filters and sort |
 | 2026-07-25 | — | In-app Help wiki at `/help/`; sidebar Help vs Open API; NeuroFlow guide on tool/package pages |
 | 2026-07-25 | — | Home Workspaces panel: create/list folders; Use + Open folder via `/api/v1/workspaces` |
+| 2026-07-25 | — | Subject-centered datasets: outputs under `sub-<id>/derivatives/<package>/<module>/` |
 
 **Last updated:** 2026-07-25

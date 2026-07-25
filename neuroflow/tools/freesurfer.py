@@ -10,7 +10,11 @@ from pathlib import Path
 from pydantic import BaseModel, Field, field_validator
 
 from neuroflow.config import Settings
-from neuroflow.services.datasets import DatasetStore, normalize_subject_id
+from neuroflow.services.datasets import (
+    FREESURFER_PIPELINE_SUBJECT,
+    DatasetStore,
+    normalize_subject_id,
+)
 from neuroflow.services.job_kill import is_job_cancelled, skip_if_cancelled
 from neuroflow.services.jobs import JobStore
 from neuroflow.tools.base import build_env, resolve_executable
@@ -41,14 +45,14 @@ class BatchScan(BaseModel):
 
 def build_recon_all_argv(
     *,
-    subject_id: str,
     input_path: Path,
     recon_options: ReconOption,
 ) -> list[str]:
+    """Build recon-all argv. -s is always FREESURFER_PIPELINE_SUBJECT."""
     argv = [
         "recon-all",
         "-s",
-        subject_id,
+        FREESURFER_PIPELINE_SUBJECT,
         "-i",
         str(input_path.resolve()),
         RECON_FLAGS[recon_options],
@@ -141,7 +145,9 @@ def launch_freesurfer_job(
 
     datasets = DatasetStore(settings)
     job_dir = store.job_dir("freesurfer", job_id)
-    subjects_dir = datasets.freesurfer_subjects_dir(workspace)
+    first_subjects_dir = datasets.freesurfer_subjects_dir(
+        workspace, scans[0].subject_id
+    )
     for scan in scans:
         suffix = "".join(scan.input_path.suffixes) or ".nii.gz"
         datasets.stage_input(
@@ -151,6 +157,7 @@ def launch_freesurfer_job(
             source=scan.input_path,
             dest_name=f"{scan.subject_id}_T1w{suffix}",
         )
+        datasets.freesurfer_subjects_dir(workspace, scan.subject_id)
 
     batch_total = len(scans)
     estimated_total_seconds = int(batch_total * estimated_hours_per_scan * 3600)
@@ -168,7 +175,6 @@ def launch_freesurfer_job(
     ]
 
     first_argv = build_recon_all_argv(
-        subject_id=scans[0].subject_id,
         input_path=scans[0].input_path,
         recon_options=recon_options,
     )
@@ -183,7 +189,7 @@ def launch_freesurfer_job(
         command_preview=preview,
         workspace=workspace,
         subject_id=scans[0].subject_id,
-        dataset_subjects_dir=str(subjects_dir),
+        dataset_subjects_dir=str(first_subjects_dir),
         parameters={
             "recon_options": recon_options,
             "workspace": workspace,
@@ -191,6 +197,7 @@ def launch_freesurfer_job(
             if recon_options != "all"
             else "freesurfer-recon-all",
             "batch_subject_ids": [s.subject_id for s in scans],
+            "freesurfer_pipeline_subject": FREESURFER_PIPELINE_SUBJECT,
         },
         batch_items=batch_items,
         batch_current_index=0,
@@ -219,8 +226,10 @@ def launch_freesurfer_job(
                     items[index - 1]["started_at"] = datetime.now(timezone.utc).isoformat()
                     store.update_meta("freesurfer", job_id, batch_items=items)
 
+                subjects_dir = datasets.freesurfer_subjects_dir(
+                    workspace, scan.subject_id
+                )
                 argv = build_recon_all_argv(
-                    subject_id=scan.subject_id,
                     input_path=scan.input_path,
                     recon_options=recon_options,
                 )

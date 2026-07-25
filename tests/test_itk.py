@@ -121,9 +121,13 @@ def test_create_itk_job_api(
                 "output_prefix": "out",
                 "parameters": json.dumps({"q_value": 1.0, "use_mask": False}),
                 "file_roles": json.dumps(["input"]),
+                "workspace": "demo_lab",
+                "subject_id": "sub-001",
             },
             files={"files": ("dwi.nii.gz", nii.read_bytes(), "application/gzip")},
     )
 
     assert response.status_code == 201
     mock_launch.assert_called_once()
+    assert mock_launch.call_args.kwargs["workspace"] == "demo_lab"
+    assert mock_launch.call_args.kwargs["subject_id"] == "sub-001"

@@ -132,17 +132,22 @@ Use the API at port 8000; configure CORS origins in `neuroflow/api/main.py` if n
 ## Job data
 
 - Job metadata and logs: `NEUROFLOW_DATA_ROOT` (default `./data/jobs`)
-- Researcher datasets (BIDS-inspired): `NEUROFLOW_DATASETS_ROOT` (default `./data/datasets`)
+- Researcher datasets (subject-centered): `NEUROFLOW_DATASETS_ROOT` (default `./data/datasets`)
 
 Layout example:
 
 ```text
 data/datasets/<workspace>/
-  sub-001/anat/…
-  derivatives/fsl/bet/…
-  derivatives/freesurfer/sub-001/   # native FreeSurfer SUBJECTS_DIR tree
+  sub-001/
+    anat/…
+    derivatives/
+      fsl/bet/…
+      freesurfer/          # native FreeSurfer tree (mri, surf, …)
+      sct/<module>/…
+      ants/<module>/…
 ```
 
+Legacy sibling folders at `<workspace>/derivatives/…` (without a subject) are obsolete for new jobs; they are not migrated automatically.
 On each module page, set **Project / User name** (stored in the browser) and **Subject ID** (`sub-…`). The home page **Active processes** table lists running and queued jobs with a link back to the module. Finished jobs appear under **History** (`/history.html`). On API startup, orphaned `running`/`queued` jobs from a previous process are reconciled (failed or cancelled) so they do not clutter Active processes.
 
 Host RAM/CPU limits (`NEUROFLOW_RAM_MAX_PERCENT`, `NEUROFLOW_CPU_MAX_PERCENT`) pause new starts into a queue when the machine is busy. Contents under `data/` are gitignored except `.gitkeep`.

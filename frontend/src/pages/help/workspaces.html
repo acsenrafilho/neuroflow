@@ -75,9 +75,18 @@
             <pre
               class="overflow-x-auto rounded-xl border border-outline-variant bg-surface-container-low p-4 text-sm text-on-surface"
             ><code>data/datasets/&lt;workspace&gt;/
-  sub-001/anat/…
-  derivatives/fsl/bet/…
-  derivatives/freesurfer/sub-001/   # FreeSurfer SUBJECTS_DIR-style tree</code></pre>
+  sub-001/
+    anat/…
+    derivatives/
+      fsl/bet/…
+      freesurfer/          # FreeSurfer native tree (mri, surf, …)
+      sct/&lt;module&gt;/…</code></pre>
+            <p class="text-on-surface-variant">
+              Inputs and derivatives for a subject stay under that subject folder so you can see
+              which processings were run. Older layouts with
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">&lt;workspace&gt;/derivatives/…</code>
+              (sibling to subjects) are obsolete for new jobs.
+            </p>
           </section>
 
           <section class="space-y-3">
