@@ -5,9 +5,9 @@
   const PACKAGES = [
     { id: "freesurfer", name: "FreeSurfer", icon: "neurology", href: "/packages/freesurfer.html", enabled: true },
     { id: "fsl", name: "FSL", icon: "science", href: "/packages/fsl.html", enabled: true },
-    { id: "ants", name: "ANTs", icon: "transform", href: "/packages/ants.html", enabled: true },
-    { id: "slicer", name: "3D Slicer", icon: "view_in_ar", href: "/packages/slicer.html", enabled: true },
-    { id: "itk", name: "ITK", icon: "filter_alt", href: "/packages/itk.html", enabled: true },
+    { id: "ants", name: "ANTs", icon: "transform", href: "/packages/ants.html", enabled: false },
+    { id: "slicer", name: "3D Slicer", icon: "view_in_ar", href: "/packages/slicer.html", enabled: false },
+    { id: "itk", name: "ITK", icon: "filter_alt", href: "/packages/itk.html", enabled: false },
   ];
 
   const LOGO_SRC = "/assets/neuroflow_logo.png";
@@ -36,15 +36,17 @@
     const el = document.getElementById("hub-sidebar");
     if (!el) return;
 
-    const packageNav = PACKAGES.map((pkg) =>
-      navItem({
-        href: pkg.href,
-        icon: pkg.icon,
-        label: pkg.name,
-        active: active === pkg.id,
-        disabled: !pkg.enabled,
-      })
-    ).join("");
+    const packageNav = PACKAGES.filter((pkg) => pkg.enabled)
+      .map((pkg) =>
+        navItem({
+          href: pkg.href,
+          icon: pkg.icon,
+          label: pkg.name,
+          active: active === pkg.id,
+          disabled: false,
+        })
+      )
+      .join("");
 
     el.innerHTML = `
       <div class="mb-8 px-6">

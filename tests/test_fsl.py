@@ -123,7 +123,9 @@ def test_batch_meta_matches_batch_item_status_schema(work_dir: Path) -> None:
 
     from neuroflow.tools.fsl import launch_fsl_job
 
-    with patch("neuroflow.tools.fsl._run_one_fsl", return_value=0):
+    with patch("neuroflow.tools.fsl._run_one_fsl", return_value=0), patch(
+        "neuroflow.tools.fsl.ensure_module_available"
+    ):
         launch_fsl_job(
             settings=settings,
             store=store,
@@ -132,17 +134,22 @@ def test_batch_meta_matches_batch_item_status_schema(work_dir: Path) -> None:
             batch_items=[{ROLE_INPUT: input_path}],
             output_prefix="brain",
             parameters={},
+            workspace="demo_lab",
+            subject_id="sub-001",
         )
 
     meta = store.read_meta("fsl", job_id)
     items = batch_items_from_meta(meta)
     assert len(items) == 1
     assert items[0].filename == "sub-001_T1w.nii.gz"
-    assert items[0].subject_id == "sub-001_T1w"
+    assert items[0].subject_id == "sub-001"
 
 
+@patch("neuroflow.tools.fsl.ensure_module_available")
 @patch("neuroflow.api.v1.tools.launch_fsl_job")
-def test_create_fsl_batch_job_api(mock_launch: object, client: TestClient) -> None:
+def test_create_fsl_batch_job_api(
+    mock_launch: object, _mock_ensure: object, client: TestClient
+) -> None:
     def _fake(**kwargs: object) -> list[str]:
         store = kwargs["store"]
         job_id = kwargs["job_id"]
@@ -161,6 +168,8 @@ def test_create_fsl_batch_job_api(mock_launch: object, client: TestClient) -> No
                 "file_roles": json.dumps(["input", "input"]),
                 "module_id": "fsl-bet",
                 "output_prefix": "brain",
+                "workspace": "demo_lab",
+                "subject_id": "sub-001",
             },
             files=[
                 ("files", ("a.nii.gz", handle, "application/octet-stream")),
@@ -171,6 +180,8 @@ def test_create_fsl_batch_job_api(mock_launch: object, client: TestClient) -> No
     assert response.status_code == 201, response.text
     assert mock_launch.call_args.kwargs["batch_items"]
     assert len(mock_launch.call_args.kwargs["batch_items"]) == 2
+    assert mock_launch.call_args.kwargs["workspace"] == "demo_lab"
+    assert mock_launch.call_args.kwargs["subject_id"] == "sub-001"
 
 
 def test_build_bet_argv(work_dir: Path) -> None:
@@ -269,8 +280,11 @@ def test_build_susan_argv_uses_nifti_extension(work_dir: Path) -> None:
     assert argv[2].endswith("smooth.nii")
 
 
+@patch("neuroflow.tools.fsl.ensure_module_available")
 @patch("neuroflow.api.v1.tools.launch_fsl_job")
-def test_create_fsl_job_api(mock_launch: object, client: TestClient) -> None:
+def test_create_fsl_job_api(
+    mock_launch: object, _mock_ensure: object, client: TestClient
+) -> None:
     mock_launch.return_value = ["bet", "in.nii.gz", "out"]
 
     nii = Path(__file__).parent / "fixtures" / "tiny.nii.gz"
@@ -283,6 +297,8 @@ def test_create_fsl_job_api(mock_launch: object, client: TestClient) -> None:
                 "file_roles": json.dumps(["input"]),
                 "module_id": "fsl-bet",
                 "output_prefix": "brain",
+                "workspace": "demo_lab",
+                "subject_id": "001",
                 "parameters": json.dumps({"fractional_intensity": 0.5}),
             },
             files=[("files", ("t1.nii.gz", handle, "application/octet-stream"))],
@@ -292,6 +308,7 @@ def test_create_fsl_job_api(mock_launch: object, client: TestClient) -> None:
     body = response.json()
     assert body["tool_id"] == "fsl"
     mock_launch.assert_called_once()
+    assert mock_launch.call_args.kwargs["subject_id"] == "sub-001"
 
     status = client.get(f"/api/v1/tools/fsl/jobs/{body['job_id']}")
     assert status.status_code == 200
@@ -309,6 +326,8 @@ def test_create_fsl_job_roles_mismatch(client: TestClient) -> None:
             data={
                 "file_roles": json.dumps(["input", "reference"]),
                 "module_id": "fsl-bet",
+                "workspace": "demo_lab",
+                "subject_id": "sub-001",
             },
             files=[("files", ("a.nii.gz", handle, "application/octet-stream"))],
         )

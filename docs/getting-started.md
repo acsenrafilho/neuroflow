@@ -25,20 +25,16 @@ Set `NEUROFLOW_SERVE_FRONTEND=1` in `.env` to serve the built UI from the API pr
 
 ```bash
 make api
-# or: poetry run uvicorn neuroflow.api.main:app --reload --host 127.0.0.1 --port 8000
+# or: poetry run neuroflow serve
 ```
 
-On startup the API scans the local host for registered packages (FreeSurfer, FSL, ANTs, 3D Slicer, ITK) and caches the result. The home page **Processing modules** table uses `GET /api/v1/modules` to show **Ready** when the corresponding binary is available on the host.
+On startup the API scans the local host for registered packages and caches the result. The home page **Processing modules** table currently lists **FreeSurfer** and **FSL** only (other packages remain in the codebase but are hidden from the portal).
 
 - Tool hub: http://127.0.0.1:8000/
 - FreeSurfer module: http://127.0.0.1:8000/tools/freesurfer.html
 - FSL package: http://127.0.0.1:8000/packages/fsl.html
 - FSL module (example): http://127.0.0.1:8000/tools/fsl.html?module=fsl-bet
-- ANTs package: http://127.0.0.1:8000/packages/ants.html
-- ANTs module (example): http://127.0.0.1:8000/tools/ants.html?module=ants-n4
 - OpenAPI: http://127.0.0.1:8000/docs
-
-Each ANTs module page exposes a curated subset of native CLI flags. Common options appear in the main **Parameters** grid; less frequent flags are under **Advanced parameters** (collapsible). For the full command-line reference, see the [ANTs wiki](https://github.com/ANTsX/ANTs/wiki).
 
 After sourcing a tool environment (e.g. FreeSurfer), re-scan without restarting:
 
@@ -73,4 +69,18 @@ Use the API at port 8000; configure CORS origins in `neuroflow/api/main.py` if n
 
 ## Job data
 
-Uploads and logs are stored under `NEUROFLOW_DATA_ROOT` (default `./data/jobs`). Contents are gitignored except `.gitkeep`.
+- Job metadata and logs: `NEUROFLOW_DATA_ROOT` (default `./data/jobs`)
+- Researcher datasets (BIDS-inspired): `NEUROFLOW_DATASETS_ROOT` (default `./data/datasets`)
+
+Layout example:
+
+```text
+data/datasets/<workspace>/
+  sub-001/anat/…
+  derivatives/fsl/bet/…
+  derivatives/freesurfer/sub-001/   # native FreeSurfer SUBJECTS_DIR tree
+```
+
+On each module page, set **Project / User name** (stored in the browser) and **Subject ID** (`sub-…`). The home page **Active processes** table lists running and queued jobs with a link back to the module.
+
+Host RAM/CPU limits (`NEUROFLOW_RAM_MAX_PERCENT`, `NEUROFLOW_CPU_MAX_PERCENT`) pause new starts into a queue when the machine is busy. Contents under `data/` are gitignored except `.gitkeep`.

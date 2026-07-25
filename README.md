@@ -10,9 +10,7 @@ NeuroFlow is a **web portal** that wraps neuroimaging **CLI tools**—one indepe
 - [Node.js](https://nodejs.org/) 18+ (frontend Tailwind build)
 - **FreeSurfer** on the host for the FreeSurfer module (`recon-all` on `PATH`, or set `NEUROFLOW_RECON_ALL_BIN`)
 - **FSL** on the host for FSL modules (`bet`, `flirt`, etc. on `PATH`, or set `NEUROFLOW_FSLDIR` / `FSLDIR`)
-- **ANTs** precompiled binaries on `PATH`, or set `NEUROFLOW_ANTSPATH` / `ANTSPATH` to the `bin` directory
-- **3D Slicer** on the host for Slicer modules (`Slicer` on `PATH`, or set `NEUROFLOW_SLICER_HOME` / `SLICER_HOME`)
-- **ITK (CSIM)** native filters: locally compiled binaries configured in `config/itk-binaries.json` (see `config/itk-binaries.example.json`); **Simple Filters** uses the same Slicer install as above
+- Optional (code present, hidden in the portal UI for now): ANTs, 3D Slicer, ITK
 
 ## Quick start
 
@@ -21,10 +19,12 @@ cp .env.example .env
 # Optional: NEUROFLOW_SERVE_FRONTEND=1 to serve the built UI from FastAPI
 poetry install
 cd frontend && npm install && npm run build && cd ..
-poetry run uvicorn neuroflow.api.main:app --reload --host 127.0.0.1 --port 8000
+poetry run neuroflow serve
 ```
 
 Open http://127.0.0.1:8000/ (with `NEUROFLOW_SERVE_FRONTEND=1`) or http://127.0.0.1:8000/docs for the API.
+
+Dev shortcuts: `poetry run neuroflow serve` (or `make api`) — same as uvicorn with reload on `127.0.0.1:8000`.
 
 ## Viewing the frontend
 
@@ -54,7 +54,7 @@ With Live Server on port 5500 and the API on port 8000, hub features that call `
 | `make install` | Install Python and frontend dependencies |
 | `make test` | Run pytest |
 | `make lint` | Run ruff check and format check |
-| `make api` | Start FastAPI with reload (host package scan on startup) |
+| `make api` | Start FastAPI via `poetry run neuroflow serve` (reload; host package scan on startup) |
 | `make frontend-build` | Build Tailwind CSS and copy pages to `frontend/dist/` |
 | `make docs` | Serve MkDocs locally |
 
@@ -65,7 +65,8 @@ neuroflow/          # Python package (api, tools, services)
 frontend/           # Production UI (hub + per-tool pages)
 doc/mockup/         # Legacy design reference mockups
 doc/licenses/       # Third-party tool license notices
-data/jobs/          # Job uploads and logs (gitignored contents)
+data/jobs/          # Job metadata and logs (gitignored contents)
+data/datasets/      # BIDS-inspired workspace / subject trees
 docs/               # MkDocs source
 tests/
 ```
@@ -74,12 +75,11 @@ tests/
 
 - OpenAPI: http://127.0.0.1:8000/docs
 - Health: `GET /api/v1/health`
-- Tools: `GET /api/v1/tools`
-- FreeSurfer job: `POST /api/v1/tools/freesurfer/jobs` (multipart: file + form fields)
-- FSL job: `POST /api/v1/tools/fsl/jobs` (multipart: files, `file_roles`, `module_id`, `parameters`)
-- ANTs job: `POST /api/v1/tools/ants/jobs` (multipart: files, `file_roles`, `module_id`, `parameters`)
-- 3D Slicer job: `POST /api/v1/tools/slicer/jobs` (multipart: files, `file_roles`, `module_id`, `parameters`)
-- ITK job: `POST /api/v1/tools/itk/jobs` (multipart: files, `file_roles`, `module_id`, `parameters`; binary paths in `config/itk-binaries.json`)
+- Tools / modules: `GET /api/v1/tools`, `GET /api/v1/modules` (portal: FreeSurfer + FSL)
+- Active jobs: `GET /api/v1/jobs`
+- Host resources: `GET /api/v1/host/resources`
+- FreeSurfer job: `POST /api/v1/tools/freesurfer/jobs` (multipart: files, `subject_ids`, `workspace`, …)
+- FSL job: `POST /api/v1/tools/fsl/jobs` (multipart: files, `workspace`, `subject_id`, `module_id`, …)
 
 ## Adding a tool
 

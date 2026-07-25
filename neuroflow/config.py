@@ -16,9 +16,13 @@ class Settings(BaseSettings):
 
     neuroflow_env: str = "development"
     neuroflow_data_root: Path = Path("./data/jobs")
+    neuroflow_datasets_root: Path = Path("./data/datasets")
     neuroflow_log_level: str = "INFO"
     neuroflow_serve_frontend: bool = False
     neuroflow_max_upload_mb: int = 500
+    neuroflow_ram_max_percent: float = 80.0
+    neuroflow_cpu_max_percent: float = 90.0
+    neuroflow_max_queued_jobs: int = 20
     neuroflow_freesurfer_home: Path | None = None
     neuroflow_recon_all_bin: str = "recon-all"
     neuroflow_fsldir: Path | None = None
@@ -29,6 +33,10 @@ class Settings(BaseSettings):
     @property
     def data_root(self) -> Path:
         return self.neuroflow_data_root.resolve()
+
+    @property
+    def datasets_root(self) -> Path:
+        return self.neuroflow_datasets_root.resolve()
 
     @property
     def max_upload_bytes(self) -> int:

@@ -121,6 +121,20 @@
             <h2 class="font-headline-md text-on-surface">Configuration</h2>
           </div>
           <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label class="font-label-sm text-on-surface" for="workspace">Project / User name</label>
+              <input
+                class="rounded-lg border-outline-variant bg-surface-container-lowest font-body-md focus:border-secondary focus:ring-secondary"
+                id="workspace"
+                name="workspace"
+                placeholder="e.g. ana_silva"
+                type="text"
+                required
+              />
+              <p class="text-xs text-on-surface-variant">
+                Dataset root under <code class="font-code-mono">data/datasets/</code>. Saved in this browser.
+              </p>
+            </div>
             <div class="flex flex-col gap-2" id="single-subject-wrap">
               <label class="font-label-sm text-on-surface" for="subject_id">Subject ID</label>
               <input
@@ -132,6 +146,7 @@
               />
               <p class="text-xs text-on-surface-variant">
                 Used when a single file is selected. For multiple files, set Subject ID per row above.
+                A <code class="font-code-mono">sub-</code> prefix is added if missing.
               </p>
             </div>
             <div class="flex flex-col gap-2" id="recon-options-wrap">
@@ -163,7 +178,7 @@
           </button>
           <p
             id="time-estimate"
-            class="flex items-center gap-1 text-xs text-on-surface-variant"
+            class="hidden text-xs text-on-surface-variant"
             aria-live="polite"
           ></p>
           <p class="flex items-center gap-1 text-xs italic text-on-surface-variant">
@@ -175,6 +190,10 @@
       </form>
 
       <section class="glass-panel hidden overflow-hidden rounded-xl shadow-md" id="status-panel">
+        <div class="border-b border-outline-variant bg-surface-container-highest px-4 py-3">
+          <h2 class="font-headline-md text-on-surface">Jobs on this page</h2>
+          <div id="jobs-session-list" class="mt-2"></div>
+        </div>
         <div
           class="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant bg-surface-container-highest px-4 py-2"
         >
@@ -186,17 +205,9 @@
             >
           </div>
           <div class="flex flex-wrap items-center gap-3 font-code-mono text-xs text-on-surface-variant">
-            <button
-              type="button"
-              id="kill-job-btn"
-              class="hidden rounded border border-error/40 px-2 py-0.5 font-label-sm text-error transition-colors hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Kill processing
-            </button>
             <span id="job-status-label">queued</span>
             <span id="elapsed-label" class="hidden">Elapsed: 00:00:00</span>
             <span id="batch-label" class="hidden"></span>
-            <span id="eta-label" class="hidden"></span>
             <span id="pid-label" class="hidden"></span>
           </div>
         </div>
@@ -220,7 +231,10 @@
     </footer>
 
     <script src="/js/neuroflow-api.js"></script>
-    <script src="/js/job-controls.js"></script>
+    <script src="/js/toaster.js"></script>
+    <script src="/js/workspace.js"></script>
+    <script src="/js/resources-gate.js"></script>
+    <script src="/js/job-session.js"></script>
     <script>
       const form = document.getElementById("job-form");
       const runBtn = document.getElementById("run-btn");
@@ -240,15 +254,25 @@
 
       /** @type {{ file: File, subjectId: string }[]} */
       let fileQueue = [];
-      let pollTimer = null;
-      let currentJobId = null;
       const TOOL_ID = "freesurfer";
       let activeModule = null;
-      let hoursPerScan = 8;
-
       const params = new URLSearchParams(window.location.search);
+      const queryJobId = params.get("job_id");
       const queryModuleId = params.get("module");
       const queryRecon = params.get("recon_options");
+      const jobSession = window.NeuroflowJobSession
+        ? new window.NeuroflowJobSession.JobSessionList({ toolId: TOOL_ID })
+        : null;
+
+      if (window.NeuroflowWorkspace) {
+        window.NeuroflowWorkspace.bindWorkspaceInput("workspace");
+      }
+      if (window.NeuroflowResources) {
+        window.NeuroflowResources.start(15000);
+        window.NeuroflowResources.onChange((res) => {
+          window.NeuroflowResources.applyRunButton(runBtn, res);
+        });
+      }
 
       function formatDuration(seconds) {
         if (seconds == null || seconds < 0) return "—";
@@ -258,15 +282,11 @@
         return [h, m, s].map((n) => String(n).padStart(2, "0")).join(":");
       }
 
-      function formatHours(h) {
-        if (h < 1) return `~${Math.round(h * 60)} min`;
-        return `~${h}h`;
-      }
-
       function updateTimeEstimate() {
-        const n = Math.max(1, fileQueue.length);
-        const total = n * hoursPerScan;
-        timeEstimateEl.textContent = `Estimated total: ${n} × ${formatHours(hoursPerScan)} ≈ ${formatHours(total)} (heuristic)`;
+        if (timeEstimateEl) {
+          timeEstimateEl.textContent = "";
+          timeEstimateEl.classList.add("hidden");
+        }
       }
 
       async function loadModuleFromQuery() {
@@ -278,7 +298,6 @@
             modules.find((m) => m.recon_options === "all" && !m.coming_soon);
           if (!activeModule) return;
 
-          hoursPerScan = activeModule.estimated_hours_per_scan;
           document.getElementById("page-title").textContent = `${activeModule.package_name} · ${activeModule.module_name}`;
           document.getElementById("page-summary").textContent = activeModule.description;
           document.getElementById("nav-module-label").textContent = activeModule.module_name;
@@ -290,6 +309,9 @@
             reconOptionsWrap.classList.add("hidden");
           }
           updateTimeEstimate();
+          if (queryJobId && jobSession) {
+            jobSession.focus(queryJobId);
+          }
         } catch {
           /* ignore */
         }
@@ -391,18 +413,22 @@
         formError.textContent = "";
       }
 
-      function setRunningUi() {
-        statusPanel.classList.remove("hidden");
-        runBtn.disabled = true;
-        runBtn.classList.add("opacity-50", "cursor-not-allowed");
-        runBtn.innerHTML = `
-          <span class="material-symbols-outlined animate-spin">refresh</span>
-          Processing in background
-        `;
-        window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+      function collectSubjectIds() {
+        const normalize = window.NeuroflowWorkspace
+          ? window.NeuroflowWorkspace.normalizeSubjectId
+          : (v) => v.trim();
+        if (fileQueue.length === 0) return [];
+        if (fileQueue.length === 1) {
+          const sid = normalize(
+            fileQueue[0].subjectId.trim() || document.getElementById("subject_id").value
+          );
+          return [sid];
+        }
+        return fileQueue.map((item) => normalize(item.subjectId));
       }
 
       function resetRunButton() {
+        runBtn.dataset.forceDisabled = "";
         runBtn.disabled = false;
         runBtn.classList.remove("opacity-50", "cursor-not-allowed");
         runBtn.innerHTML = `
@@ -411,111 +437,25 @@
         `;
       }
 
-      function updateMonitoring(statusData, logData) {
-        const label = document.getElementById("job-status-label");
-        const status = logData?.status || statusData?.status || "queued";
-        label.textContent = status;
-
-        const elapsedEl = document.getElementById("elapsed-label");
-        const elapsed = statusData?.elapsed_seconds ?? logData?.elapsed_seconds;
-        if (elapsed != null) {
-          elapsedEl.textContent = `Elapsed: ${formatDuration(elapsed)}`;
-          elapsedEl.classList.remove("hidden");
-        }
-
-        const batchTotal = statusData?.batch_total || logData?.batch_total || 0;
-        const batchIdx = statusData?.batch_current_index || logData?.batch_current_index || 0;
-        const batchEl = document.getElementById("batch-label");
-        if (batchTotal > 1) {
-          const current = status === "completed" ? batchTotal : Math.max(1, batchIdx);
-          batchEl.textContent = `Scan ${current} of ${batchTotal}`;
-          batchEl.classList.remove("hidden");
-        } else {
-          batchEl.classList.add("hidden");
-        }
-
-        const etaEl = document.getElementById("eta-label");
-        const remaining =
-          statusData?.estimated_remaining_seconds ?? logData?.estimated_remaining_seconds;
-        if (remaining != null && status === "running") {
-          etaEl.textContent = `ETA (heuristic): ${formatDuration(remaining)}`;
-          etaEl.classList.remove("hidden");
-        } else {
-          etaEl.classList.add("hidden");
-        }
-
-        const pid = statusData?.pid ?? logData?.pid;
-        const pidEl = document.getElementById("pid-label");
-        if (pid && status === "running") {
-          pidEl.textContent = `PID ${pid}`;
-          pidEl.classList.remove("hidden");
-        } else {
-          pidEl.classList.add("hidden");
-        }
-
-        if (batchTotal > 1 && batchIdx > 0) {
-          progressBar.style.width = `${Math.min(100, (batchIdx / batchTotal) * 100)}%`;
-        } else {
-          const widths = { queued: "5%", running: "40%", completed: "100%", failed: "100%" };
-          progressBar.style.width = widths[status] || "10%";
-        }
-        if (status === "failed" || status === "cancelled") progressBar.classList.add("bg-error");
-        else progressBar.classList.remove("bg-error");
-
-        if (NeuroflowJobControls) {
-          NeuroflowJobControls.updateKillButtonVisibility(statusData, logData);
-        }
-
-        const dot = document.getElementById("status-dot");
-        if (status === "completed" || status === "failed" || status === "cancelled") {
-          dot.classList.remove("animate-pulse");
-        }
-      }
-
-      async function pollJob(jobId) {
-        const logData = await NeuroflowApi.fetchJson(
-          `/api/v1/tools/freesurfer/jobs/${jobId}/log`
-        );
-        const statusData = await NeuroflowApi.fetchJson(
-          `/api/v1/tools/freesurfer/jobs/${jobId}`
-        );
-        logOutput.textContent = logData.log || "(waiting for output…)";
-        logOutput.scrollTop = logOutput.scrollHeight;
-        updateMonitoring(statusData, logData);
-
-        if (statusData.command_preview && !logData.log) {
-          logOutput.textContent = `$ ${statusData.command_preview}\n\n`;
-        }
-
-        if (NeuroflowJobControls?.isTerminalStatus(logData.status)) {
-          clearInterval(pollTimer);
-          pollTimer = null;
-          resetRunButton();
-          if (
-            (logData.status === "failed" || logData.status === "cancelled") &&
-            statusData.error_message
-          ) {
-            logOutput.textContent += `\n${statusData.error_message}`;
-          }
-        }
-      }
-
-      function collectSubjectIds() {
-        if (fileQueue.length === 0) return [];
-        if (fileQueue.length === 1) {
-          const sid =
-            fileQueue[0].subjectId.trim() ||
-            document.getElementById("subject_id").value.trim();
-          return [sid];
-        }
-        return fileQueue.map((item) => item.subjectId.trim());
-      }
-
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         clearError();
         if (fileQueue.length === 0) {
           showError("Select at least one input file before running.");
+          return;
+        }
+
+        let workspace;
+        try {
+          workspace = window.NeuroflowWorkspace
+            ? window.NeuroflowWorkspace.requireWorkspace()
+            : document.getElementById("workspace")?.value?.trim();
+        } catch (err) {
+          showError(err.message || "Workspace is required.");
+          return;
+        }
+        if (!workspace) {
+          showError("Enter a Project / User name before running.");
           return;
         }
 
@@ -530,15 +470,17 @@
           formData.append("files", item.file);
         }
         formData.append("subject_ids", JSON.stringify(subjectIds));
+        formData.append("workspace", workspace);
         const reconOptions = document.getElementById("recon_options").value;
         formData.append("recon_options", reconOptions);
         if (activeModule?.id) {
           formData.append("module_id", activeModule.id);
         }
 
-        setRunningUi();
+        statusPanel.classList.remove("hidden");
+        runBtn.dataset.forceDisabled = "1";
+        runBtn.disabled = true;
         logOutput.textContent = "Submitting job…";
-        updateMonitoring({ status: "queued" }, { status: "queued" });
 
         try {
           const { res } = await NeuroflowApi.fetchApi("/api/v1/tools/freesurfer/jobs", {
@@ -548,28 +490,31 @@
           const data = await res.json();
           if (!res.ok) {
             showError(data.detail || "Failed to start job.");
+            if (data.code === "resource_exhausted" || data.code === "queue_full") {
+              window.NeuroflowToast?.show(data.detail, { tone: "error" });
+            }
             resetRunButton();
             return;
           }
           if (data.command_preview) {
             logOutput.textContent = `$ ${data.command_preview}\n\n`;
           }
-          currentJobId = data.job_id;
-          pollTimer = setInterval(() => pollJob(data.job_id), 2000);
-          pollJob(data.job_id);
+          if (jobSession) {
+            jobSession.add({
+              jobId: data.job_id,
+              subjectId: subjectIds[0],
+              status: data.status || "queued",
+            });
+          }
+          fileQueue = [];
+          renderFileList();
+          resetRunButton();
+          window.NeuroflowResources?.refresh();
         } catch {
           showError("Could not reach the API. Start the server with NEUROFLOW_SERVE_FRONTEND=1.");
           resetRunButton();
         }
       });
-
-      if (NeuroflowJobControls) {
-        NeuroflowJobControls.wireKillButton({
-          toolId: TOOL_ID,
-          getJobId: () => currentJobId,
-          onKilled: (jobId) => pollJob(jobId),
-        });
-      }
 
       loadModuleFromQuery();
     </script>

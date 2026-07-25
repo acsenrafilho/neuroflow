@@ -10,29 +10,15 @@ def test_list_modules(client: TestClient) -> None:
     response = client.get("/api/v1/modules")
     assert response.status_code == 200
     modules = response.json()
-    assert len(modules) >= 42
-    ants_modules = [m for m in modules if m["package_id"] == "ants" and not m["coming_soon"]]
-    assert len(ants_modules) == 22
+    packages = {m["package_id"] for m in modules}
+    assert packages == {"freesurfer", "fsl"}
+    assert not any(m["package_id"] in {"ants", "slicer", "itk"} for m in modules)
     fs_modules = [m for m in modules if m["package_id"] == "freesurfer" and not m["coming_soon"]]
     assert len(fs_modules) == 4
     fsl_modules = [m for m in modules if m["package_id"] == "fsl" and not m["coming_soon"]]
     assert len(fsl_modules) == 15
     recon_options = {m["recon_options"] for m in fs_modules}
     assert recon_options == {"all", "autorecon1", "autorecon2", "autorecon3"}
-    slicer_modules = [m for m in modules if m["package_id"] == "slicer" and not m["coming_soon"]]
-    assert len(slicer_modules) == 3
-    assert {m["id"] for m in slicer_modules} == {
-        "slicer-dwi-convert",
-        "slicer-dwi-mask",
-        "slicer-dwi-to-dti",
-    }
-    itk_modules = [m for m in modules if m["package_id"] == "itk" and not m["coming_soon"]]
-    assert len(itk_modules) == 3
-    assert {m["id"] for m in itk_modules} == {
-        "itk-diffusion-complexity-mapping",
-        "itk-anisotropic-anomalous-diffusion",
-        "itk-simple-filter",
-    }
 
 
 def test_modules_alias_under_tools(client: TestClient) -> None:
@@ -84,36 +70,6 @@ def test_modules_use_cached_host_probe(client: TestClient) -> None:
     fsl_bet = next(m for m in modules if m["id"] == "fsl-bet")
     assert fsl_bet["coming_soon"] is False
     assert fsl_bet["available"] is False
-
-    ants_n4 = next(m for m in modules if m["id"] == "ants-n4")
-    assert ants_n4["coming_soon"] is False
-    assert ants_n4["available"] is False
-
-    client.app.state.tool_availability["ants"] = ProbeResult(
-        package_id="ants",
-        available=True,
-        resolved_path="/usr/bin/antsRegistration",
-        detail="ok",
-    )
-    with (
-        patch("neuroflow.tools.host_probe.resolve_itk_module_binary", return_value=None),
-        patch(
-            "neuroflow.tools.host_probe.which",
-            return_value="/usr/bin/N4BiasFieldCorrection",
-        ),
-    ):
-        response2 = client.get("/api/v1/modules")
-    ants_n4_ready = next(m for m in response2.json() if m["id"] == "ants-n4")
-    assert ants_n4_ready["available"] is True
-
-    slicer_convert = next(m for m in modules if m["id"] == "slicer-dwi-convert")
-    assert slicer_convert["available"] is True
-
-    itk_simple = next(m for m in modules if m["id"] == "itk-simple-filter")
-    assert itk_simple["available"] is True
-
-    itk_dcm = next(m for m in modules if m["id"] == "itk-diffusion-complexity-mapping")
-    assert itk_dcm["available"] is False
 
 
 def test_host_rescan_updates_cache(client: TestClient) -> None:

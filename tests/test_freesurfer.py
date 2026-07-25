@@ -36,9 +36,16 @@ def test_subject_id_validation() -> None:
         FreeSurferJobParams(subject_id="bad id!", recon_options="all")
 
 
+def test_subject_id_normalizes_prefix() -> None:
+    params = FreeSurferJobParams(subject_id="001", recon_options="all")
+    assert params.subject_id == "sub-001"
+
+
+@patch("neuroflow.tools.freesurfer.ensure_recon_all_available")
 @patch("neuroflow.api.v1.tools.launch_freesurfer_job")
 def test_create_freesurfer_job_api(
     mock_launch: object,
+    _mock_ensure: object,
     client: TestClient,
 ) -> None:
     mock_launch.return_value = ["recon-all", "-s", "sub-001"]
@@ -53,6 +60,7 @@ def test_create_freesurfer_job_api(
             data={
                 "subject_ids": json.dumps(["sub-001"]),
                 "recon_options": "all",
+                "workspace": "demo_lab",
             },
             files=[("files", ("sub-001_T1w.nii.gz", handle, "application/octet-stream"))],
         )
@@ -62,6 +70,7 @@ def test_create_freesurfer_job_api(
     assert body["job_id"]
     assert body["tool_id"] == "freesurfer"
     mock_launch.assert_called_once()
+    assert mock_launch.call_args.kwargs["workspace"] == "demo_lab"
 
     status = client.get(f"/api/v1/tools/freesurfer/jobs/{body['job_id']}")
     assert status.status_code == 200
@@ -81,15 +90,18 @@ def test_create_job_subject_ids_length_mismatch(client: TestClient) -> None:
             data={
                 "subject_ids": json.dumps(["sub-001", "sub-002"]),
                 "recon_options": "all",
+                "workspace": "demo_lab",
             },
             files=[("files", ("a.nii.gz", handle, "application/octet-stream"))],
         )
     assert response.status_code == 422
 
 
+@patch("neuroflow.tools.freesurfer.ensure_recon_all_available")
 @patch("neuroflow.api.v1.tools.launch_freesurfer_job")
 def test_batch_launch_passes_multiple_scans(
     mock_launch: object,
+    _mock_ensure: object,
     client: TestClient,
 ) -> None:
     def _fake_launch(**kwargs: object) -> list[str]:
@@ -114,6 +126,7 @@ def test_batch_launch_passes_multiple_scans(
             data={
                 "subject_ids": json.dumps(["sub-001", "sub-002"]),
                 "recon_options": "autorecon1",
+                "workspace": "demo_lab",
             },
             files=[
                 ("files", ("sub-001_T1w.nii.gz", handle, "application/octet-stream")),
@@ -131,5 +144,4 @@ def test_list_tools(client: TestClient) -> None:
     assert response.status_code == 200
     tools = response.json()
     ids = {t["id"] for t in tools}
-    assert "freesurfer" in ids
-    assert "fsl" in ids
+    assert ids == {"freesurfer", "fsl"}

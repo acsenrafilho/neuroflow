@@ -3,6 +3,7 @@
 install:
 	poetry install
 	cd frontend && npm install
+	mkdir -p data/jobs data/datasets
 
 test:
 	poetry run pytest -q
@@ -12,7 +13,7 @@ lint:
 	poetry run ruff format --check neuroflow tests
 
 api:
-	poetry run uvicorn neuroflow.api.main:app --reload --host 127.0.0.1 --port 8000
+	poetry run neuroflow serve
 
 frontend-build:
 	cd frontend && npm run build

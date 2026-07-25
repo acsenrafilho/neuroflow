@@ -15,6 +15,7 @@ class ToolDefinition:
     page_path: str
     executable: str | None = None
     probe_binaries: tuple[str, ...] = ()
+    visible_in_portal: bool = True
 
     def is_available(self) -> bool:
         from neuroflow.config import get_settings
@@ -80,6 +81,7 @@ TOOLS: dict[str, ToolDefinition] = {
             "N4BiasFieldCorrection",
             "Atropos",
         ),
+        visible_in_portal=False,
     ),
     "slicer": ToolDefinition(
         id="slicer",
@@ -88,6 +90,7 @@ TOOLS: dict[str, ToolDefinition] = {
         page_path="/tools/slicer.html",
         executable="Slicer",
         probe_binaries=("Slicer", "slicer"),
+        visible_in_portal=False,
     ),
     "itk": ToolDefinition(
         id="itk",
@@ -96,6 +99,7 @@ TOOLS: dict[str, ToolDefinition] = {
             "CSIM ITK toolkits — locally compiled filters and Slicer-backed Simple Filters."
         ),
         page_path="/tools/itk.html",
+        visible_in_portal=False,
     ),
 }
 
@@ -581,13 +585,25 @@ def get_tool(tool_id: str) -> ToolDefinition | None:
     return TOOLS.get(tool_id)
 
 
-def list_tools() -> list[ToolDefinition]:
-    return list(TOOLS.values())
+def list_tools(*, portal_only: bool = False) -> list[ToolDefinition]:
+    tools = list(TOOLS.values())
+    if portal_only:
+        tools = [t for t in tools if t.visible_in_portal]
+    return tools
 
 
 def get_module(module_id: str) -> ModuleDefinition | None:
     return next((m for m in MODULES if m.id == module_id), None)
 
 
-def list_modules() -> list[ModuleDefinition]:
-    return list(MODULES)
+def list_modules(*, portal_only: bool = False) -> list[ModuleDefinition]:
+    modules = list(MODULES)
+    if portal_only:
+        visible_packages = {t.id for t in list_tools(portal_only=True)}
+        modules = [m for m in modules if m.package_id in visible_packages]
+    return modules
+
+
+def is_package_visible_in_portal(package_id: str) -> bool:
+    tool = get_tool(package_id)
+    return bool(tool and tool.visible_in_portal)

@@ -5,9 +5,6 @@
   const PACKAGE_ICONS = {
     freesurfer: { icon: "neurology", active: true },
     fsl: { icon: "science", active: true },
-    ants: { icon: "transform", active: true },
-    slicer: { icon: "view_in_ar", active: true },
-    itk: { icon: "filter_alt", active: true },
   };
 
   function statusLabel(module) {

@@ -15,8 +15,10 @@ from neuroflow.api.deps import get_cached_settings, get_job_store
 from neuroflow.api.host_state import get_tool_availability
 from neuroflow.config import Settings
 from neuroflow.models.schemas import JobLogResponse, JobStatusResponse, ModuleInfo, ToolInfo
+from neuroflow.services.datasets import normalize_subject_id, sanitize_workspace
 from neuroflow.services.job_kill import JobKillError, request_job_kill
 from neuroflow.services.job_monitoring import enrich_log, enrich_status
+from neuroflow.services.job_scheduler import try_start_job
 from neuroflow.services.jobs import JobStore
 from neuroflow.tools.ants import (
     ANTS_TOOL_ID,
@@ -83,8 +85,9 @@ async def list_registered_tools(request: Request) -> list[ToolInfo]:
             description=tool.description,
             page_path=tool.page_path,
             available=availability[tool.id].available if tool.id in availability else False,
+            visible_in_portal=tool.visible_in_portal,
         )
-        for tool in list_tools()
+        for tool in list_tools(portal_only=True)
     ]
 
 
@@ -93,7 +96,8 @@ async def list_processing_modules(request: Request) -> list[ModuleInfo]:
     availability = get_tool_availability(request)
     result: list[ModuleInfo] = []
     settings = get_cached_settings()
-    for module in list_modules():
+    visible_packages = {t.id for t in list_tools(portal_only=True)}
+    for module in list_modules(portal_only=True):
         available = module_available(availability, module, settings)
         result.append(
             ModuleInfo(
@@ -107,6 +111,7 @@ async def list_processing_modules(request: Request) -> list[ModuleInfo]:
                 estimated_hours_per_scan=module.estimated_hours_per_scan,
                 coming_soon=module.coming_soon,
                 available=available,
+                visible_in_portal=module.package_id in visible_packages,
             )
         )
     return result
@@ -136,9 +141,8 @@ def _parse_subject_ids(raw: str, expected: int) -> list[str]:
     validated: list[str] = []
     for sid in subject_ids:
         try:
-            params = FreeSurferJobParams(subject_id=str(sid), recon_options="all")
-            validated.append(params.subject_id)
-        except (ValueError, ValidationError) as exc:
+            validated.append(normalize_subject_id(str(sid)))
+        except ValueError as exc:
             raise HTTPException(
                 status_code=422,
                 detail=str(exc),
@@ -147,12 +151,34 @@ def _parse_subject_ids(raw: str, expected: int) -> list[str]:
     return validated
 
 
+def _parse_workspace(raw: str) -> str:
+    try:
+        return sanitize_workspace(raw)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "validation_error"},
+        ) from exc
+
+
+def _resource_or_queue_error(exc: RuntimeError) -> HTTPException:
+    detail = str(exc)
+    code = "queue_full" if "queue is full" in detail.lower() else "resource_exhausted"
+    return HTTPException(
+        status_code=503,
+        detail=detail,
+        headers={"X-Error-Code": code},
+    )
+
+
 @router.post("/freesurfer/jobs", response_model=JobStatusResponse, status_code=201)
 async def create_freesurfer_job(
     settings: Annotated[Settings, Depends(get_cached_settings)],
     store: Annotated[JobStore, Depends(get_job_store)],
     files: Annotated[list[UploadFile], File()],
     subject_ids: Annotated[str, Form()],
+    workspace: Annotated[str, Form()],
     recon_options: Annotated[str, Form()] = "all",
     module_id: Annotated[str | None, Form()] = None,
 ) -> JobStatusResponse:
@@ -170,6 +196,8 @@ async def create_freesurfer_job(
             detail="At least one file is required",
             headers={"X-Error-Code": "validation_error"},
         )
+
+    safe_workspace = _parse_workspace(workspace)
 
     if module_id:
         module = get_module(module_id)
@@ -197,10 +225,32 @@ async def create_freesurfer_job(
         None,
     )
     estimated_hours = module_def.estimated_hours_per_scan if module_def else 8.0
+    resolved_module_id = (
+        module_def.id
+        if module_def
+        else ("freesurfer-recon-all" if recon_options == "all" else f"freesurfer-{recon_options}")
+    )
 
     job_id = store.create_job(
         "freesurfer",
-        {"recon_options": recon_options, "subject_ids": parsed_subject_ids},
+        {
+            "recon_options": recon_options,
+            "subject_ids": parsed_subject_ids,
+            "workspace": safe_workspace,
+            "module_id": resolved_module_id,
+        },
+    )
+    store.update_meta(
+        "freesurfer",
+        job_id,
+        workspace=safe_workspace,
+        subject_id=parsed_subject_ids[0],
+        parameters={
+            "recon_options": recon_options,
+            "workspace": safe_workspace,
+            "module_id": resolved_module_id,
+            "batch_subject_ids": parsed_subject_ids,
+        },
     )
 
     scans: list[BatchScan] = []
@@ -216,7 +266,7 @@ async def create_freesurfer_job(
             headers={"X-Error-Code": "validation_error"},
         ) from exc
 
-    try:
+    def _start() -> None:
         launch_freesurfer_job(
             settings=settings,
             store=store,
@@ -224,6 +274,20 @@ async def create_freesurfer_job(
             recon_options=recon_options,  # type: ignore[arg-type]
             scans=scans,
             estimated_hours_per_scan=estimated_hours,
+            workspace=safe_workspace,
+        )
+
+    try:
+        # Validate tool presence before queueing.
+        from neuroflow.tools.freesurfer import ensure_recon_all_available
+
+        ensure_recon_all_available(settings)
+        try_start_job(
+            settings=settings,
+            store=store,
+            tool_id="freesurfer",
+            job_id=job_id,
+            starter=_start,
         )
     except FileNotFoundError as exc:
         store.update_meta(
@@ -237,6 +301,9 @@ async def create_freesurfer_job(
             detail=str(exc),
             headers={"X-Error-Code": "tool_not_installed"},
         ) from exc
+    except RuntimeError as exc:
+        store.delete_job("freesurfer", job_id)
+        raise _resource_or_queue_error(exc) from exc
 
     meta = store.read_meta("freesurfer", job_id)
     return enrich_status(meta, _meta_to_status(meta))
@@ -309,6 +376,8 @@ async def create_fsl_job(
     files: Annotated[list[UploadFile], File()],
     file_roles: Annotated[str, Form()],
     module_id: Annotated[str, Form()],
+    workspace: Annotated[str, Form()],
+    subject_id: Annotated[str, Form()],
     output_prefix: Annotated[str, Form()] = "result",
     parameters: Annotated[str, Form()] = "{}",
 ) -> JobStatusResponse:
@@ -326,6 +395,16 @@ async def create_fsl_job(
             detail="At least one file is required",
             headers={"X-Error-Code": "validation_error"},
         )
+
+    safe_workspace = _parse_workspace(workspace)
+    try:
+        safe_subject = normalize_subject_id(subject_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "validation_error"},
+        ) from exc
 
     module = get_module(module_id)
     if module is None or module.coming_soon:
@@ -357,7 +436,15 @@ async def create_fsl_job(
             "module_id": job_params.module_id,
             "output_prefix": job_params.output_prefix,
             "parameters": job_params.parameters,
+            "workspace": safe_workspace,
+            "subject_id": safe_subject,
         },
+    )
+    store.update_meta(
+        FSL_TOOL_ID,
+        job_id,
+        workspace=safe_workspace,
+        subject_id=safe_subject,
     )
 
     files_by_role: dict[str, list[Path]] = defaultdict(list)
@@ -376,7 +463,7 @@ async def create_fsl_job(
             headers={"X-Error-Code": "validation_error"},
         ) from exc
 
-    try:
+    def _start() -> None:
         launch_fsl_job(
             settings=settings,
             store=store,
@@ -385,6 +472,20 @@ async def create_fsl_job(
             batch_items=batch_items,
             output_prefix=job_params.output_prefix,
             parameters=job_params.parameters,
+            workspace=safe_workspace,
+            subject_id=safe_subject,
+        )
+
+    try:
+        from neuroflow.tools.fsl import ensure_module_available
+
+        ensure_module_available(settings, job_params.module_id, job_params.parameters)
+        try_start_job(
+            settings=settings,
+            store=store,
+            tool_id=FSL_TOOL_ID,
+            job_id=job_id,
+            starter=_start,
         )
     except FileNotFoundError as exc:
         store.update_meta(
@@ -405,6 +506,9 @@ async def create_fsl_job(
             detail=str(exc),
             headers={"X-Error-Code": "validation_error"},
         ) from exc
+    except RuntimeError as exc:
+        store.delete_job(FSL_TOOL_ID, job_id)
+        raise _resource_or_queue_error(exc) from exc
 
     meta = store.read_meta(FSL_TOOL_ID, job_id)
     return enrich_status(meta, _meta_to_status(meta))

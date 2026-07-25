@@ -102,6 +102,34 @@
           </div>
           <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div class="flex flex-col gap-2">
+              <label class="font-label-sm text-on-surface" for="workspace">Project / User name</label>
+              <input
+                class="rounded-lg border-outline-variant bg-surface-container-lowest font-body-md focus:border-secondary focus:ring-secondary"
+                id="workspace"
+                name="workspace"
+                placeholder="e.g. ana_silva"
+                type="text"
+                required
+              />
+              <p class="text-xs text-on-surface-variant">
+                Dataset root folder under <code class="font-code-mono">data/datasets/</code>. Saved in this browser.
+              </p>
+            </div>
+            <div class="flex flex-col gap-2">
+              <label class="font-label-sm text-on-surface" for="subject_id">Subject ID</label>
+              <input
+                class="rounded-lg border-outline-variant bg-surface-container-lowest font-body-md focus:border-secondary focus:ring-secondary"
+                id="subject_id"
+                name="subject_id"
+                placeholder="sub-001"
+                type="text"
+                required
+              />
+              <p class="text-xs text-on-surface-variant">
+                Prefer BIDS-style IDs (<code class="font-code-mono">sub-001</code>). A <code class="font-code-mono">sub-</code> prefix is added if missing.
+              </p>
+            </div>
+            <div class="flex flex-col gap-2">
               <label class="font-label-sm text-on-surface" for="output_prefix">Output prefix</label>
               <input
                 class="rounded-lg border-outline-variant bg-surface-container-lowest font-body-md focus:border-secondary focus:ring-secondary"
@@ -112,10 +140,8 @@
                 value="result"
               />
               <p class="text-xs text-on-surface-variant">
-                Base name for outputs under the job output directory. For tools that require a
-                full image path (e.g. SUSAN, FLIRT), <code class="font-code-mono">.nii</code> or
-                <code class="font-code-mono">.nii.gz</code> is added automatically to match your
-                inputs; for BET/FAST/dtifit, use a prefix only (FSL appends its own suffixes).
+                Base name for outputs under
+                <code class="font-code-mono">derivatives/fsl/&lt;module&gt;/</code>.
               </p>
             </div>
           </div>
@@ -139,7 +165,7 @@
             <span class="material-symbols-outlined">play_arrow</span>
             Execute processing
           </button>
-          <p id="time-estimate" class="text-xs text-on-surface-variant" aria-live="polite"></p>
+          <p id="time-estimate" class="hidden text-xs text-on-surface-variant" aria-live="polite"></p>
           <p class="flex items-center gap-1 text-xs italic text-on-surface-variant">
             <span class="material-symbols-outlined text-[14px]">bolt</span>
             Requires FSL on this host. Run prerequisite modules separately when needed.
@@ -149,6 +175,10 @@
       </form>
 
       <section class="glass-panel hidden overflow-hidden rounded-xl shadow-md" id="status-panel">
+        <div class="border-b border-outline-variant bg-surface-container-highest px-4 py-3">
+          <h2 class="font-headline-md text-on-surface">Jobs on this page</h2>
+          <div id="jobs-session-list" class="mt-2"></div>
+        </div>
         <div
           class="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant bg-surface-container-highest px-4 py-2"
         >
@@ -160,17 +190,9 @@
             >
           </div>
           <div class="flex flex-wrap items-center gap-3 font-code-mono text-xs text-on-surface-variant">
-            <button
-              type="button"
-              id="kill-job-btn"
-              class="hidden rounded border border-error/40 px-2 py-0.5 font-label-sm text-error transition-colors hover:bg-error/10 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Kill processing
-            </button>
             <span id="job-status-label">queued</span>
             <span id="elapsed-label" class="hidden">Elapsed: 00:00:00</span>
             <span id="batch-label" class="hidden"></span>
-            <span id="eta-label" class="hidden"></span>
           </div>
         </div>
         <div
@@ -190,7 +212,10 @@
     </footer>
 
     <script src="/js/neuroflow-api.js"></script>
-    <script src="/js/job-controls.js"></script>
+    <script src="/js/toaster.js"></script>
+    <script src="/js/workspace.js"></script>
+    <script src="/js/resources-gate.js"></script>
+    <script src="/js/job-session.js"></script>
     <script src="/js/fsl-modules-config.js"></script>
     <script src="/js/fsl-tool-page.js"></script>
   </body>

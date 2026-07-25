@@ -23,42 +23,25 @@ Local development: `http://127.0.0.1:8000`
 
 `GET /api/v1/tools`
 
-Lists registered packages and whether each executable is available on `PATH`.
+Lists **portal-visible** packages (FreeSurfer and FSL) and whether each executable is available on `PATH`.
 
 ### Processing modules
 
 `GET /api/v1/modules` (alias: `GET /api/v1/tools/modules`)
 
-Lists package/module rows for the hub table (e.g. FreeSurfer `recon-all (-all)`, `autorecon1`, …).
+Lists package/module rows for the hub table (portal-visible packages only).
 
-```json
-[
-  {
-    "id": "freesurfer-recon-all",
-    "package_id": "freesurfer",
-    "package_name": "FreeSurfer",
-    "module_name": "recon-all (-all)",
-    "description": "Full cortical reconstruction pipeline from T1-weighted MRI.",
-    "page_path": "/tools/freesurfer.html",
-    "recon_options": "all",
-    "estimated_hours_per_scan": 8.0,
-    "coming_soon": false,
-    "available": true
-  }
-]
-```
+### Active jobs
 
-```json
-[
-  {
-    "id": "freesurfer",
-    "name": "FreeSurfer",
-    "description": "Cortical reconstruction and volumetric segmentation (recon-all).",
-    "page_path": "/tools/freesurfer.html",
-    "available": true
-  }
-]
-```
+`GET /api/v1/jobs?status=running,queued`
+
+Aggregate list across tools for the home **Active processes** panel (`workspace`, `subject_id`, `page_path`, `queue_reason`).
+
+### Host resources
+
+`GET /api/v1/host/resources`
+
+Current host RAM/CPU percentages, configured limits, and whether new jobs may start (or must wait in the queue).
 
 ### FreeSurfer — create job
 
@@ -70,32 +53,33 @@ Lists package/module rows for the hub table (e.g. FreeSurfer `recon-all (-all)`,
 |-------|------|-------------|
 | `files` | file[] | One or more `.nii`, `.nii.gz`, or `.dcm` uploads |
 | `subject_ids` | string | JSON array of subject names (`-s`), one per file |
+| `workspace` | string | Project / user folder under `NEUROFLOW_DATASETS_ROOT` |
 | `recon_options` | string | `all`, `autorecon1`, `autorecon2`, `autorecon3` |
 | `module_id` | string | Optional; overrides `recon_options` from the module catalog |
 
-Scans run **sequentially** in one job (single `job_id`, shared `run.log`).
+Scans run **sequentially** in one job. Outputs go under `derivatives/freesurfer/`. When host RAM/CPU exceeds the configured limit, the job is **queued** until resources free (`503` with `queue_full` if the queue is full).
 
-Returns `201` with job status, including `command_preview`, `batch_total`, `estimated_total_seconds`, and `elapsed_seconds` when applicable.
+Returns `201` with job status, including `command_preview`, `batch_total`, and `elapsed_seconds` when applicable.
 
-### FreeSurfer — job status
+### FSL — create job
 
-`GET /api/v1/tools/freesurfer/jobs/{job_id}`
+`POST /api/v1/tools/fsl/jobs`
 
-Includes monitoring fields: `elapsed_seconds`, `pid`, `batch_current_index`, `batch_total`, `estimated_remaining_seconds`, `batch_items`.
+Requires `workspace`, `subject_id`, `module_id`, `file_roles`, and `files`. Outputs land under `derivatives/fsl/<module>/`.
 
-### FreeSurfer — job log
+### Job status / log
 
-`GET /api/v1/tools/freesurfer/jobs/{job_id}/log`
+`GET /api/v1/tools/{tool_id}/jobs/{job_id}`
 
-Returns log text, `status`, and the same monitoring fields as status (for polling).
+`GET /api/v1/tools/{tool_id}/jobs/{job_id}/log`
+
+Monitoring fields include `elapsed_seconds`, `pid`, `batch_current_index`, `batch_total`, and `batch_items`.
 
 ### Stop a running job
 
 `POST /api/v1/tools/{tool_id}/jobs/{job_id}/kill`
 
-Terminates the job subprocess (SIGTERM, then SIGKILL if needed) and sets `status` to `cancelled`. Works for any registered tool (`freesurfer`, `fsl`, `ants`, `slicer`, `itk`) while the job is `queued` or `running`.
-
-Returns `200` with the updated job status. Returns `409` if the job has already finished.
+Terminates the job subprocess (SIGTERM, then SIGKILL if needed) and sets `status` to `cancelled`.
 
 ### Errors
 
@@ -107,11 +91,9 @@ Returns `200` with the updated job status. Returns `409` if the job has already 
 }
 ```
 
-Common codes: `validation_error`, `tool_not_installed`, `job_not_found`, `job_not_killable`.
+Common codes: `validation_error`, `tool_not_installed`, `job_not_found`, `job_not_killable`, `resource_exhausted`, `queue_full`.
 
 ## Interactive docs
-
-Run the API and open:
 
 - Swagger UI: `/docs`
 - ReDoc: `/redoc`

@@ -8,7 +8,6 @@
   const runBtn = document.getElementById("run-btn");
   const statusPanel = document.getElementById("status-panel");
   const logOutput = document.getElementById("log-output");
-  const progressBar = document.getElementById("progress-bar");
   const formError = document.getElementById("form-error");
   const prerequisitesEl = document.getElementById("prerequisites-panel");
   const prerequisitesList = document.getElementById("prerequisites-list");
@@ -18,29 +17,29 @@
   const cliPreview = document.getElementById("cli-preview");
   const outputPrefixInput = document.getElementById("output_prefix");
   const timeEstimateEl = document.getElementById("time-estimate");
+  const subjectIdInput = document.getElementById("subject_id");
 
-  const queryModuleId = new URLSearchParams(global.location.search).get("module");
+  const queryParams = new URLSearchParams(global.location.search);
+  const queryModuleId = queryParams.get("module");
+  const queryJobId = queryParams.get("job_id");
   let activeConfig = null;
   let activeModuleId = queryModuleId || "fsl-bet";
-  let hoursPerScan = 0.1;
-  let pollTimer = null;
-  let currentJobId = null;
   const TOOL_ID = "fsl";
+  const jobSession = global.NeuroflowJobSession
+    ? new global.NeuroflowJobSession.JobSessionList({ toolId: TOOL_ID })
+    : null;
 
   /** @type {Map<string, File[]>} */
   const filesByRole = new Map();
 
-  function formatDuration(seconds) {
-    if (seconds == null || seconds < 0) return "—";
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-    return [h, m, s].map((n) => String(n).padStart(2, "0")).join(":");
+  if (global.NeuroflowWorkspace) {
+    global.NeuroflowWorkspace.bindWorkspaceInput("workspace");
   }
-
-  function formatHours(h) {
-    if (h < 1) return `~${Math.round(h * 60)} min`;
-    return `~${h}h`;
+  if (global.NeuroflowResources) {
+    global.NeuroflowResources.start(15000);
+    global.NeuroflowResources.onChange((res) => {
+      global.NeuroflowResources.applyRunButton(runBtn, res);
+    });
   }
 
   function modulePageUrl(moduleId) {
@@ -269,9 +268,10 @@
   }
 
   function updateTimeEstimate() {
-    const n = Math.max(1, batchRunCount());
-    const total = n * hoursPerScan;
-    timeEstimateEl.textContent = `Estimated: ${n} run(s) × ${formatHours(hoursPerScan)} ≈ ${formatHours(total)} (heuristic)`;
+    if (timeEstimateEl) {
+      timeEstimateEl.textContent = "";
+      timeEstimateEl.classList.add("hidden");
+    }
   }
 
   async function loadModule() {
@@ -279,7 +279,6 @@
       const apiModules = await NeuroflowApi.fetchJson("/api/v1/modules");
       const apiModule = apiModules.find((m) => m.id === activeModuleId);
       if (apiModule) {
-        hoursPerScan = apiModule.estimated_hours_per_scan || hoursPerScan;
         document.getElementById("page-title").textContent = `FSL · ${apiModule.module_name}`;
         document.getElementById("page-summary").textContent = apiModule.description;
         document.getElementById("nav-module-label").textContent = apiModule.module_name;
@@ -300,7 +299,6 @@
       document.getElementById("nav-module-label").textContent = activeConfig.moduleName;
     }
 
-    hoursPerScan = activeConfig.estimatedHours || hoursPerScan;
     const docsLink = document.getElementById("docs-link");
     if (docsLink && activeConfig.docsUrl) {
       docsLink.href = activeConfig.docsUrl;
@@ -312,6 +310,10 @@
     renderParams(activeConfig);
     updateTimeEstimate();
     updateCliPreview();
+
+    if (queryJobId && jobSession) {
+      jobSession.focus(queryJobId);
+    }
   }
 
   function showError(message) {
@@ -324,17 +326,8 @@
     formError.textContent = "";
   }
 
-  function setRunningUi() {
-    statusPanel.classList.remove("hidden");
-    runBtn.disabled = true;
-    runBtn.classList.add("opacity-50", "cursor-not-allowed");
-    runBtn.innerHTML = `
-      <span class="material-symbols-outlined animate-spin">refresh</span>
-      Processing in background`;
-    global.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-  }
-
   function resetRunButton() {
+    runBtn.dataset.forceDisabled = "";
     runBtn.disabled = false;
     runBtn.classList.remove("opacity-50", "cursor-not-allowed");
     runBtn.innerHTML = `
@@ -342,77 +335,10 @@
       Execute processing`;
   }
 
-  function updateMonitoring(statusData, logData) {
-    const label = document.getElementById("job-status-label");
-    const status = logData?.status || statusData?.status || "queued";
-    label.textContent = status;
-
-    const elapsedEl = document.getElementById("elapsed-label");
-    const elapsed = statusData?.elapsed_seconds ?? logData?.elapsed_seconds;
-    if (elapsed != null) {
-      elapsedEl.textContent = `Elapsed: ${formatDuration(elapsed)}`;
-      elapsedEl.classList.remove("hidden");
-    }
-
-    const batchTotal = statusData?.batch_total || logData?.batch_total || 0;
-    const batchIdx = statusData?.batch_current_index || logData?.batch_current_index || 0;
-    const batchEl = document.getElementById("batch-label");
-    if (batchEl) {
-      if (batchTotal > 1) {
-        const current = status === "completed" ? batchTotal : Math.max(1, batchIdx);
-        batchEl.textContent = `Run ${current} of ${batchTotal}`;
-        batchEl.classList.remove("hidden");
-      } else {
-        batchEl.classList.add("hidden");
-      }
-    }
-
-    const etaEl = document.getElementById("eta-label");
-    const remaining =
-      statusData?.estimated_remaining_seconds ?? logData?.estimated_remaining_seconds;
-    if (remaining != null && status === "running") {
-      etaEl.textContent = `ETA (heuristic): ${formatDuration(remaining)}`;
-      etaEl.classList.remove("hidden");
-    } else {
-      etaEl.classList.add("hidden");
-    }
-
-    if (batchTotal > 1 && batchIdx > 0) {
-      progressBar.style.width = `${Math.min(100, (batchIdx / batchTotal) * 100)}%`;
-    } else {
-      const widths = { queued: "5%", running: "40%", completed: "100%", failed: "100%" };
-      progressBar.style.width = widths[status] || "10%";
-    }
-    if (status === "failed" || status === "cancelled") progressBar.classList.add("bg-error");
-    else progressBar.classList.remove("bg-error");
-
-    if (global.NeuroflowJobControls) {
-      global.NeuroflowJobControls.updateKillButtonVisibility(statusData, logData);
-    }
-  }
-
-  async function pollJob(jobId) {
-    const logData = await NeuroflowApi.fetchJson(`/api/v1/tools/fsl/jobs/${jobId}/log`);
-    const statusData = await NeuroflowApi.fetchJson(`/api/v1/tools/fsl/jobs/${jobId}`);
-    logOutput.textContent = logData.log || "(waiting for output…)";
-    logOutput.scrollTop = logOutput.scrollHeight;
-    updateMonitoring(statusData, logData);
-
-    if (statusData.command_preview && !logData.log) {
-      logOutput.textContent = `$ ${statusData.command_preview}\n\n`;
-    }
-
-    if (global.NeuroflowJobControls?.isTerminalStatus(logData.status)) {
-      clearInterval(pollTimer);
-      pollTimer = null;
-      resetRunButton();
-      if (
-        (logData.status === "failed" || logData.status === "cancelled") &&
-        statusData.error_message
-      ) {
-        logOutput.textContent += `\n${statusData.error_message}`;
-      }
-    }
+  function clearPrimaryInputs() {
+    filesByRole.clear();
+    if (activeConfig) renderInputs(activeConfig);
+    updateCliPreview();
   }
 
   if (outputPrefixInput) {
@@ -428,6 +354,30 @@
       showError("Module configuration not loaded.");
       return;
     }
+
+    let workspace;
+    try {
+      workspace = global.NeuroflowWorkspace
+        ? global.NeuroflowWorkspace.requireWorkspace()
+        : document.getElementById("workspace")?.value?.trim();
+    } catch (err) {
+      showError(err.message || "Workspace is required.");
+      return;
+    }
+    if (!workspace) {
+      showError("Enter a Project / User name before running.");
+      return;
+    }
+
+    const rawSubject = subjectIdInput?.value?.trim() || "";
+    const subjectId = global.NeuroflowWorkspace
+      ? global.NeuroflowWorkspace.normalizeSubjectId(rawSubject)
+      : rawSubject;
+    if (!subjectId) {
+      showError("Enter a Subject ID (e.g. sub-001).");
+      return;
+    }
+    if (subjectIdInput) subjectIdInput.value = subjectId;
 
     const requiredRoles = activeConfig.inputs.filter((i) => i.required).map((i) => i.role);
     const missing = requiredRoles.filter((role) => !(filesByRole.get(role) || []).length);
@@ -459,12 +409,15 @@
 
     formData.append("file_roles", JSON.stringify(roles));
     formData.append("module_id", activeModuleId);
+    formData.append("workspace", workspace);
+    formData.append("subject_id", subjectId);
     formData.append("output_prefix", outputPrefixInput?.value.trim() || "result");
     formData.append("parameters", JSON.stringify(collectParameters()));
 
-    setRunningUi();
+    statusPanel.classList.remove("hidden");
+    runBtn.dataset.forceDisabled = "1";
+    runBtn.disabled = true;
     logOutput.textContent = "Submitting job…";
-    updateMonitoring({ status: "queued" }, { status: "queued" });
 
     try {
       const { res } = await NeuroflowApi.fetchApi("/api/v1/tools/fsl/jobs", {
@@ -474,28 +427,30 @@
       const data = await res.json();
       if (!res.ok) {
         showError(data.detail || "Failed to start job.");
+        if (data.code === "resource_exhausted" || data.code === "queue_full") {
+          global.NeuroflowToast?.show(data.detail, { tone: "error" });
+        }
         resetRunButton();
         return;
       }
       if (data.command_preview) {
         logOutput.textContent = `$ ${data.command_preview}\n\n`;
       }
-      currentJobId = data.job_id;
-      pollTimer = setInterval(() => pollJob(data.job_id), 2000);
-      pollJob(data.job_id);
+      if (jobSession) {
+        jobSession.add({
+          jobId: data.job_id,
+          subjectId,
+          status: data.status || "queued",
+        });
+      }
+      clearPrimaryInputs();
+      resetRunButton();
+      global.NeuroflowResources?.refresh();
     } catch {
       showError("Could not reach the API. Start the server with NEUROFLOW_SERVE_FRONTEND=1.");
       resetRunButton();
     }
   });
-
-  if (global.NeuroflowJobControls) {
-    global.NeuroflowJobControls.wireKillButton({
-      toolId: TOOL_ID,
-      getJobId: () => currentJobId,
-      onKilled: (jobId) => pollJob(jobId),
-    });
-  }
 
   loadModule();
 })(window);

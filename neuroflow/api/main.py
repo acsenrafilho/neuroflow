@@ -23,8 +23,14 @@ from neuroflow.tools.host_probe import log_scan_summary
 async def lifespan(app: FastAPI):
     settings = get_cached_settings()
     configure_app_logging(settings.neuroflow_log_level)
+    settings.data_root.mkdir(parents=True, exist_ok=True)
+    settings.datasets_root.mkdir(parents=True, exist_ok=True)
     results = run_host_scan(app)
     log_scan_summary(results)
+
+    from neuroflow.services.job_scheduler import start_scheduler, stop_scheduler
+
+    start_scheduler()
 
     if settings.neuroflow_serve_frontend:
         dist = Path("frontend/dist")
@@ -32,6 +38,7 @@ async def lifespan(app: FastAPI):
             app.mount("/", StaticFiles(directory=str(dist), html=True), name="frontend")
 
     yield
+    stop_scheduler()
 
 
 # MVP: no authentication. Deploy only on trusted networks; see docs/security.md.

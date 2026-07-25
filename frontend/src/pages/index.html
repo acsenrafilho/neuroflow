@@ -84,8 +84,40 @@
             <h3 class="font-headline-md text-on-surface">3. Run &amp; monitor</h3>
             <p class="mt-2 text-sm text-on-surface-variant">
               After you execute on a module page, the portal streams the local CLI log, elapsed
-              time, batch progress, and heuristic time estimates.
+              time, and batch progress. Start another job anytime resources allow.
             </p>
+          </div>
+        </section>
+
+        <section
+          class="overflow-hidden rounded-xl border border-outline-variant/60 bg-surface-container-lowest shadow-sm"
+        >
+          <div
+            class="flex flex-wrap items-center justify-between gap-4 border-b border-outline-variant bg-surface-container-low px-6 py-4"
+          >
+            <h3 class="font-headline-md text-on-surface">Active processes</h3>
+            <span class="font-label-sm text-on-surface-variant" id="active-jobs-count">Loading…</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-left text-sm">
+              <thead class="bg-surface-container-low/80 text-xs uppercase tracking-wider text-on-surface-variant">
+                <tr>
+                  <th class="px-6 py-3">Module</th>
+                  <th class="px-6 py-3">Workspace</th>
+                  <th class="px-6 py-3">Subject</th>
+                  <th class="px-6 py-3">Status</th>
+                  <th class="px-6 py-3">Started</th>
+                  <th class="px-6 py-3"></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-outline-variant/40" id="active-jobs-body">
+                <tr>
+                  <td class="px-6 py-6 text-center text-on-surface-variant" colspan="6">
+                    No running or queued jobs.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </section>
 
@@ -216,21 +248,69 @@
     </main>
 
     <script src="/js/neuroflow-api.js"></script>
+    <script src="/js/toaster.js"></script>
     <script src="/js/hub-layout.js"></script>
     <script src="/js/modules-table.js"></script>
     <script>
       HubLayout.init({ active: "home", title: "Home", showApi: true });
 
       const table = new ModulesTable({ countId: "tools-count", tbodyId: "tools-table-body" });
+      const activeBody = document.getElementById("active-jobs-body");
+      const activeCount = document.getElementById("active-jobs-count");
+
+      function formatStarted(iso) {
+        if (!iso) return "—";
+        try {
+          return new Date(iso).toLocaleString();
+        } catch {
+          return iso;
+        }
+      }
+
+      async function loadActiveJobs() {
+        try {
+          const jobs = await NeuroflowApi.fetchJson("/api/v1/jobs?status=running,queued");
+          activeCount.textContent = `${jobs.length} active`;
+          if (!jobs.length) {
+            activeBody.innerHTML = `<tr><td class="px-6 py-6 text-center text-on-surface-variant" colspan="6">No running or queued jobs.</td></tr>`;
+            return;
+          }
+          activeBody.innerHTML = jobs
+            .map((job) => {
+              const moduleLabel = job.module_id || job.tool_id;
+              return `<tr class="hover:bg-surface-container-low/50">
+                <td class="px-6 py-3 font-medium">${moduleLabel}</td>
+                <td class="px-6 py-3 font-code-mono text-xs">${job.workspace || "—"}</td>
+                <td class="px-6 py-3 font-code-mono text-xs">${job.subject_id || "—"}</td>
+                <td class="px-6 py-3">${job.status}${job.queue_reason ? ` <span class="text-xs text-on-surface-variant">(${job.queue_reason})</span>` : ""}</td>
+                <td class="px-6 py-3 text-on-surface-variant">${formatStarted(job.started_at || job.created_at)}</td>
+                <td class="px-6 py-3">
+                  <a href="${job.page_path}" class="inline-flex items-center gap-1 rounded-lg bg-primary px-3 py-1.5 font-semibold text-on-primary hover:opacity-90">
+                    Go to process
+                  </a>
+                </td>
+              </tr>`;
+            })
+            .join("");
+        } catch {
+          activeCount.textContent = "Unavailable";
+        }
+      }
 
       (async function loadModules() {
         try {
           const modules = await NeuroflowApi.fetchJson("/api/v1/modules");
           table.setModules(modules, false);
         } catch {
-          table.setModules(NeuroflowApi.MODULES_FALLBACK, true);
+          const fallback = (NeuroflowApi.MODULES_FALLBACK || []).filter(
+            (m) => m.package_id === "freesurfer" || m.package_id === "fsl"
+          );
+          table.setModules(fallback, true);
         }
       })();
+
+      loadActiveJobs();
+      setInterval(loadActiveJobs, 8000);
     </script>
   </body>
 </html>

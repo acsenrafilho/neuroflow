@@ -16,8 +16,15 @@
 make install    # poetry + frontend npm
 make test       # pytest
 make lint       # ruff check + format check
-make api        # uvicorn with reload
+make api        # poetry run neuroflow serve (uvicorn with reload)
 make docs       # mkdocs serve
+```
+
+Local API shortcut:
+
+```bash
+poetry run neuroflow serve
+# optional: --host 0.0.0.0 --port 8000 --no-reload
 ```
 
 ## Python version

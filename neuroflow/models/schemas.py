@@ -23,6 +23,7 @@ class ToolInfo(BaseModel):
     description: str
     page_path: str
     available: bool = True
+    visible_in_portal: bool = True
 
 
 class ModuleInfo(BaseModel):
@@ -36,6 +37,7 @@ class ModuleInfo(BaseModel):
     estimated_hours_per_scan: float = 1.0
     coming_soon: bool = False
     available: bool = False
+    visible_in_portal: bool = True
 
 
 class PackageProbeInfo(BaseModel):
@@ -90,3 +92,29 @@ class JobLogResponse(BaseModel):
     batch_total: int = 0
     estimated_total_seconds: int | None = None
     estimated_remaining_seconds: int | None = None
+
+
+class JobSummary(BaseModel):
+    job_id: str
+    tool_id: str
+    module_id: str | None = None
+    workspace: str | None = None
+    subject_id: str | None = None
+    status: Literal["queued", "running", "completed", "failed", "cancelled"]
+    created_at: datetime | None = None
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+    page_path: str
+    queue_reason: str | None = None
+
+
+class HostResourcesResponse(BaseModel):
+    memory_percent: float
+    cpu_percent: float
+    ram_max_percent: float
+    cpu_max_percent: float
+    can_start_job: bool
+    can_accept_job: bool = True
+    block_reason: str | None = None
+    queued_jobs: int = 0
+    max_queued_jobs: int = 20

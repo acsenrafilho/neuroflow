@@ -88,15 +88,21 @@ def test_batch_worker_stops_when_cancel_requested(
     original = fsl_module._run_one_fsl
     fsl_module._run_one_fsl = fake_run_one  # type: ignore[assignment]
     try:
-        fsl_module.launch_fsl_job(
-            settings=Settings(neuroflow_data_root=data_root),
-            store=job_store,
-            job_id=job_id,
-            module_id="fsl-bet",
-            batch_items=[{"input": input_a}, {"input": input_b}],
-            output_prefix="out",
-            parameters={},
-        )
+        with patch("neuroflow.tools.fsl.ensure_module_available"):
+            fsl_module.launch_fsl_job(
+                settings=Settings(
+                    neuroflow_data_root=data_root,
+                    neuroflow_datasets_root=data_root.parent / "datasets",
+                ),
+                store=job_store,
+                job_id=job_id,
+                module_id="fsl-bet",
+                batch_items=[{"input": input_a}, {"input": input_b}],
+                output_prefix="out",
+                parameters={},
+                workspace="demo_lab",
+                subject_id="sub-001",
+            )
         time.sleep(0.5)
     finally:
         fsl_module._run_one_fsl = original

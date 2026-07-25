@@ -2,6 +2,7 @@
 
 import argparse
 
+import uvicorn
 from rich.console import Console
 from rich.table import Table
 
@@ -11,6 +12,9 @@ from neuroflow.tools.host_probe import module_available, scan_all_packages
 from neuroflow.tools.registry import list_modules, list_tools
 
 console = Console()
+
+_DEFAULT_HOST = "127.0.0.1"
+_DEFAULT_PORT = 8000
 
 
 def _print_environment(settings: Settings) -> None:
@@ -24,6 +28,11 @@ def _print_environment(settings: Settings) -> None:
         "Data root exists",
         "[green]yes[/green]" if settings.data_root.is_dir() else "[yellow]no[/yellow]",
     )
+    table.add_row("Datasets root", str(settings.datasets_root))
+    table.add_row(
+        "Datasets root exists",
+        "[green]yes[/green]" if settings.datasets_root.is_dir() else "[yellow]no[/yellow]",
+    )
     console.print(table)
 
 
@@ -33,14 +42,16 @@ def _print_status(settings: Settings) -> None:
 
     tools_table = Table(title="Registered packages")
     tools_table.add_column("ID")
+    tools_table.add_column("Portal")
     tools_table.add_column("Ready")
     tools_table.add_column("Resolved path")
     tools_table.add_column("Detail")
     for tool in list_tools():
         probe = results[tool.id]
         ready = "[green]yes[/green]" if probe.available else "[red]no[/red]"
+        portal = "[green]yes[/green]" if tool.visible_in_portal else "[dim]hidden[/dim]"
         path = probe.resolved_path or "—"
-        tools_table.add_row(tool.id, ready, path, probe.detail)
+        tools_table.add_row(tool.id, portal, ready, path, probe.detail)
     console.print(tools_table)
 
 
@@ -76,8 +87,22 @@ def _print_scan(settings: Settings) -> None:
     console.print(modules_table)
 
 
+def _run_serve(host: str, port: int, reload: bool) -> None:
+    """Start the FastAPI app with uvicorn (dev defaults: reload on localhost:8000)."""
+    console.print(
+        f"[bold]NeuroFlow[/bold] API → http://{host}:{port}/"
+        f"  (reload={'on' if reload else 'off'})"
+    )
+    uvicorn.run(
+        "neuroflow.api.main:app",
+        host=host,
+        port=port,
+        reload=reload,
+    )
+
+
 def main() -> None:
-    """Print version and environment status."""
+    """Print version and environment status, or run subcommands."""
     parser = argparse.ArgumentParser(prog="neuroflow", description="NeuroFlow CLI")
     parser.add_argument(
         "--version",
@@ -87,10 +112,35 @@ def main() -> None:
     subparsers = parser.add_subparsers(dest="command")
     subparsers.add_parser("scan", help="Scan localhost for installed neuroimaging packages")
 
+    serve_parser = subparsers.add_parser(
+        "serve",
+        help="Start the API (uvicorn with reload; serves UI when NEUROFLOW_SERVE_FRONTEND=1)",
+    )
+    serve_parser.add_argument(
+        "--host",
+        default=_DEFAULT_HOST,
+        help=f"Bind host (default: {_DEFAULT_HOST})",
+    )
+    serve_parser.add_argument(
+        "--port",
+        type=int,
+        default=_DEFAULT_PORT,
+        help=f"Bind port (default: {_DEFAULT_PORT})",
+    )
+    serve_parser.add_argument(
+        "--no-reload",
+        action="store_true",
+        help="Disable auto-reload (enabled by default for local development)",
+    )
+
     args = parser.parse_args()
 
     if args.version:
         console.print(__version__)
+        return
+
+    if args.command == "serve":
+        _run_serve(host=args.host, port=args.port, reload=not args.no_reload)
         return
 
     settings = get_settings()
