@@ -1,9 +1,15 @@
-.PHONY: install test lint api frontend-build docs
+.PHONY: setup install desktop-install test lint api frontend-build docs
+
+setup:
+	@./scripts/setup.sh
 
 install:
 	poetry install
 	cd frontend && npm install
 	mkdir -p data/jobs data/datasets
+
+desktop-install:
+	@./scripts/install-desktop.sh
 
 test:
 	poetry run pytest -q

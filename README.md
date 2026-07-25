@@ -6,25 +6,48 @@ NeuroFlow is a **web portal** that wraps neuroimaging **CLI tools**—one indepe
 
 ## Prerequisites
 
+**NeuroFlow toolchain** (Ubuntu 22.04+ / Debian 12+):
+
 - [Poetry](https://python-poetry.org/) (Python 3.10+)
 - [Node.js](https://nodejs.org/) 18+ (frontend Tailwind build)
-- **FreeSurfer** on the host for the FreeSurfer module (`recon-all` on `PATH`, or set `NEUROFLOW_RECON_ALL_BIN`)
-- **FSL** on the host for FSL modules (`bet`, `flirt`, etc. on `PATH`, or set `NEUROFLOW_FSLDIR` / `FSLDIR`)
+
+On Debian/Ubuntu, `make setup` checks these and can suggest `apt` / Poetry installer commands.
+
+**Host neuroimaging tools (optional)** — install on the machine yourself; NeuroFlow does not install them:
+
+- **FreeSurfer** (`recon-all` on `PATH`, or `NEUROFLOW_RECON_ALL_BIN`)
+- **FSL** (`bet`, `flirt`, etc. on `PATH`, or `NEUROFLOW_FSLDIR` / `FSLDIR`)
 - Optional (code present, hidden in the portal UI for now): ANTs, 3D Slicer, ITK
 
-## Quick start
+## Quick start (Ubuntu / Debian)
+
+```bash
+git clone https://github.com/acsenrafilho/neuroflow.git
+cd neuroflow
+make setup
+make api
+```
+
+Open http://127.0.0.1:8000/ (with `NEUROFLOW_SERVE_FRONTEND=1` from `.env.example`) or http://127.0.0.1:8000/docs for the API.
+
+For a one-click start from the application menu or Desktop:
+
+```bash
+make desktop-install
+```
+
+Then use the **NeuroFlow** icon (background server + browser). Stop with `./scripts/neuroflow-stop.sh`.
+
+### Manual install (toolchain already present)
 
 ```bash
 cp .env.example .env
-# Optional: NEUROFLOW_SERVE_FRONTEND=1 to serve the built UI from FastAPI
-poetry install
-cd frontend && npm install && npm run build && cd ..
+make install
+make frontend-build
 poetry run neuroflow serve
 ```
 
-Open http://127.0.0.1:8000/ (with `NEUROFLOW_SERVE_FRONTEND=1`) or http://127.0.0.1:8000/docs for the API.
-
-Dev shortcuts: `poetry run neuroflow serve` (or `make api`) — same as uvicorn with reload on `127.0.0.1:8000`.
+Dev shortcuts: `poetry run neuroflow serve` (or `make api`) — uvicorn with reload on `127.0.0.1:8000`.
 
 ## Viewing the frontend
 
@@ -51,7 +74,9 @@ With Live Server on port 5500 and the API on port 8000, hub features that call `
 
 | Command | Description |
 |---------|-------------|
+| `make setup` | First-machine bootstrap (apt checks, deps, frontend build) |
 | `make install` | Install Python and frontend dependencies |
+| `make desktop-install` | Linux application menu + Desktop shortcut |
 | `make test` | Run pytest |
 | `make lint` | Run ruff check and format check |
 | `make api` | Start FastAPI via `poetry run neuroflow serve` (reload; host package scan on startup) |
@@ -63,11 +88,13 @@ With Live Server on port 5500 and the API on port 8000, hub features that call `
 ```
 neuroflow/          # Python package (api, tools, services)
 frontend/           # Production UI (hub + per-tool pages)
+packaging/          # Desktop entry template (Linux)
 doc/mockup/         # Legacy design reference mockups
 doc/licenses/       # Third-party tool license notices
 data/jobs/          # Job metadata and logs (gitignored contents)
 data/datasets/      # BIDS-inspired workspace / subject trees
 docs/               # MkDocs source
+scripts/            # setup, launch, host scan helpers
 tests/
 ```
 

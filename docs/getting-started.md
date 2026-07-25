@@ -1,32 +1,80 @@
 # Getting started
 
-## Requirements
+NeuroFlow is the portal (Python API + HTML UI). Neuroimaging CLIs such as FreeSurfer and FSL stay on the **host** and are never installed by NeuroFlow.
+
+## Prerequisites
+
+**OS:** Ubuntu 22.04+ or Debian 12+ with `apt` (other platforms: install the toolchain yourself; `make setup` is apt-only for now).
+
+**Toolchain** (what `make setup` can check and suggest via apt / Poetry installer):
 
 - Python 3.10+
 - [Poetry](https://python-poetry.org/)
 - Node.js 18+ (frontend build)
-- FreeSurfer with `recon-all` available (for the FreeSurfer module)
-- FSL with binaries on `PATH` or `FSLDIR` / `NEUROFLOW_FSLDIR` set (for FSL modules)
-- ANTs precompiled binaries on `PATH` or `NEUROFLOW_ANTSPATH` / `ANTSPATH` pointing at the install `bin` directory (for ANTs modules)
 
-## Setup
+**Host neuroimaging tools (optional):** install separately on the machine if you need those modules. NeuroFlow only detects them. See [Host tools](#host-tools-optional) below.
+
+## Install NeuroFlow
 
 ```bash
 git clone https://github.com/acsenrafilho/neuroflow.git
 cd neuroflow
-cp .env.example .env
-poetry install
-cd frontend && npm install && npm run build && cd ..
+make setup
 ```
 
-Set `NEUROFLOW_SERVE_FRONTEND=1` in `.env` to serve the built UI from the API process.
+`make setup` runs `scripts/setup.sh`:
 
-## Run the API and UI
+1. Verifies apt, Python, Poetry, and Node
+2. Prints suggested `apt` / Poetry / NodeSource commands when something is missing
+3. Asks before running those installs (`--yes` skips the prompt; `--dry-run` prints only)
+4. Creates `.env` from `.env.example` if needed
+5. Runs `poetry install`, builds the frontend, and runs an informational `neuroflow scan`
+
+Flags:
+
+```bash
+./scripts/setup.sh --dry-run   # print suggestions only
+./scripts/setup.sh --yes       # apply suggested system installs without prompting
+```
+
+Manual path (when the toolchain is already installed):
+
+```bash
+cp .env.example .env
+make install
+make frontend-build
+```
+
+`.env.example` sets `NEUROFLOW_SERVE_FRONTEND=1` so the built UI is served from the API at http://127.0.0.1:8000/.
+
+## Run
+
+### Development (terminal)
 
 ```bash
 make api
 # or: poetry run neuroflow serve
 ```
+
+Uses uvicorn with auto-reload on `127.0.0.1:8000`.
+
+### Desktop / application menu (Linux)
+
+After `make setup`:
+
+```bash
+make desktop-install
+```
+
+This installs a NeuroFlow entry under `~/.local/share/applications/` and, when present, `~/Desktop/`. Clicking it starts the API with `--no-reload` in the background and opens the browser.
+
+Stop a background instance:
+
+```bash
+./scripts/neuroflow-stop.sh
+```
+
+### URLs
 
 On startup the API scans the local host for registered packages and caches the result. The home page **Processing modules** table currently lists **FreeSurfer** and **FSL** only (other packages remain in the codebase but are hidden from the portal).
 
@@ -42,7 +90,19 @@ After sourcing a tool environment (e.g. FreeSurfer), re-scan without restarting:
 curl -X POST http://127.0.0.1:8000/api/v1/host/rescan
 ```
 
-## CLI status and host scan
+## Host tools (optional)
+
+NeuroFlow does **not** install FreeSurfer, FSL, ANTs, 3D Slicer, or ITK. Install them with their official procedures, then ensure binaries are on `PATH` or set overrides in `.env`:
+
+| Package | Typical probe / override |
+|---------|--------------------------|
+| FreeSurfer | `recon-all` on `PATH`, or `NEUROFLOW_RECON_ALL_BIN` / `NEUROFLOW_FREESURFER_HOME` |
+| FSL | `FSLDIR` / `NEUROFLOW_FSLDIR` |
+| ANTs | `ANTSPATH` / `NEUROFLOW_ANTSPATH` |
+| 3D Slicer | `SLICER_HOME` / `NEUROFLOW_SLICER_HOME` |
+| ITK (CSIM) | paths in `config/itk-binaries.json` |
+
+### CLI status and host scan
 
 ```bash
 poetry run neuroflow
@@ -54,8 +114,6 @@ Lists the data root and package readiness from the same probes used by the API.
 poetry run neuroflow scan
 # or: ./scripts/check-host-tools.sh
 ```
-
-Prints package and module readiness for the current machine. Probes use `PATH`, optional `.env` overrides (`NEUROFLOW_RECON_ALL_BIN`, `NEUROFLOW_FREESURFER_HOME`, `NEUROFLOW_FSLDIR`, `NEUROFLOW_ANTSPATH`), and common env vars such as `FSLDIR` and `ANTSPATH`.
 
 FSL modules document prerequisite steps (e.g. TOPUP before EDDY, FDT before BEDPOSTX) on each tool page. Run each stage as a separate job; NeuroFlow does not chain pipelines automatically.
 

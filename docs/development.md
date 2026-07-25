@@ -13,11 +13,14 @@
 ## Commands
 
 ```bash
-make install    # poetry + frontend npm
-make test       # pytest
-make lint       # ruff check + format check
-make api        # poetry run neuroflow serve (uvicorn with reload)
-make docs       # mkdocs serve
+make setup             # first-machine bootstrap (apt checks, deps, frontend build)
+make install           # poetry + frontend npm (toolchain already present)
+make desktop-install   # Linux application menu + Desktop shortcut
+make test              # pytest
+make lint              # ruff check + format check
+make api               # poetry run neuroflow serve (uvicorn with reload)
+make frontend-build    # Tailwind + copy pages to frontend/dist
+make docs              # mkdocs serve
 ```
 
 Local API shortcut:
@@ -26,6 +29,9 @@ Local API shortcut:
 poetry run neuroflow serve
 # optional: --host 0.0.0.0 --port 8000 --no-reload
 ```
+
+- `make api` / `neuroflow serve` — development defaults include **reload**.
+- Desktop launcher (`scripts/neuroflow-launch.sh`) uses **`--no-reload`** and may run in the background; stop with `./scripts/neuroflow-stop.sh`.
 
 ## Python version
 

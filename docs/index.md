@@ -12,7 +12,7 @@ NeuroFlow is a **facilitation portal** for neuroscience medical image processing
 
 ## Quick links
 
-- [Getting started](getting-started.md)
+- [Getting started](getting-started.md) — `make setup` on Ubuntu/Debian, Desktop launcher, optional host tools
 - [Development](development.md)
 - [Architecture](architecture.md)
 - [API](api.md)

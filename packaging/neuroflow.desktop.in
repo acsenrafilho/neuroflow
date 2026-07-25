@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=NeuroFlow
+Comment=Neuroimaging processing portal
+Exec=env NEUROFLOW_LAUNCH_BACKGROUND=1 @REPO_ROOT@/scripts/neuroflow-launch.sh
+Icon=@ICON_PATH@
+Terminal=false
+Categories=Science;Education;
+StartupNotify=true
