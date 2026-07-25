@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroFlow | First job</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-background font-body-md text-on-surface antialiased">
+    <aside id="hub-sidebar"></aside>
+    <header id="hub-header"></header>
+
+    <main class="ml-64 min-h-screen px-12 pb-16 pt-24">
+      <div class="mx-auto flex w-full max-w-[1400px] gap-10">
+        <aside id="help-wiki-nav" class="hidden w-52 shrink-0 md:block" aria-label="User guide topics"></aside>
+
+        <article class="min-w-0 max-w-3xl flex-1 space-y-8">
+          <header class="space-y-3">
+            <h2 class="font-headline-xl text-primary-container">First job</h2>
+            <p class="text-on-surface-variant">
+              A practical path from the home page to a running (or queued) job. Examples use
+              FreeSurfer or FSL when those packages are Ready on the host.
+            </p>
+          </header>
+
+          <ol class="space-y-6">
+            <li class="space-y-2">
+              <h3 class="font-headline-md text-on-surface">1. Open Home and pick a module</h3>
+              <p class="text-on-surface-variant">
+                From
+                <a href="/" class="text-primary underline-offset-2 hover:underline">Home</a>, use
+                the Processing modules table or the sidebar package links (FreeSurfer, FSL). Open a
+                module whose status is <strong class="text-on-surface">Ready</strong>. If you see
+                Install on host, set up the CLI first—see
+                <a href="/help/host-tools.html" class="text-primary underline-offset-2 hover:underline">Host tools</a>.
+              </p>
+            </li>
+            <li class="space-y-2">
+              <h3 class="font-headline-md text-on-surface">2. Set workspace and subject</h3>
+              <p class="text-on-surface-variant">
+                On the module page, enter a <strong class="text-on-surface">Project / User name</strong>
+                (stored in the browser) and a <strong class="text-on-surface">Subject ID</strong>
+                such as <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">sub-001</code>.
+                These organize outputs under the datasets tree. Details:
+                <a href="/help/workspaces.html" class="text-primary underline-offset-2 hover:underline">Workspaces</a>.
+              </p>
+            </li>
+            <li class="space-y-2">
+              <h3 class="font-headline-md text-on-surface">3. Upload input data</h3>
+              <p class="text-on-surface-variant">
+                Drag NIfTI or DICOM into the drop zone (or use the file picker). Files stay in a
+                local job folder on the machine running NeuroFlow—they are not uploaded to a remote
+                cloud service by the portal itself.
+              </p>
+            </li>
+            <li class="space-y-2">
+              <h3 class="font-headline-md text-on-surface">4. Configure parameters</h3>
+              <p class="text-on-surface-variant">
+                Form fields map to real CLI flags. Prefer the form over typing shell strings. Some
+                FSL modules list prerequisite steps on the page—complete those as separate jobs when
+                required.
+              </p>
+            </li>
+            <li class="space-y-2">
+              <h3 class="font-headline-md text-on-surface">5. Check the CLI preview</h3>
+              <p class="text-on-surface-variant">
+                Review the command the portal will run. Arguments are built server-side from
+                validated fields; only allowlisted executables may start.
+              </p>
+            </li>
+            <li class="space-y-2">
+              <h3 class="font-headline-md text-on-surface">6. Execute and monitor</h3>
+              <p class="text-on-surface-variant">
+                Start the job and watch the log panel. Return to Home to see
+                <strong class="text-on-surface">Active processes</strong> (running and queued) with
+                a link back to the module. If the host is busy, new jobs may wait in a queue—see
+                <a href="/help/jobs-and-logs.html" class="text-primary underline-offset-2 hover:underline">Jobs &amp; logs</a>.
+              </p>
+            </li>
+          </ol>
+
+          <div
+            class="rounded-xl border border-secondary/30 bg-secondary/5 px-6 py-5 text-sm text-on-surface-variant"
+          >
+            <div class="mb-2 flex items-center gap-2 font-semibold text-on-surface">
+              <span class="material-symbols-outlined text-secondary">lightbulb</span>
+              Tip
+            </div>
+            Use the <strong class="text-on-surface">NeuroFlow guide</strong> button on a module page
+            for package-specific notes, and
+            <strong class="text-on-surface">Official documentation</strong> for vendor CLI details.
+          </div>
+        </article>
+      </div>
+    </main>
+
+    <script src="/js/hub-layout.js"></script>
+    <script src="/js/help-layout.js"></script>
+    <script>
+      HelpLayout.init({ topicId: "first-job", title: "First job" });
+    </script>
+  </body>
+</html>

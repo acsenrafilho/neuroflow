@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroFlow | Help</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-background font-body-md text-on-surface antialiased">
+    <aside id="hub-sidebar"></aside>
+    <header id="hub-header"></header>
+
+    <main class="ml-64 min-h-screen px-12 pb-16 pt-24">
+      <div class="mx-auto flex w-full max-w-[1400px] gap-10">
+        <aside id="help-wiki-nav" class="hidden w-52 shrink-0 md:block" aria-label="User guide topics"></aside>
+
+        <article class="min-w-0 max-w-3xl flex-1 space-y-8">
+          <header class="space-y-3">
+            <h2 class="font-headline-xl text-primary-container">NeuroFlow user guide</h2>
+            <p class="text-on-surface-variant">
+              NeuroFlow is a facilitation portal for neuroimaging CLIs on your machine. Each module
+              is one page: upload data, set parameters, preview the command, and follow local
+              execution logs—without building multi-tool pipelines.
+            </p>
+          </header>
+
+          <div
+            class="rounded-xl border border-secondary/30 bg-secondary/5 px-6 py-5 text-sm text-on-surface"
+          >
+            <div class="mb-2 flex items-center gap-2 font-semibold">
+              <span class="material-symbols-outlined text-secondary">info</span>
+              What NeuroFlow does not do
+            </div>
+            <p class="text-on-surface-variant">
+              It does not install FreeSurfer, FSL, or other packages; does not chain stages into an
+              automatic pipeline; and does not require Docker in this repository. Host tools stay on
+              the OS where the API runs.
+            </p>
+          </div>
+
+          <section class="space-y-4">
+            <h3 class="font-headline-md text-on-surface">Start here</h3>
+            <div class="flex flex-wrap gap-3">
+              <a
+                href="/help/first-job.html"
+                class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition-all hover:opacity-90"
+              >
+                <span class="material-symbols-outlined text-sm">play_arrow</span>
+                First job in minutes
+              </a>
+              <a
+                href="/help/concepts.html"
+                class="inline-flex items-center gap-2 rounded-lg border border-outline-variant px-4 py-2.5 text-sm font-semibold text-on-surface transition-colors hover:bg-surface-container-low"
+              >
+                How the system works
+              </a>
+            </div>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Topics</h3>
+            <ul class="divide-y divide-outline-variant/40 rounded-xl border border-outline-variant/60 bg-surface-container-lowest">
+              <li>
+                <a href="/help/concepts.html" class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low/50">
+                  <span>Concepts</span>
+                  <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                </a>
+              </li>
+              <li>
+                <a href="/help/first-job.html" class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low/50">
+                  <span>First job</span>
+                  <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                </a>
+              </li>
+              <li>
+                <a href="/help/workspaces.html" class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low/50">
+                  <span>Workspaces &amp; subjects</span>
+                  <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                </a>
+              </li>
+              <li>
+                <a href="/help/modules.html" class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low/50">
+                  <span>Modules (FreeSurfer, FSL, …)</span>
+                  <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                </a>
+              </li>
+              <li>
+                <a href="/help/jobs-and-logs.html" class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low/50">
+                  <span>Jobs &amp; logs</span>
+                  <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                </a>
+              </li>
+              <li>
+                <a href="/help/host-tools.html" class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low/50">
+                  <span>Host tools</span>
+                  <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                </a>
+              </li>
+              <li>
+                <a href="/help/data-and-privacy.html" class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low/50">
+                  <span>Data &amp; privacy</span>
+                  <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                </a>
+              </li>
+            </ul>
+          </section>
+
+          <p class="text-sm text-on-surface-variant">
+            Looking for the machine-readable API contract? Use
+            <a href="/docs" class="text-primary underline-offset-2 hover:underline">Open API</a>
+            (Swagger). For CLI flags of a specific tool, use the Official documentation link on each
+            module page.
+          </p>
+        </article>
+      </div>
+    </main>
+
+    <script src="/js/hub-layout.js"></script>
+    <script src="/js/help-layout.js"></script>
+    <script>
+      HelpLayout.init({ topicId: "index", title: "Help" });
+    </script>
+  </body>
+</html>

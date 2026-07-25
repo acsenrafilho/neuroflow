@@ -56,12 +56,24 @@
       </div>
       <nav class="flex-1 space-y-1 px-2" aria-label="Main navigation">
         ${navItem({ href: "/", icon: "home", label: "Home", active: active === "home" })}
+        ${navItem({
+          href: "/history.html",
+          icon: "history",
+          label: "History",
+          active: active === "history",
+        })}
         ${packageNav}
       </nav>
       <div class="space-y-1 border-t border-outline-variant px-2 pt-4">
-        <a href="/docs" class="flex items-center gap-3 px-4 py-3 text-on-surface-variant transition-all hover:bg-surface-container hover:text-primary">
-          <span class="material-symbols-outlined">menu_book</span>
-          <span class="font-label-sm">API documentation</span>
+        ${navItem({
+          href: "/help/",
+          icon: "menu_book",
+          label: "Help",
+          active: active === "help",
+        })}
+        <a href="/docs" class="flex items-center gap-3 border-l-4 border-transparent px-4 py-3 text-sm text-on-surface-variant/80 transition-all hover:bg-surface-container hover:text-primary">
+          <span class="material-symbols-outlined text-base">api</span>
+          <span class="font-label-sm">Open API</span>
         </a>
       </div>`;
     el.className =
@@ -72,15 +84,16 @@
   function renderHeader(options) {
     const title = options?.title || "Home";
     const showApi = options?.showApi !== false;
+    const helpHref = options?.helpHref || "/help/";
     const el = document.getElementById("hub-header");
     if (!el) return;
 
     el.innerHTML = `
       <h1 class="font-headline-md text-on-surface">${title}</h1>
       <div class="flex items-center gap-6">
-        <button type="button" class="text-on-surface-variant transition-colors hover:text-primary" title="Help">
+        <a href="${helpHref}" class="text-on-surface-variant transition-colors hover:text-primary" title="User guide" aria-label="User guide">
           <span class="material-symbols-outlined">help_outline</span>
-        </button>
+        </a>
         ${
           showApi
             ? `

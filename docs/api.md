@@ -31,11 +31,13 @@ Lists **portal-visible** packages (FreeSurfer and FSL) and whether each executab
 
 Lists package/module rows for the hub table (portal-visible packages only).
 
-### Active jobs
+### Jobs list
 
 `GET /api/v1/jobs?status=running,queued`
 
-Aggregate list across tools for the home **Active processes** panel (`workspace`, `subject_id`, `page_path`, `queue_reason`).
+Aggregate list across tools. Default filter is active jobs for the home **Active processes** panel (`workspace`, `subject_id`, `page_path`, `queue_reason`).
+
+Use `status=completed,failed,cancelled` for the **History** page. On API startup, orphaned `running`/`queued` metadata from a previous process is reconciled automatically.
 
 ### Host resources
 

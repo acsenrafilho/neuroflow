@@ -28,8 +28,11 @@ async def lifespan(app: FastAPI):
     results = run_host_scan(app)
     log_scan_summary(results)
 
+    from neuroflow.services.job_reconcile import reconcile_orphaned_jobs
     from neuroflow.services.job_scheduler import start_scheduler, stop_scheduler
+    from neuroflow.services.jobs import JobStore
 
+    reconcile_orphaned_jobs(JobStore(settings))
     start_scheduler()
 
     if settings.neuroflow_serve_frontend:

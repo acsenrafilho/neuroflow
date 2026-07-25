@@ -55,21 +55,25 @@ NeuroFlow uses **Material Design 3** with custom color tokens defined in each pa
 
 ## Page structure
 
-### Standard shell (all pages)
+### Standard shell (hub / package / help pages)
+
+Production chrome is rendered by `frontend/src/js/hub-layout.js` (not the legacy mockup pipeline block).
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │  SIDEBAR (256px / w-64 fixed)  │  TOP BAR (h-16)    │
-│  ├─ Logo + version             │  ├─ Search         │
-│  ├─ Navigation                 │  ├─ Notif / Help   │
-│  ├─ Run Pipeline               │  └─ Export         │
-│  ├─ Docs / Settings            │                    │
-│  └─ Profile                    │                    │
+│  ├─ Facilitation portal label  │  ├─ Page title     │
+│  ├─ Home / History / packages  │  ├─ Help (→ /help/)│
+│  ├─ Help (user wiki)           │  └─ Open API       │
+│  └─ Open API (Swagger /docs)   │                    │
 ├─────────────────────────────────────────────────────┤
 │  MAIN (ml-64, pt-24, max-width 1400px, centered)      │
 └─────────────────────────────────────────────────────┘
 ```
 
+**Help vs Open API:** sidebar **Help** and the header `help_outline` link open the in-app user wiki at `/help/`. **Open API** opens FastAPI Swagger at `/docs`. Do not label Swagger as the user guide.
+
+**Help wiki pages** (`frontend/src/pages/help/`): same hub shell; topic nav via `help-layout.js` (`#help-wiki-nav`); article column `max-w-3xl`.
 ### Default dimensions
 
 | Region | Tailwind / size |
@@ -85,8 +89,8 @@ Reference: `frontend/src/pages/tools/freesurfer.html`.
 
 | Section | Purpose |
 |---------|---------|
-| Top nav | Logo, module name, link back to hub (no API docs link on tool pages) |
-| Header | Package/module title, summary, **Official documentation** button (external project site) |
+| Top nav | Logo, module name, Help link to `/help/`, link back to package (where applicable) |
+| Header | Package/module title, summary, vendor **Official documentation** plus **NeuroFlow guide** |
 | Input | Multi-file drag-and-drop; per-file Subject ID table when batching |
 | Configuration | Simple CLI flags only (e.g. recon stage when not fixed via `?module=`) |
 | Execute | Primary CTA; heuristic `N × hours` estimate below button |
@@ -380,20 +384,15 @@ Use when adding or updating pages under `doc/mockup/`:
 
 ### Sidebar
 
-- [ ] NeuroFlow logo + version label (e.g. `Clinical v2.4.0`)
-- [ ] Nav list with `space-y-1`
+- [ ] Home / History / enabled packages
 - [ ] Active item: `border-primary`, primary-tinted background
-- [ ] **Run Pipeline** CTA above footer (`px-4 mb-4`)
-- [ ] Documentation / Settings in footer
-- [ ] Profile block (avatar, name, role)
+- [ ] Footer: **Help** (`/help/`) then quieter **Open API** (`/docs`)
 
 ### Top bar
 
-- [ ] Search: `max-w-md`, `rounded-full`, meaningful placeholder
-- [ ] Notifications and Help with `aria-label`
-- [ ] Export: `bg-primary text-white`
-- [ ] Height `h-16`; divider before export
-
+- [ ] Help link with `aria-label="User guide"` → `/help/` (or contextual `helpHref`)
+- [ ] Open API primary button → `/docs`
+- [ ] Height `h-16`
 ### Main content
 
 - [ ] `ml-64 pt-24 pb-16 px-10`
@@ -434,5 +433,6 @@ Use when adding or updating pages under `doc/mockup/`:
 | 2026-06-01 | — | Simplified to one-page-per-tool modules; production reference `frontend/src/pages/tools/freesurfer.html`; removed pipeline configurator pattern |
 | 2026-06-01 | — | Hub Package/Module table; batch upload; official docs button; job monitoring fields |
 | 2026-06-01 | — | Wider hub (`max-w-[1400px]`); PNG logo; package pages; modules table filters and sort |
+| 2026-07-25 | — | In-app Help wiki at `/help/`; sidebar Help vs Open API; NeuroFlow guide on tool/package pages |
 
-**Last updated:** 2026-06-01
+**Last updated:** 2026-07-25

@@ -12,6 +12,7 @@ NeuroFlow is a **facilitation portal** for neuroscience medical image processing
 
 ## Quick links
 
+- **In-app user guide** (when the frontend is served): http://127.0.0.1:8000/help/
 - [Getting started](getting-started.md) — `make setup` on Ubuntu/Debian, Desktop launcher, optional host tools
 - [Development](development.md)
 - [Architecture](architecture.md)

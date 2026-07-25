@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroFlow | Workspaces</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-background font-body-md text-on-surface antialiased">
+    <aside id="hub-sidebar"></aside>
+    <header id="hub-header"></header>
+
+    <main class="ml-64 min-h-screen px-12 pb-16 pt-24">
+      <div class="mx-auto flex w-full max-w-[1400px] gap-10">
+        <aside id="help-wiki-nav" class="hidden w-52 shrink-0 md:block" aria-label="User guide topics"></aside>
+
+        <article class="min-w-0 max-w-3xl flex-1 space-y-8">
+          <header class="space-y-3">
+            <h2 class="font-headline-xl text-primary-container">Workspaces &amp; subjects</h2>
+            <p class="text-on-surface-variant">
+              How Project / User name and Subject ID organize data on disk.
+            </p>
+          </header>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Project / User name</h3>
+            <p class="text-on-surface-variant">
+              On each module page, the workspace name (often labeled Project / User name) is stored
+              in the browser and used as the top-level folder under the datasets root. Prefer a
+              stable lab or project label so outputs stay grouped across sessions.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Subject ID</h3>
+            <p class="text-on-surface-variant">
+              Use a BIDS-style identifier such as
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">sub-001</code>.
+              Avoid putting real names or clinical identifiers in paths when possible—see
+              <a href="/help/data-and-privacy.html" class="text-primary underline-offset-2 hover:underline">Data &amp; privacy</a>.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Where files live</h3>
+            <p class="text-on-surface-variant">
+              Defaults (override with environment variables if needed):
+            </p>
+            <ul class="list-disc space-y-2 pl-5 text-on-surface-variant">
+              <li>
+                Job metadata and logs:
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NEUROFLOW_DATA_ROOT</code>
+                (default <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">./data/jobs</code>)
+              </li>
+              <li>
+                Researcher datasets:
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NEUROFLOW_DATASETS_ROOT</code>
+                (default <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">./data/datasets</code>)
+              </li>
+            </ul>
+            <pre
+              class="overflow-x-auto rounded-xl border border-outline-variant bg-surface-container-low p-4 text-sm text-on-surface"
+            ><code>data/datasets/&lt;workspace&gt;/
+  sub-001/anat/…
+  derivatives/fsl/bet/…
+  derivatives/freesurfer/sub-001/   # FreeSurfer SUBJECTS_DIR-style tree</code></pre>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Active processes on Home</h3>
+            <p class="text-on-surface-variant">
+              The Home table lists running and queued jobs with workspace and subject columns so
+              you can return to the correct module while a job is in flight.
+            </p>
+          </section>
+        </article>
+      </div>
+    </main>
+
+    <script src="/js/hub-layout.js"></script>
+    <script src="/js/help-layout.js"></script>
+    <script>
+      HelpLayout.init({ topicId: "workspaces", title: "Workspaces" });
+    </script>
+  </body>
+</html>

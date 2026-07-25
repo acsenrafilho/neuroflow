@@ -28,7 +28,7 @@ make setup
 make api
 ```
 
-Open http://127.0.0.1:8000/ (with `NEUROFLOW_SERVE_FRONTEND=1` from `.env.example`) or http://127.0.0.1:8000/docs for the API.
+Open http://127.0.0.1:8000/ (with `NEUROFLOW_SERVE_FRONTEND=1` from `.env.example`). In-app user guide: http://127.0.0.1:8000/help/. OpenAPI (Swagger): http://127.0.0.1:8000/docs.
 
 For a one-click start from the application menu or Desktop:
 
@@ -100,6 +100,7 @@ tests/
 
 ## API
 
+- In-app user guide: http://127.0.0.1:8000/help/ (when frontend is served)
 - OpenAPI: http://127.0.0.1:8000/docs
 - Health: `GET /api/v1/health`
 - Tools / modules: `GET /api/v1/tools`, `GET /api/v1/modules` (portal: FreeSurfer + FSL)

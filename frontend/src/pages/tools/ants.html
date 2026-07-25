@@ -30,13 +30,23 @@
           >ANTs</span
         >
       </div>
-      <a
-        href="/packages/ants.html"
-        class="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-1.5 font-label-sm text-on-surface-variant hover:bg-surface-container-low"
-      >
-        <span class="material-symbols-outlined text-sm">arrow_back</span>
-        All ANTs modules
-      </a>
+      <div class="flex items-center gap-3">
+        <a
+          href="/help/modules.html"
+          class="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-1.5 font-label-sm text-on-surface-variant hover:bg-surface-container-low"
+          aria-label="User guide"
+        >
+          <span class="material-symbols-outlined text-sm">help_outline</span>
+          Help
+        </a>
+        <a
+          href="/packages/ants.html"
+          class="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-1.5 font-label-sm text-on-surface-variant hover:bg-surface-container-low"
+        >
+          <span class="material-symbols-outlined text-sm">arrow_back</span>
+          All ANTs modules
+        </a>
+      </div>
     </nav>
 
     <main class="mb-16 mt-24 flex w-full max-w-[800px] flex-col gap-8 px-6">
@@ -46,7 +56,7 @@
           <p class="font-body-md text-on-surface-variant" id="page-summary">Loading…</p>
         </div>
         <div class="flex flex-wrap items-center gap-3">
-          <span class="font-label-sm text-on-surface-variant">Official documentation</span>
+          <span class="font-label-sm text-on-surface-variant">Documentation</span>
           <a
             id="docs-link"
             href="https://github.com/ANTsX/ANTs/wiki"
@@ -56,6 +66,13 @@
           >
             <span class="material-symbols-outlined text-sm">open_in_new</span>
             ANTs documentation
+          </a>
+          <a
+            href="/help/modules.html"
+            class="inline-flex items-center gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-2 font-label-sm text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-primary"
+          >
+            <span class="material-symbols-outlined text-sm">menu_book</span>
+            NeuroFlow guide
           </a>
         </div>
       </header>

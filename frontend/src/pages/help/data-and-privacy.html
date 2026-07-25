@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroFlow | Data &amp; privacy</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-background font-body-md text-on-surface antialiased">
+    <aside id="hub-sidebar"></aside>
+    <header id="hub-header"></header>
+
+    <main class="ml-64 min-h-screen px-12 pb-16 pt-24">
+      <div class="mx-auto flex w-full max-w-[1400px] gap-10">
+        <aside id="help-wiki-nav" class="hidden w-52 shrink-0 md:block" aria-label="User guide topics"></aside>
+
+        <article class="min-w-0 max-w-3xl flex-1 space-y-8">
+          <header class="space-y-3">
+            <h2 class="font-headline-xl text-primary-container">Data &amp; privacy</h2>
+            <p class="text-on-surface-variant">
+              Neuroimaging data may contain PHI or identifiable research participants. Treat every
+              job folder as sensitive.
+            </p>
+          </header>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Local-only MVP</h3>
+            <p class="text-on-surface-variant">
+              The bootstrap configuration has <strong class="text-on-surface">no authentication</strong>.
+              The API is intended for local development or trusted lab networks only. Do not expose
+              an unauthenticated NeuroFlow instance to the public internet.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Practical habits</h3>
+            <ul class="list-disc space-y-2 pl-5 text-on-surface-variant">
+              <li>Prefer coded subject IDs (for example <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">sub-001</code>) over real names in paths and forms.</li>
+              <li>Keep <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">.env</code> out of version control; start from <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">.env.example</code>.</li>
+              <li>Restrict filesystem permissions on <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NEUROFLOW_DATA_ROOT</code> and datasets roots.</li>
+              <li>Assume logs and job metadata may contain paths or parameters—handle retention accordingly.</li>
+            </ul>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Subprocess safety</h3>
+            <p class="text-on-surface-variant">
+              Only allowlisted executables may be started. Arguments are built server-side from
+              validated form fields—never pasted as raw shell strings from the browser.
+            </p>
+          </section>
+
+          <div
+            class="rounded-xl border border-outline-variant bg-surface-container-low px-6 py-5 text-sm text-on-surface-variant"
+          >
+            Operators and developers: see the repository Security notes under
+            <code class="rounded bg-surface-container px-1.5 py-0.5">docs/security.md</code>
+            (MkDocs / source docs) for the full posture and future hardening ideas.
+          </div>
+        </article>
+      </div>
+    </main>
+
+    <script src="/js/hub-layout.js"></script>
+    <script src="/js/help-layout.js"></script>
+    <script>
+      HelpLayout.init({ topicId: "data-and-privacy", title: "Data & privacy" });
+    </script>
+  </body>
+</html>

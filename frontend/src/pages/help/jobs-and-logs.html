@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroFlow | Jobs &amp; logs</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-background font-body-md text-on-surface antialiased">
+    <aside id="hub-sidebar"></aside>
+    <header id="hub-header"></header>
+
+    <main class="ml-64 min-h-screen px-12 pb-16 pt-24">
+      <div class="mx-auto flex w-full max-w-[1400px] gap-10">
+        <aside id="help-wiki-nav" class="hidden w-52 shrink-0 md:block" aria-label="User guide topics"></aside>
+
+        <article class="min-w-0 max-w-3xl flex-1 space-y-8">
+          <header class="space-y-3">
+            <h2 class="font-headline-xl text-primary-container">Jobs &amp; logs</h2>
+            <p class="text-on-surface-variant">
+              What happens after you press execute, and where to look when something fails.
+            </p>
+          </header>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Status</h3>
+            <p class="text-on-surface-variant">
+              Jobs move through states such as queued, running, succeeded, or failed. The module
+              page shows live status and log text; Home lists active and queued work so you can
+              jump back while another page is open.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Resource queue</h3>
+            <p class="text-on-surface-variant">
+              Host RAM and CPU limits
+              (<code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NEUROFLOW_RAM_MAX_PERCENT</code>,
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NEUROFLOW_CPU_MAX_PERCENT</code>)
+              can pause new starts into a queue when the machine is busy. Wait for capacity, or
+              finish or stop existing jobs, then start again.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">On-disk layout</h3>
+            <p class="text-on-surface-variant">
+              A typical FreeSurfer job folder looks like:
+            </p>
+            <pre
+              class="overflow-x-auto rounded-xl border border-outline-variant bg-surface-container-low p-4 text-sm text-on-surface"
+            ><code>data/jobs/freesurfer/{job_id}/
+  input/       # uploaded NIfTI/DICOM
+  output/      # SUBJECTS_DIR for recon-all
+  meta.json    # status, parameters, command
+  run.log      # merged stdout/stderr</code></pre>
+            <p class="text-on-surface-variant">
+              Other tools follow the same pattern under
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">data/jobs/&lt;tool&gt;/</code>.
+              Contents under <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">data/</code>
+              are gitignored except placeholders.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Reading the log</h3>
+            <p class="text-on-surface-variant">
+              The UI streams the same content written to
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">run.log</code>.
+              Vendor CLIs often print progress and errors there; use Official documentation for
+              interpreting tool-specific messages.
+            </p>
+          </section>
+        </article>
+      </div>
+    </main>
+
+    <script src="/js/hub-layout.js"></script>
+    <script src="/js/help-layout.js"></script>
+    <script>
+      HelpLayout.init({ topicId: "jobs-and-logs", title: "Jobs & logs" });
+    </script>
+  </body>
+</html>

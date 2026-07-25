@@ -79,8 +79,6 @@
     const packageName = packageModules[0]?.package_name || packageId;
     const allComingSoon = packageModules.every((m) => m.coming_soon);
 
-    HubLayout.init({ active: packageId, title: packageName, showApi: true });
-
     if (titleEl) titleEl.textContent = packageName;
     if (summaryEl) {
       if (allComingSoon) {
@@ -100,15 +98,36 @@
     }
 
     const meta = PACKAGE_META[packageId];
-    if (docsEl && meta?.docsUrl) {
+    const guideHref =
+      packageId === "freesurfer"
+        ? "/help/modules.html#freesurfer"
+        : packageId === "fsl"
+          ? "/help/modules.html#fsl"
+          : "/help/modules.html";
+    if (docsEl) {
+      const official = meta?.docsUrl
+        ? `<a href="${meta.docsUrl}" target="_blank" rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 rounded-lg border border-secondary bg-surface-container-lowest px-4 py-2 font-label-sm text-secondary transition-colors hover:bg-secondary/10">
+            <span class="material-symbols-outlined text-sm">open_in_new</span>
+            ${meta.docsLabel}
+          </a>`
+        : "";
       docsEl.innerHTML = `
-        <a href="${meta.docsUrl}" target="_blank" rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 rounded-lg border border-secondary bg-surface-container-lowest px-4 py-2 font-label-sm text-secondary transition-colors hover:bg-secondary/10">
-          <span class="material-symbols-outlined text-sm">open_in_new</span>
-          ${meta.docsLabel}
+        ${official}
+        <a href="${guideHref}"
+          class="inline-flex items-center gap-2 rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-2 font-label-sm text-on-surface-variant transition-colors hover:bg-surface-container-low hover:text-primary">
+          <span class="material-symbols-outlined text-sm">menu_book</span>
+          NeuroFlow guide
         </a>`;
       docsEl.classList.remove("hidden");
     }
+
+    HubLayout.init({
+      active: packageId,
+      title: packageName,
+      showApi: true,
+      helpHref: guideHref,
+    });
 
     if (bannerEl && allComingSoon) {
       bannerEl.classList.remove("hidden");

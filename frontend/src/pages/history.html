@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroFlow | History</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-background font-body-md text-on-surface antialiased">
+    <aside id="hub-sidebar"></aside>
+    <header id="hub-header"></header>
+
+    <main class="ml-64 min-h-screen px-12 pb-16 pt-24">
+      <div class="mx-auto w-full max-w-[1400px] space-y-8">
+        <section class="space-y-2">
+          <p class="text-on-surface-variant">
+            Finished jobs (completed, failed, or cancelled). Active work stays on
+            <a href="/" class="font-semibold text-primary hover:underline">Home</a>.
+          </p>
+        </section>
+
+        <section
+          class="overflow-hidden rounded-xl border border-outline-variant/60 bg-surface-container-lowest shadow-sm"
+        >
+          <div
+            class="flex flex-wrap items-center justify-between gap-4 border-b border-outline-variant bg-surface-container-low px-6 py-4"
+          >
+            <h3 class="font-headline-md text-on-surface">Job history</h3>
+            <div class="flex flex-wrap items-end gap-4">
+              <div class="flex flex-col gap-1">
+                <label class="font-label-sm text-on-surface-variant" for="history-status"
+                  >Status filter</label
+                >
+                <select
+                  id="history-status"
+                  class="rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-sm"
+                >
+                  <option value="completed,failed,cancelled" selected>All finished</option>
+                  <option value="completed">Completed</option>
+                  <option value="failed">Failed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              <span class="font-label-sm text-on-surface-variant" id="history-jobs-count"
+                >Loading…</span
+              >
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-left text-sm">
+              <thead class="bg-surface-container-low/80 text-xs uppercase tracking-wider text-on-surface-variant">
+                <tr>
+                  <th class="px-6 py-3">Module</th>
+                  <th class="px-6 py-3">Workspace</th>
+                  <th class="px-6 py-3">Subject</th>
+                  <th class="px-6 py-3">Status</th>
+                  <th class="px-6 py-3">Finished</th>
+                  <th class="px-6 py-3"></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-outline-variant/40" id="history-jobs-body">
+                <tr>
+                  <td class="px-6 py-6 text-center text-on-surface-variant" colspan="6">
+                    No finished jobs yet.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <script src="/js/neuroflow-api.js"></script>
+    <script src="/js/toaster.js"></script>
+    <script src="/js/hub-layout.js"></script>
+    <script>
+      HubLayout.init({ active: "history", title: "History", showApi: true });
+
+      const historyBody = document.getElementById("history-jobs-body");
+      const historyCount = document.getElementById("history-jobs-count");
+      const statusFilter = document.getElementById("history-status");
+
+      function formatWhen(iso) {
+        if (!iso) return "—";
+        try {
+          return new Date(iso).toLocaleString();
+        } catch {
+          return iso;
+        }
+      }
+
+      function statusClass(status) {
+        if (status === "completed") return "text-secondary";
+        if (status === "failed") return "text-error";
+        return "text-on-surface-variant";
+      }
+
+      async function loadHistory() {
+        const status = statusFilter.value || "completed,failed,cancelled";
+        try {
+          const jobs = await NeuroflowApi.fetchJson(
+            `/api/v1/jobs?status=${encodeURIComponent(status)}`
+          );
+          historyCount.textContent = `${jobs.length} job${jobs.length === 1 ? "" : "s"}`;
+          if (!jobs.length) {
+            historyBody.innerHTML = `<tr><td class="px-6 py-6 text-center text-on-surface-variant" colspan="6">No finished jobs for this filter.</td></tr>`;
+            return;
+          }
+          historyBody.innerHTML = jobs
+            .map((job) => {
+              const moduleLabel = job.module_id || job.tool_id;
+              return `<tr class="hover:bg-surface-container-low/50">
+                <td class="px-6 py-3 font-medium">${moduleLabel}</td>
+                <td class="px-6 py-3 font-code-mono text-xs">${job.workspace || "—"}</td>
+                <td class="px-6 py-3 font-code-mono text-xs">${job.subject_id || "—"}</td>
+                <td class="px-6 py-3 ${statusClass(job.status)}">${job.status}</td>
+                <td class="px-6 py-3 text-on-surface-variant">${formatWhen(job.finished_at || job.created_at)}</td>
+                <td class="px-6 py-3">
+                  <a href="${job.page_path}" class="inline-flex items-center gap-1 rounded-lg border border-outline-variant px-3 py-1.5 font-semibold text-on-surface hover:bg-surface-container-low">
+                    Open
+                  </a>
+                </td>
+              </tr>`;
+            })
+            .join("");
+        } catch {
+          historyCount.textContent = "Unavailable";
+          historyBody.innerHTML = `<tr><td class="px-6 py-6 text-center text-on-surface-variant" colspan="6">Could not load job history.</td></tr>`;
+        }
+      }
+
+      statusFilter.addEventListener("change", loadHistory);
+      loadHistory();
+    </script>
+  </body>
+</html>

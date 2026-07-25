@@ -79,6 +79,7 @@ Stop a background instance:
 On startup the API scans the local host for registered packages and caches the result. The home page **Processing modules** table currently lists **FreeSurfer** and **FSL** only (other packages remain in the codebase but are hidden from the portal).
 
 - Tool hub: http://127.0.0.1:8000/
+- In-app user guide: http://127.0.0.1:8000/help/
 - FreeSurfer module: http://127.0.0.1:8000/tools/freesurfer.html
 - FSL package: http://127.0.0.1:8000/packages/fsl.html
 - FSL module (example): http://127.0.0.1:8000/tools/fsl.html?module=fsl-bet
@@ -139,6 +140,6 @@ data/datasets/<workspace>/
   derivatives/freesurfer/sub-001/   # native FreeSurfer SUBJECTS_DIR tree
 ```
 
-On each module page, set **Project / User name** (stored in the browser) and **Subject ID** (`sub-…`). The home page **Active processes** table lists running and queued jobs with a link back to the module.
+On each module page, set **Project / User name** (stored in the browser) and **Subject ID** (`sub-…`). The home page **Active processes** table lists running and queued jobs with a link back to the module. Finished jobs appear under **History** (`/history.html`). On API startup, orphaned `running`/`queued` jobs from a previous process are reconciled (failed or cancelled) so they do not clutter Active processes.
 
 Host RAM/CPU limits (`NEUROFLOW_RAM_MAX_PERCENT`, `NEUROFLOW_CPU_MAX_PERCENT`) pause new starts into a queue when the machine is busy. Contents under `data/` are gitignored except `.gitkeep`.

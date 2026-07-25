@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroFlow | Concepts</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-background font-body-md text-on-surface antialiased">
+    <aside id="hub-sidebar"></aside>
+    <header id="hub-header"></header>
+
+    <main class="ml-64 min-h-screen px-12 pb-16 pt-24">
+      <div class="mx-auto flex w-full max-w-[1400px] gap-10">
+        <aside id="help-wiki-nav" class="hidden w-52 shrink-0 md:block" aria-label="User guide topics"></aside>
+
+        <article class="prose-help min-w-0 max-w-3xl flex-1 space-y-8">
+          <header class="space-y-3">
+            <h2 class="font-headline-xl text-primary-container">Concepts</h2>
+            <p class="text-on-surface-variant">
+              How NeuroFlow fits between your browser and the neuroimaging software installed on the
+              host.
+            </p>
+          </header>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Portal vs host tools</h3>
+            <p class="text-on-surface-variant">
+              NeuroFlow is the portal: a FastAPI backend plus HTML pages. FreeSurfer, FSL, and other
+              packages remain separate installs on the same machine. The portal detects them, builds
+              allowlisted commands from form fields, and streams logs—it never ships those CLIs
+              inside this repository.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">One module per page</h3>
+            <p class="text-on-surface-variant">
+              Each processing module is a dedicated page (upload, parameters, CLI preview, run,
+              logs). There is no cross-tool pipeline composer or shared orchestration DAG. If a
+              workflow needs several stages (for example TOPUP then EDDY), you run each as its own
+              job.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Jobs on disk</h3>
+            <p class="text-on-surface-variant">
+              When you execute a module, the API creates a job folder under
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">data/jobs/</code>
+              with inputs, metadata, and a merged run log. Researcher-oriented outputs also land
+              under a BIDS-inspired tree in
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">data/datasets/</code>
+              when workspace and subject fields are set. See
+              <a href="/help/workspaces.html" class="text-primary underline-offset-2 hover:underline">Workspaces</a>
+              and
+              <a href="/help/jobs-and-logs.html" class="text-primary underline-offset-2 hover:underline">Jobs &amp; logs</a>.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Local / trusted network</h3>
+            <p class="text-on-surface-variant">
+              The MVP has no authentication. Use NeuroFlow on localhost or a trusted lab network
+              only. Details are in
+              <a href="/help/data-and-privacy.html" class="text-primary underline-offset-2 hover:underline">Data &amp; privacy</a>.
+            </p>
+          </section>
+
+          <div
+            class="rounded-xl border border-outline-variant bg-surface-container-low px-6 py-5 text-sm text-on-surface-variant"
+          >
+            <strong class="text-on-surface">Next:</strong>
+            walk through a concrete run in
+            <a href="/help/first-job.html" class="text-primary underline-offset-2 hover:underline">First job</a>.
+          </div>
+        </article>
+      </div>
+    </main>
+
+    <script src="/js/hub-layout.js"></script>
+    <script src="/js/help-layout.js"></script>
+    <script>
+      HelpLayout.init({ topicId: "concepts", title: "Concepts" });
+    </script>
+  </body>
+</html>
