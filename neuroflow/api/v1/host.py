@@ -1,5 +1,8 @@
 """Host environment scan endpoints."""
 
+from __future__ import annotations
+
+import asyncio
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
@@ -41,8 +44,11 @@ async def get_host_resources(
     settings: Annotated[Settings, Depends(get_cached_settings)],
     store: Annotated[JobStore, Depends(get_job_store)],
 ) -> HostResourcesResponse:
-    sample = sample_host_resources(settings)
-    queued = count_jobs_with_status(store, {"queued"})
+    # sample_host_resources sleeps briefly for CPU%; count_jobs scans disk.
+    sample, queued = await asyncio.gather(
+        asyncio.to_thread(sample_host_resources, settings),
+        asyncio.to_thread(count_jobs_with_status, store, {"queued"}),
+    )
     queue_full = queued >= settings.neuroflow_max_queued_jobs
     block_reason = sample.block_reason
     if queue_full:

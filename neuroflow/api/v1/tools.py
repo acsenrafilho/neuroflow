@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
+from collections.abc import Callable
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from pydantic import ValidationError
@@ -54,6 +56,37 @@ from neuroflow.tools.slicer import (
 )
 
 router = APIRouter(prefix="/tools", tags=["tools"])
+
+
+def _job_not_found(job_id: str) -> HTTPException:
+    return HTTPException(
+        status_code=404,
+        detail=f"Job not found: {job_id}",
+        headers={"X-Error-Code": "job_not_found"},
+    )
+
+
+async def _load_job_log(store: JobStore, tool_id: str, job_id: str) -> JobLogResponse:
+    """Read meta + log off the event loop (logs grow large during neuroimaging runs)."""
+
+    def _load() -> JobLogResponse:
+        meta = store.read_meta(tool_id, job_id)
+        base = JobLogResponse(
+            job_id=job_id,
+            log=store.read_log(tool_id, job_id),
+            status=meta["status"],
+        )
+        return enrich_log(meta, base)
+
+    try:
+        return await asyncio.to_thread(_load)
+    except FileNotFoundError as exc:
+        raise _job_not_found(job_id) from exc
+
+
+async def _start_job_off_loop(fn: Callable[..., Any], /, **kwargs: Any) -> Any:
+    """Run job launch / admission (stage + thread spawn) without blocking asyncio."""
+    return await asyncio.to_thread(fn, **kwargs)
 
 
 def _parse_meta_datetime(value: str | None) -> datetime | None:
@@ -286,7 +319,8 @@ async def create_freesurfer_job(
         from neuroflow.tools.freesurfer import ensure_recon_all_available
 
         ensure_recon_all_available(settings)
-        try_start_job(
+        await _start_job_off_loop(
+            try_start_job,
             settings=settings,
             store=store,
             tool_id="freesurfer",
@@ -484,7 +518,8 @@ async def create_fsl_job(
         from neuroflow.tools.fsl import ensure_module_available
 
         ensure_module_available(settings, job_params.module_id, job_params.parameters)
-        try_start_job(
+        await _start_job_off_loop(
+            try_start_job,
             settings=settings,
             store=store,
             tool_id=FSL_TOOL_ID,
@@ -539,20 +574,7 @@ async def get_fsl_job_log(
     job_id: str,
     store: Annotated[JobStore, Depends(get_job_store)],
 ) -> JobLogResponse:
-    try:
-        meta = store.read_meta(FSL_TOOL_ID, job_id)
-    except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Job not found: {job_id}",
-            headers={"X-Error-Code": "job_not_found"},
-        ) from exc
-    base = JobLogResponse(
-        job_id=job_id,
-        log=store.read_log(FSL_TOOL_ID, job_id),
-        status=meta["status"],
-    )
-    return enrich_log(meta, base)
+    return await _load_job_log(store, FSL_TOOL_ID, job_id)
 
 
 @router.post("/sct/jobs", response_model=JobStatusResponse, status_code=201)
@@ -666,7 +688,8 @@ async def create_sct_job(
         from neuroflow.tools.sct import ensure_module_available
 
         ensure_module_available(settings, job_params.module_id, job_params.parameters)
-        try_start_job(
+        await _start_job_off_loop(
+            try_start_job,
             settings=settings,
             store=store,
             tool_id=SCT_TOOL_ID,
@@ -721,20 +744,7 @@ async def get_sct_job_log(
     job_id: str,
     store: Annotated[JobStore, Depends(get_job_store)],
 ) -> JobLogResponse:
-    try:
-        meta = store.read_meta(SCT_TOOL_ID, job_id)
-    except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Job not found: {job_id}",
-            headers={"X-Error-Code": "job_not_found"},
-        ) from exc
-    base = JobLogResponse(
-        job_id=job_id,
-        log=store.read_log(SCT_TOOL_ID, job_id),
-        status=meta["status"],
-    )
-    return enrich_log(meta, base)
+    return await _load_job_log(store, SCT_TOOL_ID, job_id)
 
 
 @router.post("/ants/jobs", response_model=JobStatusResponse, status_code=201)
@@ -832,7 +842,8 @@ async def create_ants_job(
         ) from exc
 
     try:
-        launch_ants_job(
+        await _start_job_off_loop(
+            launch_ants_job,
             settings=settings,
             store=store,
             job_id=job_id,
@@ -888,20 +899,7 @@ async def get_ants_job_log(
     job_id: str,
     store: Annotated[JobStore, Depends(get_job_store)],
 ) -> JobLogResponse:
-    try:
-        meta = store.read_meta(ANTS_TOOL_ID, job_id)
-    except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Job not found: {job_id}",
-            headers={"X-Error-Code": "job_not_found"},
-        ) from exc
-    base = JobLogResponse(
-        job_id=job_id,
-        log=store.read_log(ANTS_TOOL_ID, job_id),
-        status=meta["status"],
-    )
-    return enrich_log(meta, base)
+    return await _load_job_log(store, ANTS_TOOL_ID, job_id)
 
 
 @router.post("/slicer/jobs", response_model=JobStatusResponse, status_code=201)
@@ -999,7 +997,8 @@ async def create_slicer_job(
         ) from exc
 
     try:
-        launch_slicer_job(
+        await _start_job_off_loop(
+            launch_slicer_job,
             settings=settings,
             store=store,
             job_id=job_id,
@@ -1056,20 +1055,7 @@ async def get_slicer_job_log(
     job_id: str,
     store: Annotated[JobStore, Depends(get_job_store)],
 ) -> JobLogResponse:
-    try:
-        meta = store.read_meta(SLICER_TOOL_ID, job_id)
-    except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Job not found: {job_id}",
-            headers={"X-Error-Code": "job_not_found"},
-        ) from exc
-    base = JobLogResponse(
-        job_id=job_id,
-        log=store.read_log(SLICER_TOOL_ID, job_id),
-        status=meta["status"],
-    )
-    return enrich_log(meta, base)
+    return await _load_job_log(store, SLICER_TOOL_ID, job_id)
 
 
 @router.post("/itk/jobs", response_model=JobStatusResponse, status_code=201)
@@ -1167,7 +1153,8 @@ async def create_itk_job(
         ) from exc
 
     try:
-        launch_itk_job(
+        await _start_job_off_loop(
+            launch_itk_job,
             settings=settings,
             store=store,
             job_id=job_id,
@@ -1223,20 +1210,7 @@ async def get_itk_job_log(
     job_id: str,
     store: Annotated[JobStore, Depends(get_job_store)],
 ) -> JobLogResponse:
-    try:
-        meta = store.read_meta(ITK_TOOL_ID, job_id)
-    except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Job not found: {job_id}",
-            headers={"X-Error-Code": "job_not_found"},
-        ) from exc
-    base = JobLogResponse(
-        job_id=job_id,
-        log=store.read_log(ITK_TOOL_ID, job_id),
-        status=meta["status"],
-    )
-    return enrich_log(meta, base)
+    return await _load_job_log(store, ITK_TOOL_ID, job_id)
 
 
 @router.get("/freesurfer/jobs/{job_id}/log", response_model=JobLogResponse)
@@ -1244,20 +1218,7 @@ async def get_freesurfer_job_log(
     job_id: str,
     store: Annotated[JobStore, Depends(get_job_store)],
 ) -> JobLogResponse:
-    try:
-        meta = store.read_meta("freesurfer", job_id)
-    except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Job not found: {job_id}",
-            headers={"X-Error-Code": "job_not_found"},
-        ) from exc
-    base = JobLogResponse(
-        job_id=job_id,
-        log=store.read_log("freesurfer", job_id),
-        status=meta["status"],
-    )
-    return enrich_log(meta, base)
+    return await _load_job_log(store, "freesurfer", job_id)
 
 
 @router.post("/{tool_id}/jobs/{job_id}/kill", response_model=JobStatusResponse)
@@ -1273,7 +1234,7 @@ async def kill_tool_job(
             headers={"X-Error-Code": "validation_error"},
         )
     try:
-        meta = request_job_kill(store, tool_id, job_id)
+        meta = await asyncio.to_thread(request_job_kill, store, tool_id, job_id)
     except JobKillError as exc:
         raise HTTPException(
             status_code=exc.status_code,

@@ -99,3 +99,15 @@ def test_sample_host_resources_thresholds() -> None:
         sample = sample_host_resources(settings, cpu_interval=0.01)
     assert sample.can_start_job is False
     assert sample.block_reason and "RAM" in sample.block_reason
+
+
+def test_read_log_tails_large_files(tmp_path: Path) -> None:
+    settings = Settings(neuroflow_data_root=tmp_path / "jobs")
+    store = JobStore(settings)
+    job_id = store.create_job("fsl", {"module_id": "fsl-bet"})
+    big = ("header-line\n" + ("x" * 1000 + "\n") * 800).encode("utf-8")
+    store.log_path("fsl", job_id).write_bytes(big)
+    text = store.read_log("fsl", job_id, max_bytes=4096)
+    assert "truncated" in text
+    assert len(text.encode("utf-8")) < len(big)
+    assert text.endswith("x" * 1000 + "\n") or text.rstrip().endswith("x" * 1000)

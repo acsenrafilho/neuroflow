@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import shutil
 import uuid
@@ -110,14 +111,36 @@ class JobStore:
             )
 
         dest = self.job_dir(tool_id, job_id) / "input" / Path(upload.filename).name
-        dest.write_bytes(content)
+        await asyncio.to_thread(dest.write_bytes, content)
         return dest
 
-    def read_log(self, tool_id: str, job_id: str) -> str:
+    def read_log(
+        self,
+        tool_id: str,
+        job_id: str,
+        *,
+        max_bytes: int | None = 512_000,
+    ) -> str:
+        """Return job log text.
+
+        When ``max_bytes`` is set (default 512 KiB), only the tail is returned so
+        polling endpoints stay responsive for long FreeSurfer/FSL runs.
+        """
         path = self.log_path(tool_id, job_id)
         if not path.is_file():
             return ""
-        return path.read_text(encoding="utf-8", errors="replace")
+        size = path.stat().st_size
+        if max_bytes is None or size <= max_bytes:
+            return path.read_text(encoding="utf-8", errors="replace")
+        with path.open("rb") as handle:
+            handle.seek(size - max_bytes)
+            chunk = handle.read()
+        text = chunk.decode("utf-8", errors="replace")
+        # Drop partial first line so the UI starts on a clean boundary.
+        newline = text.find("\n")
+        if newline != -1 and newline + 1 < len(text):
+            text = text[newline + 1 :]
+        return f"… (log truncated to last {max_bytes // 1024} KiB)\n{text}"
 
     def append_log(self, tool_id: str, job_id: str, text: str) -> None:
         path = self.log_path(tool_id, job_id)

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
@@ -22,5 +23,6 @@ async def list_all_jobs(
     statuses: set[str] | None = None
     if status and status.strip():
         statuses = {part.strip() for part in status.split(",") if part.strip()}
-    rows = list_jobs(store, statuses=statuses)
+    # Disk scan is sync; keep it off the event loop so polling does not stall.
+    rows = await asyncio.to_thread(list_jobs, store, statuses=statuses)
     return [JobSummary.model_validate(row) for row in rows]
