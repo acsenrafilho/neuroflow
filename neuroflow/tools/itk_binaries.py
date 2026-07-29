@@ -34,9 +34,7 @@ def itk_binaries_config_path(settings: Settings) -> Path | None:
 def _validate_binary_path(module_id: str, raw: str) -> Path | None:
     path = Path(raw)
     if not path.is_absolute():
-        logger.warning(
-            "ITK config: %s must be an absolute path (got %r)", module_id, raw
-        )
+        logger.warning("ITK config: %s must be an absolute path (got %r)", module_id, raw)
         return None
     if not path.is_file():
         logger.warning("ITK config: %s path does not exist: %s", module_id, path)
@@ -61,9 +59,7 @@ def _parse_config_file(config_path: Path) -> dict[str, Path]:
     resolved: dict[str, Path] = {}
     for module_id, value in data.items():
         if not isinstance(module_id, str) or not isinstance(value, str):
-            logger.warning(
-                "ITK config: skip invalid entry %r -> %r", module_id, value
-            )
+            logger.warning("ITK config: skip invalid entry %r -> %r", module_id, value)
             continue
         binary = _validate_binary_path(module_id, value.strip())
         if binary is not None:

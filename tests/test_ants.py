@@ -6,7 +6,6 @@ from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
-
 from neuroflow.config import Settings
 from neuroflow.tools.ants import (
     ROLE_FIXED,

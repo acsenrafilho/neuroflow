@@ -97,18 +97,14 @@ class JobStore:
         self.write_meta(tool_id, job_id, meta)
         return meta
 
-    async def save_upload(
-        self, tool_id: str, job_id: str, upload: UploadFile
-    ) -> Path:
+    async def save_upload(self, tool_id: str, job_id: str, upload: UploadFile) -> Path:
         if not upload.filename:
             raise ValueError("Upload filename is required")
         _validate_upload_name(upload.filename)
 
         content = await upload.read()
         if len(content) > self._max_bytes:
-            raise ValueError(
-                f"File exceeds maximum size of {self._max_bytes // (1024 * 1024)} MB"
-            )
+            raise ValueError(f"File exceeds maximum size of {self._max_bytes // (1024 * 1024)} MB")
 
         dest = self.job_dir(tool_id, job_id) / "input" / Path(upload.filename).name
         await asyncio.to_thread(dest.write_bytes, content)

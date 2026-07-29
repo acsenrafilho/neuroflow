@@ -115,16 +115,16 @@ def test_create_itk_job_api(
     mock_launch.return_value = ["preview"]
 
     response = client.post(
-            "/api/v1/tools/itk/jobs",
-            data={
-                "module_id": "itk-diffusion-complexity-mapping",
-                "output_prefix": "out",
-                "parameters": json.dumps({"q_value": 1.0, "use_mask": False}),
-                "file_roles": json.dumps(["input"]),
-                "workspace": "demo_lab",
-                "subject_id": "sub-001",
-            },
-            files={"files": ("dwi.nii.gz", nii.read_bytes(), "application/gzip")},
+        "/api/v1/tools/itk/jobs",
+        data={
+            "module_id": "itk-diffusion-complexity-mapping",
+            "output_prefix": "out",
+            "parameters": json.dumps({"q_value": 1.0, "use_mask": False}),
+            "file_roles": json.dumps(["input"]),
+            "workspace": "demo_lab",
+            "subject_id": "sub-001",
+        },
+        files={"files": ("dwi.nii.gz", nii.read_bytes(), "application/gzip")},
     )
 
     assert response.status_code == 201

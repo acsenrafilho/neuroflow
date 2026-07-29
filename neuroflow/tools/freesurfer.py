@@ -145,9 +145,7 @@ def launch_freesurfer_job(
 
     datasets = DatasetStore(settings)
     job_dir = store.job_dir("freesurfer", job_id)
-    first_subjects_dir = datasets.freesurfer_subjects_dir(
-        workspace, scans[0].subject_id
-    )
+    first_subjects_dir = datasets.freesurfer_subjects_dir(workspace, scans[0].subject_id)
     for scan in scans:
         suffix = "".join(scan.input_path.suffixes) or ".nii.gz"
         datasets.stage_input(
@@ -226,9 +224,7 @@ def launch_freesurfer_job(
                     items[index - 1]["started_at"] = datetime.now(timezone.utc).isoformat()
                     store.update_meta("freesurfer", job_id, batch_items=items)
 
-                subjects_dir = datasets.freesurfer_subjects_dir(
-                    workspace, scan.subject_id
-                )
+                subjects_dir = datasets.freesurfer_subjects_dir(workspace, scan.subject_id)
                 argv = build_recon_all_argv(
                     input_path=scan.input_path,
                     recon_options=recon_options,

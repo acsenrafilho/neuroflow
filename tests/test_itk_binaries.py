@@ -3,7 +3,6 @@
 import json
 from pathlib import Path
 
-import pytest
 from neuroflow.config import Settings
 from neuroflow.tools.itk_binaries import (
     ITK_NATIVE_MODULE_IDS,

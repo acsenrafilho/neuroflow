@@ -12,7 +12,13 @@ def test_reconcile_marks_running_without_pid_as_failed(data_root: Path) -> None:
     settings = Settings(neuroflow_data_root=data_root)
     store = JobStore(settings)
     job_id = store.create_job("fsl", {"module_id": "fsl-bet"})
-    store.update_meta("fsl", job_id, status="running", pid=None, started_at="2026-01-01T00:00:00+00:00")
+    store.update_meta(
+        "fsl",
+        job_id,
+        status="running",
+        pid=None,
+        started_at="2026-01-01T00:00:00+00:00",
+    )
 
     counts = reconcile_orphaned_jobs(store)
 

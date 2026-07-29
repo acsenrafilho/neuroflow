@@ -145,10 +145,7 @@ def group_uploads_into_batch(
     n = counts[needed[0]]
     if n < 1:
         raise ValueError("At least one file set is required")
-    return [
-        {role: files_by_role[role][index] for role in needed}
-        for index in range(n)
-    ]
+    return [{role: files_by_role[role][index] for role in needed} for index in range(n)]
 
 
 def output_prefix_for_batch(
@@ -364,9 +361,7 @@ def launch_slicer_job(
     estimated_total_seconds = int(batch_total * estimated_hours * 3600)
 
     job_dir = store.job_dir(SLICER_TOOL_ID, job_id)
-    derivative = datasets.derivative_dir(
-        workspace, subject_id, SLICER_TOOL_ID, module_id
-    )
+    derivative = datasets.derivative_dir(workspace, subject_id, SLICER_TOOL_ID, module_id)
     datasets.link_job_output_to_derivatives(job_dir / "output", derivative)
 
     slicer = resolve_slicer_executable(settings)
@@ -490,9 +485,7 @@ def launch_slicer_job(
                     items[index - 1]["status"] = item_status
                     items[index - 1]["finished_at"] = datetime.now(timezone.utc).isoformat()
                     if exit_code != 0:
-                        items[index - 1]["error_message"] = (
-                            f"Slicer exited with code {exit_code}"
-                        )
+                        items[index - 1]["error_message"] = f"Slicer exited with code {exit_code}"
                     store.update_meta(SLICER_TOOL_ID, job_id, batch_items=items)
 
                 if skip_if_cancelled(store, SLICER_TOOL_ID, job_id):

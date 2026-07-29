@@ -7,9 +7,9 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 from neuroflow.tools.slicer import (
+    ROLE_BASELINE,
     ROLE_BVALS,
     ROLE_BVECS,
-    ROLE_BASELINE,
     ROLE_DWI,
     ROLE_INPUT,
     ROLE_MASK,

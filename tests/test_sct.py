@@ -184,9 +184,7 @@ def test_build_create_mask_centerline_requires_role(work_dir: Path) -> None:
 
 @patch("neuroflow.tools.sct.ensure_module_available")
 @patch("neuroflow.api.v1.tools.launch_sct_job")
-def test_create_sct_job_api(
-    mock_launch: object, _mock_ensure: object, client: TestClient
-) -> None:
+def test_create_sct_job_api(mock_launch: object, _mock_ensure: object, client: TestClient) -> None:
     mock_launch.return_value = ["sct_deepseg", "spinalcord", "-i", "in.nii.gz"]
 
     nii = Path(__file__).parent / "fixtures" / "tiny.nii.gz"

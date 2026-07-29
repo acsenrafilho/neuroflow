@@ -79,9 +79,9 @@ def test_workspaces_api_list_create(client: TestClient, datasets_root: Path) -> 
 def test_workspaces_api_invalid_name(client: TestClient) -> None:
     response = client.post("/api/v1/workspaces", json={"name": "bad/name"})
     assert response.status_code == 422
-    assert "letters" in response.json()["detail"].lower() or "Workspace" in response.json()[
-        "detail"
-    ]
+    assert (
+        "letters" in response.json()["detail"].lower() or "Workspace" in response.json()["detail"]
+    )
 
 
 def test_workspaces_api_open_success(client: TestClient, datasets_root: Path) -> None:
@@ -125,6 +125,8 @@ def test_open_in_file_manager_missing_opener(tmp_path: Path) -> None:
 
     folder = tmp_path / "folder"
     folder.mkdir()
-    with patch("neuroflow.services.reveal_path.shutil.which", return_value=None):
-        with pytest.raises(RuntimeError, match="xdg-open"):
-            open_in_file_manager(folder)
+    with (
+        patch("neuroflow.services.reveal_path.shutil.which", return_value=None),
+        pytest.raises(RuntimeError, match="xdg-open"),
+    ):
+        open_in_file_manager(folder)

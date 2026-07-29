@@ -631,7 +631,9 @@ MODULES: tuple[ModuleDefinition, ...] = (
         package_id="slicer",
         package_name="3D Slicer",
         module_name="DWIConvert",
-        description="Convert FSL-format DWI (NIfTI + bvals/bvecs) to NRRD for Slicer diffusion tools.",
+        description=(
+            "Convert FSL-format DWI (NIfTI + bvals/bvecs) to NRRD for Slicer diffusion tools."
+        ),
         page_path="/tools/slicer.html",
         estimated_hours_per_scan=0.1,
     ),
@@ -649,7 +651,9 @@ MODULES: tuple[ModuleDefinition, ...] = (
         package_id="slicer",
         package_name="3D Slicer",
         module_name="DWIToDTIEstimation",
-        description="Estimate a diffusion tensor volume (DTI) from DWI, mask, and baseline NRRD inputs.",
+        description=(
+            "Estimate a diffusion tensor volume (DTI) from DWI, mask, and baseline NRRD inputs."
+        ),
         page_path="/tools/slicer.html",
         estimated_hours_per_scan=0.25,
     ),
@@ -658,9 +662,7 @@ MODULES: tuple[ModuleDefinition, ...] = (
         package_id="itk",
         package_name="ITK",
         module_name="Diffusion Complexity Mapping",
-        description=(
-            "Diffusion complexity mapping from diffusion MRI (CSIM ITK Features module)."
-        ),
+        description=("Diffusion complexity mapping from diffusion MRI (CSIM ITK Features module)."),
         page_path="/tools/itk.html",
         availability_mode="itk_binary",
         estimated_hours_per_scan=0.5,

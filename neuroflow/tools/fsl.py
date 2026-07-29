@@ -306,10 +306,7 @@ def group_uploads_into_batch(
     n = counts[needed[0]]
     if n < 1:
         raise ValueError("At least one file set is required")
-    return [
-        {role: files_by_role[role][index] for role in needed}
-        for index in range(n)
-    ]
+    return [{role: files_by_role[role][index] for role in needed} for index in range(n)]
 
 
 def output_prefix_for_batch(
@@ -712,9 +709,7 @@ def launch_fsl_job(
     estimated_total_seconds = int(batch_total * estimated_hours * 3600)
 
     job_dir = store.job_dir(FSL_TOOL_ID, job_id)
-    derivative = datasets.derivative_dir(
-        workspace, subject_id, FSL_TOOL_ID, module_id
-    )
+    derivative = datasets.derivative_dir(workspace, subject_id, FSL_TOOL_ID, module_id)
     datasets.link_job_output_to_derivatives(job_dir / "output", derivative)
 
     first_files = batch_items[0]
@@ -753,9 +748,7 @@ def launch_fsl_job(
             }
         )
 
-    all_input_names = [
-        path.name for item in batch_items for path in item.values()
-    ]
+    all_input_names = [path.name for item in batch_items for path in item.values()]
     store.update_meta(
         FSL_TOOL_ID,
         job_id,
@@ -844,9 +837,7 @@ def launch_fsl_job(
                     items[index - 1]["status"] = item_status
                     items[index - 1]["finished_at"] = datetime.now(timezone.utc).isoformat()
                     if exit_code != 0:
-                        items[index - 1]["error_message"] = (
-                            f"FSL exited with code {exit_code}"
-                        )
+                        items[index - 1]["error_message"] = f"FSL exited with code {exit_code}"
                     store.update_meta(FSL_TOOL_ID, job_id, batch_items=items)
 
                 if skip_if_cancelled(store, FSL_TOOL_ID, job_id):

@@ -1,4 +1,4 @@
-.PHONY: setup install desktop-install test lint api frontend-build docs
+.PHONY: setup install desktop-install test lint lint-fix api frontend-build docs
 
 setup:
 	@./scripts/setup.sh
@@ -17,6 +17,10 @@ test:
 lint:
 	poetry run ruff check neuroflow tests
 	poetry run ruff format --check neuroflow tests
+
+lint-fix:
+	poetry run ruff check --fix neuroflow tests
+	poetry run ruff format neuroflow tests
 
 api:
 	poetry run neuroflow serve

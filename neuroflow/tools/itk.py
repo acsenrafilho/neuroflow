@@ -292,9 +292,7 @@ def launch_itk_job(
     estimated_total_seconds = int(batch_total * estimated_hours * 3600)
 
     job_dir = store.job_dir(ITK_TOOL_ID, job_id)
-    derivative = datasets.derivative_dir(
-        workspace, subject_id, ITK_TOOL_ID, module_id
-    )
+    derivative = datasets.derivative_dir(workspace, subject_id, ITK_TOOL_ID, module_id)
     datasets.link_job_output_to_derivatives(job_dir / "output", derivative)
 
     first_files = batch_items[0]
@@ -317,7 +315,7 @@ def launch_itk_job(
         preview = f"{preview}  (+{batch_total - 1} more run(s) queued)"
 
     batch_meta = []
-    for index, files in enumerate(batch_items):
+    for _index, files in enumerate(batch_items):
         batch_meta.append(
             {
                 "filename": files[ROLE_INPUT].name,
@@ -349,7 +347,6 @@ def launch_itk_job(
     )
 
     def _worker() -> None:
-        exit_code = 0
         try:
             for index, files in enumerate(batch_items, start=1):
                 if skip_if_cancelled(store, ITK_TOOL_ID, job_id):
@@ -388,7 +385,6 @@ def launch_itk_job(
                 if skip_if_cancelled(store, ITK_TOOL_ID, job_id):
                     return
                 if code != 0:
-                    exit_code = code
                     batch_meta[index - 1]["status"] = "failed"
                     batch_meta[index - 1]["finished_at"] = finished
                     batch_meta[index - 1]["error_message"] = f"Exit code {code}"

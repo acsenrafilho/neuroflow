@@ -111,17 +111,21 @@ def test_probe_slicer_via_home(tmp_path: Path) -> None:
     slicer_bin.write_text("#!/bin/sh\n", encoding="utf-8")
     slicer_bin.chmod(0o755)
     settings = Settings(neuroflow_slicer_home=tmp_path)
-    with patch("neuroflow.tools.host_probe.resolve_executable", return_value=None):
-        with patch("neuroflow.tools.host_probe._first_on_path", return_value=None):
-            result = probe_slicer(settings)
+    with (
+        patch("neuroflow.tools.host_probe.resolve_executable", return_value=None),
+        patch("neuroflow.tools.host_probe._first_on_path", return_value=None),
+    ):
+        result = probe_slicer(settings)
     assert result.available is True
     assert result.resolved_path == str(slicer_bin)
 
 
 def test_probe_slicer_missing() -> None:
-    with patch("neuroflow.tools.host_probe.resolve_executable", return_value=None):
-        with patch("neuroflow.tools.host_probe._first_on_path", return_value=None):
-            result = probe_slicer(Settings())
+    with (
+        patch("neuroflow.tools.host_probe.resolve_executable", return_value=None),
+        patch("neuroflow.tools.host_probe._first_on_path", return_value=None),
+    ):
+        result = probe_slicer(Settings())
     assert result.available is False
 
 
@@ -172,9 +176,11 @@ def test_probe_sct_via_sct_dir(tmp_path: Path) -> None:
 
 
 def test_probe_sct_missing() -> None:
-    with patch("neuroflow.tools.host_probe._first_on_path", return_value=None):
-        with patch("neuroflow.tools.host_probe._sct_bin_dir", return_value=None):
-            result = probe_sct(Settings())
+    with (
+        patch("neuroflow.tools.host_probe._first_on_path", return_value=None),
+        patch("neuroflow.tools.host_probe._sct_bin_dir", return_value=None),
+    ):
+        result = probe_sct(Settings())
     assert result.available is False
 
 

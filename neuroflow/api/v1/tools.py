@@ -5,10 +5,10 @@ from __future__ import annotations
 import asyncio
 import json
 from collections import defaultdict
+from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated, Any
-from collections.abc import Callable
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from pydantic import ValidationError
@@ -490,9 +490,7 @@ async def create_fsl_job(
         for upload, role in zip(files, parsed_roles, strict=True):
             input_path = await store.save_upload(FSL_TOOL_ID, job_id, upload)
             files_by_role[role].append(input_path)
-        batch_items = group_uploads_into_batch(
-            job_params.module_id, dict(files_by_role)
-        )
+        batch_items = group_uploads_into_batch(job_params.module_id, dict(files_by_role))
     except ValueError as exc:
         store.delete_job(FSL_TOOL_ID, job_id)
         raise HTTPException(
@@ -660,9 +658,7 @@ async def create_sct_job(
         for upload, role in zip(files, parsed_roles, strict=True):
             input_path = await store.save_upload(SCT_TOOL_ID, job_id, upload)
             files_by_role[role].append(input_path)
-        batch_items = group_sct_uploads_into_batch(
-            job_params.module_id, dict(files_by_role)
-        )
+        batch_items = group_sct_uploads_into_batch(job_params.module_id, dict(files_by_role))
     except ValueError as exc:
         store.delete_job(SCT_TOOL_ID, job_id)
         raise HTTPException(
@@ -830,9 +826,7 @@ async def create_ants_job(
         for upload, role in zip(files, parsed_roles, strict=True):
             input_path = await store.save_upload(ANTS_TOOL_ID, job_id, upload)
             files_by_role[role].append(input_path)
-        batch_items = group_ants_uploads_into_batch(
-            job_params.module_id, dict(files_by_role)
-        )
+        batch_items = group_ants_uploads_into_batch(job_params.module_id, dict(files_by_role))
     except ValueError as exc:
         store.delete_job(ANTS_TOOL_ID, job_id)
         raise HTTPException(
@@ -985,9 +979,7 @@ async def create_slicer_job(
         for upload, role in zip(files, parsed_roles, strict=True):
             input_path = await store.save_upload(SLICER_TOOL_ID, job_id, upload)
             files_by_role[role].append(input_path)
-        batch_items = group_slicer_uploads_into_batch(
-            job_params.module_id, dict(files_by_role)
-        )
+        batch_items = group_slicer_uploads_into_batch(job_params.module_id, dict(files_by_role))
     except ValueError as exc:
         store.delete_job(SLICER_TOOL_ID, job_id)
         raise HTTPException(
@@ -1141,9 +1133,7 @@ async def create_itk_job(
         for upload, role in zip(files, parsed_roles, strict=True):
             input_path = await store.save_upload(ITK_TOOL_ID, job_id, upload)
             files_by_role[role].append(input_path)
-        batch_items = group_itk_uploads_into_batch(
-            job_params.module_id, dict(files_by_role)
-        )
+        batch_items = group_itk_uploads_into_batch(job_params.module_id, dict(files_by_role))
     except ValueError as exc:
         store.delete_job(ITK_TOOL_ID, job_id)
         raise HTTPException(

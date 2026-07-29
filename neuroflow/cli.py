@@ -149,4 +149,3 @@ def main() -> None:
         return
 
     _print_status(settings)
-

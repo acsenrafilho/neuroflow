@@ -278,9 +278,7 @@ def build_argv(
         process = str(parameters.get("process") or "center")
         if process == "centerline":
             if ROLE_CENTERLINE not in files:
-                raise ValueError(
-                    "Role 'centerline' is required when process mode is 'centerline'"
-                )
+                raise ValueError("Role 'centerline' is required when process mode is 'centerline'")
             process_arg = f"centerline,{files[ROLE_CENTERLINE].resolve()}"
         else:
             process_arg = "center"
@@ -487,9 +485,7 @@ def launch_sct_job(
     estimated_total_seconds = int(batch_total * estimated_hours * 3600)
 
     job_dir = store.job_dir(SCT_TOOL_ID, job_id)
-    derivative = datasets.derivative_dir(
-        workspace, subject_id, SCT_TOOL_ID, module_id
-    )
+    derivative = datasets.derivative_dir(workspace, subject_id, SCT_TOOL_ID, module_id)
     datasets.link_job_output_to_derivatives(job_dir / "output", derivative)
 
     first_files = batch_items[0]
@@ -606,9 +602,7 @@ def launch_sct_job(
                     items[index - 1]["status"] = item_status
                     items[index - 1]["finished_at"] = datetime.now(timezone.utc).isoformat()
                     if exit_code != 0:
-                        items[index - 1]["error_message"] = (
-                            f"SCT exited with code {exit_code}"
-                        )
+                        items[index - 1]["error_message"] = f"SCT exited with code {exit_code}"
                     store.update_meta(SCT_TOOL_ID, job_id, batch_items=items)
 
                 if skip_if_cancelled(store, SCT_TOOL_ID, job_id):

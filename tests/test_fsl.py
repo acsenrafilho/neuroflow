@@ -123,8 +123,9 @@ def test_batch_meta_matches_batch_item_status_schema(work_dir: Path) -> None:
 
     from neuroflow.tools.fsl import launch_fsl_job
 
-    with patch("neuroflow.tools.fsl._run_one_fsl", return_value=0), patch(
-        "neuroflow.tools.fsl.ensure_module_available"
+    with (
+        patch("neuroflow.tools.fsl._run_one_fsl", return_value=0),
+        patch("neuroflow.tools.fsl.ensure_module_available"),
     ):
         launch_fsl_job(
             settings=settings,
@@ -285,9 +286,7 @@ def test_build_susan_argv_uses_nifti_extension(work_dir: Path) -> None:
 
 @patch("neuroflow.tools.fsl.ensure_module_available")
 @patch("neuroflow.api.v1.tools.launch_fsl_job")
-def test_create_fsl_job_api(
-    mock_launch: object, _mock_ensure: object, client: TestClient
-) -> None:
+def test_create_fsl_job_api(mock_launch: object, _mock_ensure: object, client: TestClient) -> None:
     mock_launch.return_value = ["bet", "in.nii.gz", "out"]
 
     nii = Path(__file__).parent / "fixtures" / "tiny.nii.gz"
