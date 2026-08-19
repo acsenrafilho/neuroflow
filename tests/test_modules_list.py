@@ -64,6 +64,7 @@ def test_modules_use_cached_host_probe(client: TestClient) -> None:
 
     with (
         patch("neuroflow.tools.host_probe.resolve_itk_module_binary", return_value=None),
+        patch("neuroflow.tools.host_probe.resolve_executable", return_value=None),
         patch("neuroflow.tools.host_probe.which", return_value=None),
     ):
         response = client.get("/api/v1/modules")

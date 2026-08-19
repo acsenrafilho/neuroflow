@@ -17,7 +17,7 @@ On Debian/Ubuntu, `make setup` checks these and can suggest `apt` / Poetry insta
 
 - **FreeSurfer** (`recon-all` on `PATH`, or `NEUROFLOW_RECON_ALL_BIN`)
 - **FSL** (`bet`, `flirt`, etc. on `PATH`, or `NEUROFLOW_FSLDIR` / `FSLDIR`)
-- **Spinal Cord Toolbox (SCT)** (`sct_version` on `PATH`, or `SCT_DIR` / `NEUROFLOW_SCT_DIR`)
+- **Spinal Cord Toolbox (SCT)** (`sct_version` on `PATH`, `$HOME/sct_*`, or `SCT_DIR` / `NEUROFLOW_SCT_DIR`)
 - Optional (code present, hidden in the portal UI for now): ANTs, 3D Slicer, ITK
 
 ## Quick start (Ubuntu / Debian)

@@ -154,8 +154,8 @@ def test_probe_itk_with_configured_binary(tmp_path: Path) -> None:
 
 def test_probe_sct_binary_on_path() -> None:
     with patch(
-        "neuroflow.tools.host_probe._first_on_path",
-        return_value="/home/user/sct_7.3/bin/sct_version",
+        "neuroflow.tools.host_probe.resolve_executable",
+        return_value=Path("/home/user/sct_7.3/bin/sct_version"),
     ):
         result = probe_sct(Settings())
     assert result.available is True
@@ -169,19 +169,53 @@ def test_probe_sct_via_sct_dir(tmp_path: Path) -> None:
     version_bin.write_text("#!/bin/sh\n", encoding="utf-8")
     version_bin.chmod(0o755)
     settings = Settings(neuroflow_sct_dir=tmp_path)
-    with patch("neuroflow.tools.host_probe._first_on_path", return_value=None):
-        result = probe_sct(settings)
+    result = probe_sct(settings)
+    assert result.available is True
+    assert result.resolved_path == str(version_bin)
+
+
+def test_probe_sct_autodetect_home_install(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    install = tmp_path / "sct_7.3"
+    bin_dir = install / "bin"
+    bin_dir.mkdir(parents=True)
+    version_bin = bin_dir / "sct_version"
+    version_bin.write_text("#!/bin/sh\n", encoding="utf-8")
+    version_bin.chmod(0o755)
+    monkeypatch.delenv("SCT_DIR", raising=False)
+    monkeypatch.delenv("NEUROFLOW_SCT_DIR", raising=False)
+    with (
+        patch("neuroflow.tools.base._default_sct_install_roots", return_value=[install]),
+        patch("neuroflow.tools.host_probe._first_on_path", return_value=None),
+        patch("neuroflow.tools.base.which", return_value=None),
+    ):
+        result = probe_sct(Settings())
     assert result.available is True
     assert result.resolved_path == str(version_bin)
 
 
 def test_probe_sct_missing() -> None:
     with (
+        patch("neuroflow.tools.host_probe.resolve_executable", return_value=None),
         patch("neuroflow.tools.host_probe._first_on_path", return_value=None),
-        patch("neuroflow.tools.host_probe._sct_bin_dir", return_value=None),
+        patch("neuroflow.tools.host_probe._sct_root_dir", return_value=None),
     ):
         result = probe_sct(Settings())
     assert result.available is False
+
+
+def test_module_available_sct_via_sct_dir(tmp_path: Path) -> None:
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    for name in ("sct_version", "sct_deepseg"):
+        binary = bin_dir / name
+        binary.write_text("#!/bin/sh\n", encoding="utf-8")
+        binary.chmod(0o755)
+    settings = Settings(neuroflow_sct_dir=tmp_path)
+    results = {"sct": ProbeResult("sct", True, resolved_path=str(bin_dir / "sct_version"))}
+    module = get_module("sct-deepseg")
+    assert module is not None
+    with patch("neuroflow.tools.host_probe.which", return_value=None):
+        assert module_available(results, module, settings) is True
 
 
 def test_module_available_itk_binary_and_worker(tmp_path: Path) -> None:

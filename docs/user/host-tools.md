@@ -8,7 +8,7 @@ NeuroFlow **detects** neuroimaging packages on the machine; it does **not** inst
 |---------|--------------------------|
 | FreeSurfer | `recon-all` on `PATH`, or `NEUROFLOW_RECON_ALL_BIN` / `NEUROFLOW_FREESURFER_HOME` |
 | FSL | `FSLDIR` / `NEUROFLOW_FSLDIR` |
-| Spinal Cord Toolbox (SCT) | `sct_version` on `PATH`, or `SCT_DIR` / `NEUROFLOW_SCT_DIR` |
+| Spinal Cord Toolbox (SCT) | `sct_version` on `PATH`, `$HOME/sct_*` (official installer), or `SCT_DIR` / `NEUROFLOW_SCT_DIR` |
 
 ANTs, 3D Slicer, and ITK have similar environment overrides in `.env.example` but are **not** shown in the portal UI yet.
 

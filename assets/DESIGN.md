@@ -44,6 +44,8 @@ NeuroFlow is a **facilitation portal** for neuroscience medical image processing
 
 NeuroFlow uses **Material Design 3** with custom color tokens defined in each page’s Tailwind config (see `doc/mockup/home.html`).
 
+**MkDocs** (`mkdocs.yml`, published on Read the Docs) uses the same MD3 tokens and typography (Inter body, Manrope headlines). The header logo and favicon are `neuroflow_icon.png` (canonical file: `assets/images/neuroflow_icon.png`; docs copy: `docs/assets/brand/neuroflow_icon.png`). Do not revert the docs theme to Material’s generic `blue grey` / `teal` palettes.
+
 | Layer | Choice |
 |-------|--------|
 | CSS | Tailwind CSS (CDN in mockups; build step optional later) |
@@ -440,5 +442,6 @@ Use when adding or updating pages under `doc/mockup/`:
 | 2026-07-25 | — | In-app Help wiki at `/help/`; sidebar Help vs Open API; NeuroFlow guide on tool/package pages |
 | 2026-07-25 | — | Home Workspaces panel: create/list folders; Use + Open folder via `/api/v1/workspaces` |
 | 2026-07-25 | — | Subject-centered datasets: outputs under `sub-<id>/derivatives/<package>/<module>/` |
+| 2026-08-19 | — | MkDocs Material theme aligned with portal tokens, Inter/Manrope, and `neuroflow_icon.png` |
 
-**Last updated:** 2026-07-25
+**Last updated:** 2026-08-19

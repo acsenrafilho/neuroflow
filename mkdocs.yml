@@ -6,13 +6,37 @@ repo_name: acsenrafilho/neuroflow
 
 theme:
   name: material
+  logo: assets/brand/neuroflow_icon.png
+  favicon: assets/brand/neuroflow_icon.png
+  font:
+    text: Inter
   palette:
     - scheme: default
-      primary: blue grey
-      accent: teal
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
   features:
     - navigation.sections
+    - navigation.top
+    - toc.follow
+    - search.highlight
     - content.code.copy
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/acsenrafilho/neuroflow
 
 plugins:
   - search
@@ -39,6 +63,7 @@ nav:
 
 markdown_extensions:
   - admonition
+  - attr_list
   - pymdownx.highlight
   - pymdownx.superfences:
       custom_fences:
