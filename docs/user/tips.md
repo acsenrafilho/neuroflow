@@ -5,6 +5,7 @@ Short habits that keep jobs predictable.
 - Prefer the **form and CLI preview**. Do not paste a full shell line into the portal; arguments are built server-side from validated fields.
 - After `source` of FreeSurfer, FSL, or SCT, **rescan** the host (`POST /api/v1/host/rescan`) or restart the API so Home shows **Ready**.
 - Run **one job per stage**. TOPUP before EDDY, FDT before BEDPOSTX, cord segmentation before `sct_process_segmentation`.
+- For CSA **by vertebral level**, `sct_process_segmentation` needs a `vertfile` plus `-vert` (for example `1:3`) and `-perlevel 1`. A CSV without `-vert` is not per-level CSA. See [T1 cervical morphometry](sct-t1-morphometry.md).
 - Use a **stable workspace name** and coded subject IDs (`sub-001`), not real names in paths.
 - Expect FreeSurfer `-all` to run for **hours**. Watch **Active processes** on Home, not only the module tab.
 - If a job is **queued**, check RAM/CPU gates and `NEUROFLOW_MAX_QUEUED_JOBS`. Finish or stop other work, then retry.

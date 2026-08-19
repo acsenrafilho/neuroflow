@@ -30,8 +30,11 @@ VALID_MODULE_IDS = frozenset(
         "sct-warp-template",
         "sct-apply-transfo",
         "sct-process-segmentation",
+        "sct-qc",
     }
 )
+
+SCT_QC_PROCESSES = frozenset({"sct_deepseg_sc", "sct_label_vertebrae"})
 
 ROLE_INPUT = "input"
 ROLE_SEG = "seg"
@@ -53,6 +56,7 @@ MODULE_REQUIRED_ROLES: dict[str, tuple[str, ...]] = {
     "sct-warp-template": (ROLE_DEST, ROLE_WARP),
     "sct-apply-transfo": (ROLE_INPUT, ROLE_DEST, ROLE_WARP),
     "sct-process-segmentation": (ROLE_INPUT,),
+    "sct-qc": (ROLE_INPUT, ROLE_SEG),
 }
 
 # Optional roles accepted when uploaded (not required for grouping).
@@ -72,6 +76,7 @@ _MODULE_BATCH_DRIVER: dict[str, str | None] = {
     "sct-warp-template": ROLE_DEST,
     "sct-apply-transfo": ROLE_INPUT,
     "sct-process-segmentation": ROLE_INPUT,
+    "sct-qc": ROLE_INPUT,
 }
 
 MODULE_PRIMARY_EXECUTABLE: dict[str, str] = {
@@ -84,6 +89,7 @@ MODULE_PRIMARY_EXECUTABLE: dict[str, str] = {
     "sct-warp-template": "sct_warp_template",
     "sct-apply-transfo": "sct_apply_transfo",
     "sct-process-segmentation": "sct_process_segmentation",
+    "sct-qc": "sct_qc",
 }
 
 
@@ -217,6 +223,23 @@ def _opt_flag(name: str, value: Any) -> list[str]:
     if value is None or value == "":
         return []
     return [name, str(value)]
+
+
+def _flag_enabled(value: Any) -> bool:
+    """True when an SCT 0/1 flag is explicitly on."""
+    if value is None or value == "":
+        return False
+    if isinstance(value, bool):
+        return value
+    text = str(value).strip().lower()
+    if text in {"1", "true", "yes"}:
+        return True
+    if text in {"0", "false", "no"}:
+        return False
+    try:
+        return int(value) == 1
+    except (TypeError, ValueError):
+        return False
 
 
 def build_argv(
@@ -369,11 +392,44 @@ def build_argv(
             "-o",
             str(out_path),
         ]
+        vert = str(parameters.get("vert") or "").strip()
+        perlevel = parameters.get("perlevel")
+        needs_vertfile = bool(vert) or _flag_enabled(perlevel)
+        if needs_vertfile and ROLE_VERTFILE not in files:
+            raise ValueError("Role 'vertfile' is required when -vert or -perlevel is set")
         if ROLE_VERTFILE in files:
             argv.extend(["-vertfile", str(files[ROLE_VERTFILE].resolve())])
+        if vert:
+            argv.extend(["-vert", vert])
+        if perlevel is not None and perlevel != "":
+            argv.extend(["-perlevel", str(int(perlevel))])
         perslice = parameters.get("perslice")
         if perslice is not None and perslice != "":
             argv.extend(["-perslice", str(int(perslice))])
+        angle_corr = parameters.get("angle_corr")
+        if angle_corr is None:
+            angle_corr = parameters.get("angle-corr")
+        if angle_corr is not None and angle_corr != "":
+            argv.extend(["-angle-corr", str(int(angle_corr))])
+        return argv
+
+    if module_id == "sct-qc":
+        process = str(parameters.get("process") or "sct_deepseg_sc")
+        if process not in SCT_QC_PROCESSES:
+            allowed = ", ".join(sorted(SCT_QC_PROCESSES))
+            raise ValueError(f"Unsupported sct_qc process '{process}'. Allowed: {allowed}")
+        qc_dir = out_dir / "qc"
+        argv = [
+            "sct_qc",
+            "-i",
+            str(files[ROLE_INPUT].resolve()),
+            "-p",
+            process,
+            "-s",
+            str(files[ROLE_SEG].resolve()),
+            "-qc",
+            str(qc_dir),
+        ]
         return argv
 
     raise ValueError(f"No argv builder for module: {module_id}")

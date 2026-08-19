@@ -121,6 +121,7 @@ TOOLS: dict[str, ToolDefinition] = {
             "sct_warp_template",
             "sct_apply_transfo",
             "sct_process_segmentation",
+            "sct_qc",
         ),
     ),
 }
@@ -624,6 +625,16 @@ MODULES: tuple[ModuleDefinition, ...] = (
         description="Compute CSA and other morphometrics from a spinal cord segmentation.",
         page_path="/tools/sct.html",
         required_executable="sct_process_segmentation",
+        estimated_hours_per_scan=0.05,
+    ),
+    ModuleDefinition(
+        id="sct-qc",
+        package_id="sct",
+        package_name="Spinal Cord Toolbox",
+        module_name="sct_qc",
+        description="Generate an HTML QC report for cord segmentation or vertebral labels.",
+        page_path="/tools/sct.html",
+        required_executable="sct_qc",
         estimated_hours_per_scan=0.05,
     ),
     ModuleDefinition(

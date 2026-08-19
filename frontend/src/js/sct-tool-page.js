@@ -385,6 +385,17 @@
       return;
     }
 
+    if (activeModuleId === "sct-process-segmentation") {
+      const params = collectParameters();
+      const vert = (params.vert || "").trim();
+      const perlevelOn = String(params.perlevel) === "1";
+      const hasVertfile = (filesByRole.get("vertfile") || []).length > 0;
+      if ((vert || perlevelOn) && !hasVertfile) {
+        showError("Upload a vertebral label file (vertfile) when -vert or -perlevel is set.");
+        return;
+      }
+    }
+
     const n = batchRunCount();
     if (n < 1) {
       const driver = activeConfig.batchDriverRole;

@@ -1,4 +1,8 @@
+![NeuroFlow](assets/brand/neuroflow_icon.png){ width="96" }
+
 # NeuroFlow
+
+**Neuroimaging tools, one page at a time.**
 
 NeuroFlow is a **facilitation portal** for neuroscience medical image processing: **one web page per CLI tool** (FreeSurfer, FSL, and Spinal Cord Toolbox in the portal today).
 
@@ -24,6 +28,7 @@ This site: [https://neuroflowpipelines.readthedocs.io/](https://neuroflowpipelin
 ## Developers
 
 - [Development](development.md)
+- [Contributing](contributing.md)
 - [Architecture](architecture.md)
 - [API](api.md)
 - [Security](security.md)

@@ -1,0 +1,87 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&display=swap");
+
+:root {
+  --md-primary-fg-color: #004473;
+  --md-primary-fg-color--light: #0d5c96;
+  --md-primary-fg-color--dark: #004473;
+  --md-accent-fg-color: #006c46;
+  --md-accent-fg-color--transparent: #006c461a;
+  --md-code-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}
+
+[data-md-color-scheme="default"] {
+  --md-default-bg-color: #f7f9fb;
+  --md-default-fg-color: #191c1e;
+  --md-default-fg-color--light: #414750;
+  --md-typeset-a-color: #0d5c96;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #004473;
+  --md-primary-fg-color--light: #0d5c96;
+  --md-accent-fg-color: #6af9b5;
+  --md-typeset-a-color: #9ccaff;
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
+  font-family: Manrope, var(--md-text-font, Inter), sans-serif;
+  font-weight: 700;
+  color: #004473;
+}
+
+[data-md-color-scheme="slate"] .md-typeset h1,
+[data-md-color-scheme="slate"] .md-typeset h2,
+[data-md-color-scheme="slate"] .md-typeset h3 {
+  color: #9ccaff;
+}
+
+.md-header__button.md-logo {
+  padding: 0.2rem;
+}
+
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 2rem;
+  width: auto;
+  border-radius: 0.375rem;
+  object-fit: contain;
+}
+
+.md-typeset .admonition.note,
+.md-typeset details.note,
+.md-typeset .admonition.info,
+.md-typeset details.info {
+  border-color: #004473;
+}
+
+.md-typeset .note > .admonition-title,
+.md-typeset .note > summary,
+.md-typeset .info > .admonition-title,
+.md-typeset .info > summary {
+  background-color: #0044731a;
+}
+
+.md-typeset .note > .admonition-title::before,
+.md-typeset .note > summary::before,
+.md-typeset .info > .admonition-title::before,
+.md-typeset .info > summary::before {
+  background-color: #004473;
+}
+
+.md-typeset .admonition.tip,
+.md-typeset details.tip {
+  border-color: #006c46;
+}
+
+.md-typeset .tip > .admonition-title,
+.md-typeset .tip > summary {
+  background-color: #006c461a;
+}
+
+.md-typeset .tip > .admonition-title::before,
+.md-typeset .tip > summary::before {
+  background-color: #006c46;
+}

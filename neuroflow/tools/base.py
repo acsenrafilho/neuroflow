@@ -66,6 +66,7 @@ ALLOWLISTED_EXECUTABLES = frozenset(
         "sct_warp_template",
         "sct_apply_transfo",
         "sct_process_segmentation",
+        "sct_qc",
     }
 )
 
@@ -96,6 +97,29 @@ def _apply_antspath_env(env: dict[str, str], bin_dir: Path) -> None:
     env["PATH"] = f"{bin_dir.resolve()}{os.pathsep}{env.get('PATH', '')}"
 
 
+def _sct_binary_in_root(root: Path, name: str = "sct_version") -> Path | None:
+    """Return an executable under an SCT install root (`bin/` or the root itself)."""
+    for sub in ("bin", ""):
+        candidate = root / sub / name if sub else root / name
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return candidate
+    return None
+
+
+def _default_sct_install_roots() -> list[Path]:
+    """Usual Spinal Cord Toolbox install locations (official installer uses $HOME/sct_<version>)."""
+    home = Path.home()
+    roots = sorted(home.glob("sct_*"), reverse=True)
+    roots.extend(
+        [
+            home / "spinalcordtoolbox",
+            Path("/opt/spinalcordtoolbox"),
+            Path("/usr/local/spinalcordtoolbox"),
+        ]
+    )
+    return roots
+
+
 def _sct_root_dir(settings: Settings) -> Path | None:
     if settings.neuroflow_sct_dir is not None:
         root = settings.neuroflow_sct_dir.resolve()
@@ -105,6 +129,9 @@ def _sct_root_dir(settings: Settings) -> Path | None:
         value = os.environ.get(var)
         if value and Path(value).is_dir():
             return Path(value).resolve()
+    for root in _default_sct_install_roots():
+        if root.is_dir() and _sct_binary_in_root(root) is not None:
+            return root.resolve()
     return None
 
 
@@ -147,10 +174,9 @@ def resolve_executable(settings: Settings, name: str) -> Path | None:
 
     sct_root = _sct_root_dir(settings)
     if sct_root is not None:
-        for sub in ("bin", ""):
-            candidate = sct_root / sub / name if sub else sct_root / name
-            if candidate.is_file() and os.access(candidate, os.X_OK):
-                return candidate
+        found_sct = _sct_binary_in_root(sct_root, name)
+        if found_sct is not None:
+            return found_sct
 
     found = which(name)
     return Path(found) if found else None

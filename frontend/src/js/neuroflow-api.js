@@ -330,6 +330,18 @@
       coming_soon: false,
       available: false,
     },
+    {
+      id: "sct-qc",
+      package_id: "sct",
+      package_name: "Spinal Cord Toolbox",
+      module_name: "sct_qc",
+      description: "Generate an HTML QC report for cord segmentation or vertebral labels.",
+      page_path: "/tools/sct.html",
+      recon_options: null,
+      estimated_hours_per_scan: 0.05,
+      coming_soon: false,
+      available: false,
+    },
   ];
 
   function candidateBases() {

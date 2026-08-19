@@ -1,0 +1,75 @@
+name: Bug report
+description: Report something that does not work as documented
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do **not** attach identifiable scans, PHI, or logs that include real subject IDs.
+        User guide: https://neuroflowpipelines.readthedocs.io/
+  - type: textarea
+    id: describe
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of what is wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps that trigger the problem.
+      placeholder: |
+        1. Start the portal with …
+        2. Open module …
+        3. See error …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Ubuntu 22.04
+        - Ubuntu 24.04
+        - Debian 12
+        - Other Linux
+        - macOS (unsupported / experimental)
+        - Windows (unsupported)
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.10"
+    validations:
+      required: true
+  - type: dropdown
+    id: host_cli
+    attributes:
+      label: Is the relevant host neuroimaging CLI installed?
+      options:
+        - "Yes (FreeSurfer, FSL, and/or SCT on PATH)"
+        - "No / not applicable (portal or Python only)"
+        - Unsure
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or error text
+      description: Paste terminal or job log excerpts with identifiers removed.
+      render: text
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots of the UI are welcome if they contain no PHI.

@@ -8,6 +8,7 @@
     { id: "first-job", href: "/help/first-job.html", label: "First job" },
     { id: "workspaces", href: "/help/workspaces.html", label: "Workspaces" },
     { id: "modules", href: "/help/modules.html", label: "Modules" },
+    { id: "sct-t1-morphometry", href: "/help/sct-t1-morphometry.html", label: "T1 morphometry" },
     { id: "jobs-and-logs", href: "/help/jobs-and-logs.html", label: "Jobs & logs" },
     { id: "host-tools", href: "/help/host-tools.html", label: "Host tools" },
     { id: "tips", href: "/help/tips.html", label: "Tips" },

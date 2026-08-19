@@ -18,7 +18,7 @@ def test_list_modules(client: TestClient) -> None:
     fsl_modules = [m for m in modules if m["package_id"] == "fsl" and not m["coming_soon"]]
     assert len(fsl_modules) == 15
     sct_modules = [m for m in modules if m["package_id"] == "sct" and not m["coming_soon"]]
-    assert len(sct_modules) == 9
+    assert len(sct_modules) == 10
     recon_options = {m["recon_options"] for m in fs_modules}
     assert recon_options == {"all", "autorecon1", "autorecon2", "autorecon3"}
 
@@ -64,6 +64,7 @@ def test_modules_use_cached_host_probe(client: TestClient) -> None:
 
     with (
         patch("neuroflow.tools.host_probe.resolve_itk_module_binary", return_value=None),
+        patch("neuroflow.tools.host_probe.resolve_executable", return_value=None),
         patch("neuroflow.tools.host_probe.which", return_value=None),
     ):
         response = client.get("/api/v1/modules")

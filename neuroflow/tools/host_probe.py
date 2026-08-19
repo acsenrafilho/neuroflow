@@ -9,7 +9,7 @@ from pathlib import Path
 from shutil import which
 
 from neuroflow.config import Settings
-from neuroflow.tools.base import resolve_executable
+from neuroflow.tools.base import _sct_root_dir, resolve_executable
 from neuroflow.tools.itk_binaries import count_configured_native_binaries, resolve_itk_module_binary
 from neuroflow.tools.registry import ModuleDefinition
 
@@ -240,27 +240,16 @@ def probe_ants(settings: Settings) -> ProbeResult:
     )
 
 
-def _sct_bin_dir(settings: Settings) -> Path | None:
-    if settings.neuroflow_sct_dir is not None:
-        root = settings.neuroflow_sct_dir.resolve()
-        if root.is_dir():
-            return root
-    for var in ("NEUROFLOW_SCT_DIR", "SCT_DIR"):
-        value = os.environ.get(var)
-        if value and Path(value).is_dir():
-            return Path(value).resolve()
-    return None
-
-
-def _sct_executable_in_dir(dir_path: Path, name: str = "sct_version") -> str | None:
-    for sub in ("bin", ""):
-        candidate = dir_path / sub / name if sub else dir_path / name
-        if candidate.is_file() and os.access(candidate, os.X_OK):
-            return str(candidate)
-    return None
-
-
 def probe_sct(settings: Settings) -> ProbeResult:
+    resolved = resolve_executable(settings, "sct_version")
+    if resolved is not None:
+        return ProbeResult(
+            package_id="sct",
+            available=True,
+            resolved_path=str(resolved),
+            detail="sct_version found",
+        )
+
     path = _first_on_path(("sct_version", "sct_deepseg"))
     if path:
         return ProbeResult(
@@ -270,16 +259,8 @@ def probe_sct(settings: Settings) -> ProbeResult:
             detail="SCT binary found on PATH",
         )
 
-    sct_root = _sct_bin_dir(settings)
+    sct_root = _sct_root_dir(settings)
     if sct_root is not None:
-        found = _sct_executable_in_dir(sct_root)
-        if found:
-            return ProbeResult(
-                package_id="sct",
-                available=True,
-                resolved_path=found,
-                detail="SCT found under SCT_DIR / NEUROFLOW_SCT_DIR",
-            )
         return ProbeResult(
             package_id="sct",
             available=False,
@@ -290,7 +271,7 @@ def probe_sct(settings: Settings) -> ProbeResult:
     return ProbeResult(
         package_id="sct",
         available=False,
-        detail="No SCT binary on PATH; set NEUROFLOW_SCT_DIR or SCT_DIR",
+        detail=("No SCT binary on PATH or under $HOME/sct_*; " "set NEUROFLOW_SCT_DIR or SCT_DIR"),
     )
 
 
@@ -345,9 +326,12 @@ def module_available(
     settings: Settings,
 ) -> bool:
     if module.required_executable:
-        return which(module.required_executable) is not None or (
-            module.required_executable == "eddy" and which("eddy_openmp") is not None
-        )
+        name = module.required_executable
+        if resolve_executable(settings, name) is not None:
+            return True
+        if name == "eddy" and resolve_executable(settings, "eddy_openmp") is not None:
+            return True
+        return which(name) is not None or (name == "eddy" and which("eddy_openmp") is not None)
     if module.availability_mode == "itk_binary":
         return resolve_itk_module_binary(settings, module.id) is not None
     if module.availability_mode == "worker_package":

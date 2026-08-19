@@ -24,6 +24,6 @@ Researchers and lab operators who already (or will) install vendor CLIs on Ubunt
 
 ## Where to read this guide
 
-- **This site:** [Installation](installation.md) through [FAQ](faq.md).
+- **This site:** [Installation](installation.md) through [FAQ](faq.md), including [T1 cervical morphometry](sct-t1-morphometry.md).
 - **In the running app:** [http://127.0.0.1:8000/help/](http://127.0.0.1:8000/help/) when the frontend is served.
 - **OpenAPI (integrators):** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).

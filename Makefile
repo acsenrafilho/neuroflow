@@ -15,8 +15,7 @@ test:
 	poetry run pytest -q
 
 lint:
-	poetry run ruff check neuroflow tests
-	poetry run ruff format --check neuroflow tests
+	poetry run pre-commit run --all-files
 
 lint-fix:
 	poetry run ruff check --fix neuroflow tests

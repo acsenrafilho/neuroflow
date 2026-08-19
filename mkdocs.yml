@@ -6,13 +6,37 @@ repo_name: acsenrafilho/neuroflow
 
 theme:
   name: material
+  logo: assets/brand/neuroflow_icon.png
+  favicon: assets/brand/neuroflow_icon.png
+  font:
+    text: Inter
   palette:
     - scheme: default
-      primary: blue grey
-      accent: teal
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
   features:
     - navigation.sections
+    - navigation.top
+    - toc.follow
+    - search.highlight
     - content.code.copy
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/acsenrafilho/neuroflow
 
 plugins:
   - search
@@ -25,6 +49,7 @@ nav:
       - Using the portal: user/using.md
       - Workspaces and data: user/workspaces.md
       - Packages and modules: user/modules.md
+      - T1 cervical morphometry (SCT): user/sct-t1-morphometry.md
       - Jobs, logs, and history: user/jobs.md
       - Host tools: user/host-tools.md
       - Tips: user/tips.md
@@ -33,12 +58,14 @@ nav:
   - Getting started: getting-started.md
   - Developers:
       - Development: development.md
+      - Contributing: contributing.md
       - Architecture: architecture.md
       - API: api.md
       - Security: security.md
 
 markdown_extensions:
   - admonition
+  - attr_list
   - pymdownx.highlight
   - pymdownx.superfences:
       custom_fences:
