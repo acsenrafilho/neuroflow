@@ -65,9 +65,10 @@ Spinal cord MRI segmentation, vertebral labeling, PAM50 template registration, a
 | sct_register_to_template | `sct_register_to_template` | Register anatomy to PAM50 |
 | sct_warp_template | `sct_warp_template` | Warp template/atlases |
 | sct_apply_transfo | `sct_apply_transfo` | Apply warps or affines |
-| sct_process_segmentation | `sct_process_segmentation` | CSA and morphometrics from a segmentation |
+| sct_process_segmentation | `sct_process_segmentation` | CSA and morphometrics; use `-vert` + vertfile + `-perlevel` for C1–C3 |
+| sct_qc | `sct_qc` | HTML QC report (open `index.html` on disk) |
 
-Typical order for morphometrics: segment the cord, then process the segmentation. Registration and warps are separate jobs.
+Typical T1 cervical morphometry (CSA and shape at C1–C3): segment (`sct_deepseg`), QC, label vertebrae with contrast **t1**, QC, then `sct_process_segmentation` with `-vert 1:3` and `-perlevel 1`. See [T1 cervical morphometry](sct-t1-morphometry.md). Registration and warps are separate jobs and are not required for native-space CSA.
 
 - Package: [http://127.0.0.1:8000/packages/sct.html](http://127.0.0.1:8000/packages/sct.html)
 - Example: [http://127.0.0.1:8000/tools/sct.html?module=sct-deepseg](http://127.0.0.1:8000/tools/sct.html?module=sct-deepseg)

@@ -66,6 +66,7 @@ ALLOWLISTED_EXECUTABLES = frozenset(
         "sct_warp_template",
         "sct_apply_transfo",
         "sct_process_segmentation",
+        "sct_qc",
     }
 )
 

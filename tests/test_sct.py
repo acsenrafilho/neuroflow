@@ -10,6 +10,7 @@ from neuroflow.tools.sct import (
     ROLE_DEST,
     ROLE_INPUT,
     ROLE_SEG,
+    ROLE_VERTFILE,
     ROLE_WARP,
     SctJobParams,
     build_argv,
@@ -167,6 +168,71 @@ def test_build_process_segmentation_argv(work_dir: Path) -> None:
     assert argv[0] == "sct_process_segmentation"
     assert argv[argv.index("-o") + 1].endswith("csa_csa.csv")
     assert "-perslice" in argv
+
+
+def test_build_process_segmentation_perlevel_requires_vertfile(work_dir: Path) -> None:
+    seg = work_dir / "cord_seg.nii.gz"
+    seg.write_bytes(b"x")
+    with pytest.raises(ValueError, match="vertfile"):
+        build_argv(
+            module_id="sct-process-segmentation",
+            files={ROLE_INPUT: seg},
+            work_dir=work_dir,
+            output_prefix="csa",
+            parameters={"vert": "1:3", "perlevel": "1"},
+        )
+
+
+def test_build_process_segmentation_argv_with_vert_levels(work_dir: Path) -> None:
+    seg = work_dir / "cord_seg.nii.gz"
+    vertfile = work_dir / "cord_seg_labeled.nii.gz"
+    seg.write_bytes(b"x")
+    vertfile.write_bytes(b"x")
+    argv = build_argv(
+        module_id="sct-process-segmentation",
+        files={ROLE_INPUT: seg, ROLE_VERTFILE: vertfile},
+        work_dir=work_dir,
+        output_prefix="csa",
+        parameters={"vert": "1:3", "perlevel": "1", "angle_corr": "1"},
+    )
+    assert argv[0] == "sct_process_segmentation"
+    assert argv[argv.index("-vert") + 1] == "1:3"
+    assert argv[argv.index("-perlevel") + 1] == "1"
+    assert argv[argv.index("-angle-corr") + 1] == "1"
+    assert "-vertfile" in argv
+
+
+def test_build_qc_argv(work_dir: Path) -> None:
+    anat = work_dir / "t1.nii.gz"
+    seg = work_dir / "t1_seg.nii.gz"
+    anat.write_bytes(b"x")
+    seg.write_bytes(b"x")
+    argv = build_argv(
+        module_id="sct-qc",
+        files={ROLE_INPUT: anat, ROLE_SEG: seg},
+        work_dir=work_dir,
+        output_prefix="qc",
+        parameters={"process": "sct_deepseg_sc"},
+    )
+    assert argv[0] == "sct_qc"
+    assert argv[argv.index("-p") + 1] == "sct_deepseg_sc"
+    assert "-qc" in argv
+    assert argv[argv.index("-s") + 1].endswith("t1_seg.nii.gz")
+
+
+def test_build_qc_rejects_unknown_process(work_dir: Path) -> None:
+    anat = work_dir / "t1.nii.gz"
+    seg = work_dir / "t1_seg.nii.gz"
+    anat.write_bytes(b"x")
+    seg.write_bytes(b"x")
+    with pytest.raises(ValueError, match="Unsupported sct_qc process"):
+        build_argv(
+            module_id="sct-qc",
+            files={ROLE_INPUT: anat, ROLE_SEG: seg},
+            work_dir=work_dir,
+            output_prefix="qc",
+            parameters={"process": "sct_dmri_moco"},
+        )
 
 
 def test_build_create_mask_centerline_requires_role(work_dir: Path) -> None:

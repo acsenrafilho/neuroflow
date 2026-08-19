@@ -356,6 +356,10 @@ const SCT_MODULES = {
         text: "Run cord segmentation first (e.g. sct_deepseg or sct_propseg).",
         moduleId: "sct-deepseg",
       },
+      {
+        text: "For CSA at C1–C3, provide vertebral labels from sct_label_vertebrae (vertfile) with -vert and -perlevel.",
+        moduleId: "sct-label-vertebrae",
+      },
     ],
     inputs: [
       {
@@ -367,7 +371,7 @@ const SCT_MODULES = {
       },
       {
         role: "vertfile",
-        label: "Vertebral label file (optional)",
+        label: "Vertebral label file (required with -vert / -perlevel)",
         required: false,
         accept: ".nii,.nii.gz",
         multiple: false,
@@ -382,6 +386,79 @@ const SCT_MODULES = {
         options: [
           { value: "0", label: "0 (off)" },
           { value: "1", label: "1 (on)" },
+        ],
+      },
+      {
+        name: "vert",
+        label: "Vertebral levels (-vert)",
+        type: "text",
+        default: "1:3",
+      },
+      {
+        name: "perlevel",
+        label: "Per-level metrics (-perlevel)",
+        type: "select",
+        default: "1",
+        options: [
+          { value: "0", label: "0 (average across levels)" },
+          { value: "1", label: "1 (one row per vertebral level)" },
+        ],
+      },
+      {
+        name: "angle_corr",
+        label: "Angle correction (-angle-corr)",
+        type: "select",
+        default: "1",
+        options: [
+          { value: "1", label: "1 (on)" },
+          { value: "0", label: "0 (off)" },
+        ],
+      },
+    ],
+  },
+  "sct-qc": {
+    moduleName: "sct_qc",
+    batchDriverRole: "input",
+    summary:
+      "Generate an HTML QC report (PNG overlays) for cord segmentation or vertebral labels. Open index.html on disk; NeuroFlow does not embed an image viewer.",
+    docsUrl: "https://spinalcordtoolbox.com/stable/user_section/command-line/sct_qc.html",
+    docsLabel: "sct_qc documentation",
+    estimatedHours: 0.05,
+    prerequisites: [
+      {
+        text: "Run cord segmentation first (sct_deepseg). Use process sct_deepseg_sc for that QC.",
+        moduleId: "sct-deepseg",
+      },
+      {
+        text: "For label QC, run sct_label_vertebrae and upload the labeled segmentation as -s.",
+        moduleId: "sct-label-vertebrae",
+      },
+    ],
+    inputs: [
+      {
+        role: "input",
+        label: "Anatomical image(s) (NIfTI)",
+        required: true,
+        accept: ".nii,.nii.gz",
+        multiple: true,
+      },
+      {
+        role: "seg",
+        label: "Segmentation or vertebral labels (NIfTI)",
+        required: true,
+        accept: ".nii,.nii.gz",
+        multiple: true,
+      },
+    ],
+    params: [
+      {
+        name: "process",
+        label: "QC process (-p)",
+        type: "select",
+        default: "sct_deepseg_sc",
+        options: [
+          { value: "sct_deepseg_sc", label: "sct_deepseg_sc (cord segmentation)" },
+          { value: "sct_label_vertebrae", label: "sct_label_vertebrae (vertebral labels)" },
         ],
       },
     ],

@@ -87,7 +87,7 @@ Requires `workspace`, `subject_id`, `module_id`, `file_roles`, and `files`. Outp
 
 `POST /api/v1/tools/sct/jobs`
 
-Requires `workspace`, `subject_id`, `module_id`, `file_roles`, and `files`. Outputs land under `sub-<id>/derivatives/sct/<module>/`. Typical Phase 1 modules include `sct-deepseg`, `sct-propseg`, and `sct-register-to-template`.
+Requires `workspace`, `subject_id`, `module_id`, `file_roles`, and `files`. Outputs land under `sub-<id>/derivatives/sct/<module>/`. Modules include `sct-deepseg`, `sct-label-vertebrae`, `sct-process-segmentation`, and `sct-qc`.
 
 ### ANTs / Slicer / ITK — create job
 

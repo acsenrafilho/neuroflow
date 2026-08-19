@@ -49,6 +49,7 @@ nav:
       - Using the portal: user/using.md
       - Workspaces and data: user/workspaces.md
       - Packages and modules: user/modules.md
+      - T1 cervical morphometry (SCT): user/sct-t1-morphometry.md
       - Jobs, logs, and history: user/jobs.md
       - Host tools: user/host-tools.md
       - Tips: user/tips.md
