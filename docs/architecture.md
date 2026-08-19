@@ -6,18 +6,20 @@
 flowchart TB
   subgraph portal [NeuroFlow portal]
     Hub[index.html]
-    ToolPage[tools/freesurfer.html]
+    ToolPage[tools and packages pages]
     API[FastAPI]
   end
   subgraph disk [Data layer]
     Jobs[data/jobs/tool/job_id]
+    Datasets[data/datasets/workspace/sub-id]
   end
   subgraph host [Host OS]
-    CLI[recon-all etc]
+    CLI[recon-all bet sct_deepseg]
   end
   Hub --> ToolPage
   ToolPage -->|multipart POST| API
   API --> Jobs
+  API --> Datasets
   API -->|subprocess allowlist| CLI
   CLI --> Jobs
 ```
@@ -30,6 +32,8 @@ flowchart TB
 4. **No authentication (MVP)** — local/trusted network only; see [Security](security.md).
 5. **No Docker in repo** — tools must be installed on the host where the API runs.
 
+Portal-visible packages are **FreeSurfer**, **FSL**, and **SCT**. ANTs, 3D Slicer, and ITK may exist in code but are hidden from the UI.
+
 ## API surface
 
 | Resource | Path |
@@ -38,24 +42,27 @@ flowchart TB
 | Host rescan | `POST /api/v1/host/rescan` |
 | Tools | `GET /api/v1/tools` |
 | Modules | `GET /api/v1/modules` |
-| FreeSurfer jobs | `POST /api/v1/tools/freesurfer/jobs` |
-| Job status | `GET /api/v1/tools/freesurfer/jobs/{job_id}` |
-| Job log | `GET /api/v1/tools/freesurfer/jobs/{job_id}/log` |
+| Jobs list | `GET /api/v1/jobs` |
+| Workspaces | `GET/POST /api/v1/workspaces` |
+| Per-tool jobs | `POST /api/v1/tools/{tool_id}/jobs` |
+| Job status / log | `GET /api/v1/tools/{tool_id}/jobs/{job_id}` and `.../log` |
 
-Errors return `{ "detail", "code", "field?" }`.
+Errors return `{ "detail", "code", "field?" }`. Full contract: [API](api.md).
 
 ## Job layout
 
-```
-data/jobs/freesurfer/{job_id}/
-  input/       # uploaded NIfTI/DICOM
-  output/      # SUBJECTS_DIR for recon-all
+```text
+data/jobs/<tool>/{job_id}/
+  input/       # uploaded files
+  output/      # tool working directory
   meta.json    # status, parameters, command
   run.log      # merged stdout/stderr
 ```
 
+Researcher-facing trees: `data/datasets/<workspace>/sub-<id>/derivatives/<package>/…`.
+
 ## Processing contract
 
-- Executables must be on an **allowlist** (`recon-all` today).
+- Executables must be on an **allowlist** (portal CLIs such as `recon-all`, FSL binaries, and SCT commands).
 - Arguments are built server-side from validated form fields (never raw shell strings from the browser).
-- Optional `NEUROFLOW_FREESURFER_HOME` sets `FREESURFER_HOME` for child processes.
+- Optional env vars (for example `NEUROFLOW_FREESURFER_HOME`, `NEUROFLOW_FSLDIR`, `NEUROFLOW_SCT_DIR`) set the child process environment.

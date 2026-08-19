@@ -4,10 +4,11 @@ build:
   os: ubuntu-22.04
   tools:
     python: "3.10"
-  commands:
-    - pip install poetry
-    - poetry install --no-interaction --with docs
-    - poetry run mkdocs build --strict
+  jobs:
+    post_install:
+      - pip install poetry
+      - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry install --no-interaction --with docs
 
 mkdocs:
   configuration: mkdocs.yml
+  fail_on_warning: true

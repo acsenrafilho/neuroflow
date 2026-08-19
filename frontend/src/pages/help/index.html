@@ -28,7 +28,14 @@
             <p class="text-on-surface-variant">
               NeuroFlow is a facilitation portal for neuroimaging CLIs on your machine. Each module
               is one page: upload data, set parameters, preview the command, and follow local
-              execution logs—without building multi-tool pipelines.
+              execution logs—without building multi-tool pipelines. Full documentation:
+              <a
+                href="https://neuroflowpipelines.readthedocs.io/"
+                class="text-primary underline-offset-2 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+                >neuroflowpipelines.readthedocs.io</a
+              >.
             </p>
           </header>
 
@@ -40,7 +47,7 @@
               What NeuroFlow does not do
             </div>
             <p class="text-on-surface-variant">
-              It does not install FreeSurfer, FSL, or other packages; does not chain stages into an
+              It does not install FreeSurfer, FSL, SCT, or other packages; does not chain stages into an
               automatic pipeline; and does not require Docker in this repository. Host tools stay on
               the OS where the API runs.
             </p>
@@ -88,7 +95,7 @@
               </li>
               <li>
                 <a href="/help/modules.html" class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low/50">
-                  <span>Modules (FreeSurfer, FSL, …)</span>
+                  <span>Modules (FreeSurfer, FSL, SCT)</span>
                   <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
                 </a>
               </li>
@@ -105,6 +112,18 @@
                 </a>
               </li>
               <li>
+                <a href="/help/tips.html" class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low/50">
+                  <span>Tips</span>
+                  <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                </a>
+              </li>
+              <li>
+                <a href="/help/faq.html" class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low/50">
+                  <span>FAQ</span>
+                  <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                </a>
+              </li>
+              <li>
                 <a href="/help/data-and-privacy.html" class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low/50">
                   <span>Data &amp; privacy</span>
                   <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
@@ -114,7 +133,15 @@
           </section>
 
           <p class="text-sm text-on-surface-variant">
-            Looking for the machine-readable API contract? Use
+            Looking for the full user guide? See
+            <a
+              href="https://neuroflowpipelines.readthedocs.io/en/latest/user/overview/"
+              class="text-primary underline-offset-2 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+              >neuroflowpipelines.readthedocs.io</a
+            >.
+            For the machine-readable API contract, use
             <a href="/docs" class="text-primary underline-offset-2 hover:underline">Open API</a>
             (Swagger). For CLI flags of a specific tool, use the Official documentation link on each
             module page.

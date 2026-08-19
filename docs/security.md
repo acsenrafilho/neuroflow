@@ -16,7 +16,7 @@ Neuroimaging datasets may contain **PHI** or identifiable research participants.
 
 ## Subprocess execution
 
-- Only **allowlisted** executables may be started (`recon-all` today).
+- Only **allowlisted** executables may be started (FreeSurfer, FSL, and SCT CLIs exposed in the portal; other packages if enabled later).
 - Never pass unsanitized user input into a shell; build `argv` lists in Python.
 - Validate upload extensions and size limits before writing to disk.
 

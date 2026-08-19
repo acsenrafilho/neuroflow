@@ -17,6 +17,7 @@ On Debian/Ubuntu, `make setup` checks these and can suggest `apt` / Poetry insta
 
 - **FreeSurfer** (`recon-all` on `PATH`, or `NEUROFLOW_RECON_ALL_BIN`)
 - **FSL** (`bet`, `flirt`, etc. on `PATH`, or `NEUROFLOW_FSLDIR` / `FSLDIR`)
+- **Spinal Cord Toolbox (SCT)** (`sct_version` on `PATH`, or `SCT_DIR` / `NEUROFLOW_SCT_DIR`)
 - Optional (code present, hidden in the portal UI for now): ANTs, 3D Slicer, ITK
 
 ## Quick start (Ubuntu / Debian)
@@ -28,7 +29,7 @@ make setup
 make api
 ```
 
-Open http://127.0.0.1:8000/ (with `NEUROFLOW_SERVE_FRONTEND=1` from `.env.example`). In-app user guide: http://127.0.0.1:8000/help/. OpenAPI (Swagger): http://127.0.0.1:8000/docs.
+Open http://127.0.0.1:8000/ (with `NEUROFLOW_SERVE_FRONTEND=1` from `.env.example`). In-app user guide: http://127.0.0.1:8000/help/. User documentation: https://neuroflowpipelines.readthedocs.io/. OpenAPI (Swagger): http://127.0.0.1:8000/docs.
 
 For a one-click start from the application menu or Desktop:
 
@@ -81,7 +82,7 @@ With Live Server on port 5500 and the API on port 8000, hub features that call `
 | `make lint` | Run ruff check and format check |
 | `make api` | Start FastAPI via `poetry run neuroflow serve` (reload; host package scan on startup) |
 | `make frontend-build` | Build Tailwind CSS and copy pages to `frontend/dist/` |
-| `make docs` | Serve MkDocs locally |
+| `make docs` | Serve MkDocs locally (user guide + developer pages) |
 
 ## Project layout
 
@@ -100,10 +101,11 @@ tests/
 
 ## API
 
+- User documentation: https://neuroflowpipelines.readthedocs.io/
 - In-app user guide: http://127.0.0.1:8000/help/ (when frontend is served)
 - OpenAPI: http://127.0.0.1:8000/docs
 - Health: `GET /api/v1/health`
-- Tools / modules: `GET /api/v1/tools`, `GET /api/v1/modules` (portal: FreeSurfer + FSL)
+- Tools / modules: `GET /api/v1/tools`, `GET /api/v1/modules` (portal: FreeSurfer, FSL, SCT)
 - Active jobs: `GET /api/v1/jobs`
 - Host resources: `GET /api/v1/host/resources`
 - FreeSurfer job: `POST /api/v1/tools/freesurfer/jobs` (multipart: files, `subject_ids`, `workspace`, …)

@@ -1,6 +1,6 @@
 # NeuroFlow
 
-NeuroFlow is a **facilitation portal** for neuroscience medical image processing: **one web page per CLI tool** (FreeSurfer today; more tools via the same pattern).
+NeuroFlow is a **facilitation portal** for neuroscience medical image processing: **one web page per CLI tool** (FreeSurfer, FSL, and Spinal Cord Toolbox in the portal today).
 
 ## Features
 
@@ -10,10 +10,19 @@ NeuroFlow is a **facilitation portal** for neuroscience medical image processing
 - FastAPI backend with OpenAPI contract
 - Plain HTML + Tailwind frontend
 
-## Quick links
+## User guide
 
-- **In-app user guide** (when the frontend is served): http://127.0.0.1:8000/help/
-- [Getting started](getting-started.md) — `make setup` on Ubuntu/Debian, Desktop launcher, optional host tools
+- [Overview](user/overview.md) — purpose and objectives
+- [Installation](user/installation.md) — Ubuntu/Debian setup and how to run
+- [Using the portal](user/using.md)
+- [Tips](user/tips.md) and [FAQ](user/faq.md)
+
+In the running app: [http://127.0.0.1:8000/help/](http://127.0.0.1:8000/help/)
+
+This site: [https://neuroflowpipelines.readthedocs.io/](https://neuroflowpipelines.readthedocs.io/)
+
+## Developers
+
 - [Development](development.md)
 - [Architecture](architecture.md)
 - [API](api.md)

@@ -33,9 +33,12 @@
           <section class="space-y-3">
             <h3 class="font-headline-md text-on-surface">Status</h3>
             <p class="text-on-surface-variant">
-              Jobs move through states such as queued, running, succeeded, or failed. The module
-              page shows live status and log text; Home lists active and queued work so you can
-              jump back while another page is open.
+              Jobs move through states such as queued, running, succeeded, failed, or cancelled. The
+              module page shows live status and log text; Home lists active and queued work so you can
+              jump back while another page is open. Finished jobs appear under
+              <a href="/history.html" class="text-primary underline-offset-2 hover:underline">History</a>.
+              On API startup, orphaned running or queued jobs from a previous process are reconciled
+              so they do not clutter Active processes.
             </p>
           </section>
 

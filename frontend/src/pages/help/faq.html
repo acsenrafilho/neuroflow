@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroFlow | FAQ</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-background font-body-md text-on-surface antialiased">
+    <aside id="hub-sidebar"></aside>
+    <header id="hub-header"></header>
+
+    <main class="ml-64 min-h-screen px-12 pb-16 pt-24">
+      <div class="mx-auto flex w-full max-w-[1400px] gap-10">
+        <aside id="help-wiki-nav" class="hidden w-52 shrink-0 md:block" aria-label="User guide topics"></aside>
+
+        <article class="min-w-0 max-w-3xl flex-1 space-y-8">
+          <header class="space-y-3">
+            <h2 class="font-headline-xl text-primary-container">FAQ</h2>
+            <p class="text-on-surface-variant">
+              Common questions. Full answers:
+              <a
+                href="https://neuroflowpipelines.readthedocs.io/en/latest/user/faq/"
+                class="text-primary underline-offset-2 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+                >FAQ on Read the Docs</a
+              >.
+            </p>
+          </header>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Does NeuroFlow install FreeSurfer, FSL, or SCT?</h3>
+            <p class="text-on-surface-variant">
+              No. Install those packages yourself. The portal only detects them. See
+              <a href="/help/host-tools.html" class="text-primary underline-offset-2 hover:underline">Host tools</a>.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Why does a module say Install on host?</h3>
+            <p class="text-on-surface-variant">
+              The probe binary was not found. Fix PATH or <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">.env</code>,
+              then rescan or restart the API.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Why is my job queued?</h3>
+            <p class="text-on-surface-variant">
+              Host RAM or CPU is above the configured limits, or the queue is full. See
+              <a href="/help/jobs-and-logs.html" class="text-primary underline-offset-2 hover:underline">Jobs &amp; logs</a>.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Is there a login? Can I put this on the internet?</h3>
+            <p class="text-on-surface-variant">
+              There is no authentication. Do not expose an unauthenticated instance to the public
+              internet. See
+              <a href="/help/data-and-privacy.html" class="text-primary underline-offset-2 hover:underline">Data &amp; privacy</a>.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Does it chain pipelines or use Docker?</h3>
+            <p class="text-on-surface-variant">
+              No automatic pipelines and no Docker requirement. Each module is one job. Tools stay on
+              the host OS.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Where are ANTs, Slicer, and ITK?</h3>
+            <p class="text-on-surface-variant">
+              They are not listed in the portal UI yet. Use FreeSurfer, FSL, and SCT while those
+              packages remain Coming soon.
+            </p>
+          </section>
+        </article>
+      </div>
+    </main>
+
+    <script src="/js/hub-layout.js"></script>
+    <script src="/js/help-layout.js"></script>
+    <script>
+      HelpLayout.init({ topicId: "faq", title: "FAQ" });
+    </script>
+  </body>
+</html>

@@ -1,4 +1,4 @@
-.PHONY: setup install desktop-install test lint lint-fix api frontend-build docs
+.PHONY: setup install desktop-install test lint lint-fix api stop frontend-build docs
 
 setup:
 	@./scripts/setup.sh
@@ -24,6 +24,9 @@ lint-fix:
 
 api:
 	poetry run neuroflow serve
+
+stop:
+	@./scripts/neuroflow-stop.sh
 
 frontend-build:
 	cd frontend && npm run build

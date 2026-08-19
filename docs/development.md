@@ -1,5 +1,7 @@
 # Development
 
+Public user documentation is published at [https://neuroflowpipelines.readthedocs.io/](https://neuroflowpipelines.readthedocs.io/). Sources live under `docs/user/`.
+
 ## Tooling
 
 | Tool | Purpose |
