@@ -28,6 +28,7 @@ This site: [https://neuroflowpipelines.readthedocs.io/](https://neuroflowpipelin
 ## Developers
 
 - [Development](development.md)
+- [Contributing](contributing.md)
 - [Architecture](architecture.md)
 - [API](api.md)
 - [Security](security.md)

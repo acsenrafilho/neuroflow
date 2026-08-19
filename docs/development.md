@@ -8,7 +8,8 @@ Public user documentation is published at [https://neuroflowpipelines.readthedoc
 |------|---------|
 | Poetry | Python dependencies and virtualenv |
 | pytest | Unit and API tests |
-| ruff | Lint and format |
+| ruff | Lint and format (also via pre-commit) |
+| pre-commit | Git hooks; same checks as the CI lint job |
 | debugpy | Debugger attach (VS Code / Cursor) |
 | MkDocs Material | Documentation site |
 
@@ -19,7 +20,7 @@ make setup             # first-machine bootstrap (apt checks, deps, frontend bui
 make install           # poetry + frontend npm (toolchain already present)
 make desktop-install   # Linux application menu + Desktop shortcut
 make test              # pytest
-make lint              # ruff check + format check
+make lint              # pre-commit hooks (ruff + file hygiene)
 make api               # poetry run neuroflow serve (uvicorn with reload)
 make frontend-build    # Tailwind + copy pages to frontend/dist
 make docs              # mkdocs serve
@@ -56,9 +57,14 @@ neuroflow/
 
 ## Pre-commit
 
-CI runs `ruff check` and `ruff format --check`. Run locally:
+Install hooks once after `poetry install`:
 
 ```bash
-poetry run ruff check neuroflow tests
-poetry run ruff format neuroflow tests
+poetry run pre-commit install
 ```
+
+CI and `make lint` run `pre-commit run --all-files` (Ruff plus trailing whitespace, YAML, large-file, and related checks). See [Contributing](contributing.md).
+
+## GitHub repository settings (maintainers)
+
+Description, topics, social preview, Sponsors, labels, and branch protection are configured in the GitHub UI. The checklist is in [CONTRIBUTING.md](https://github.com/acsenrafilho/neuroflow/blob/main/CONTRIBUTING.md#maintainer-github-repository-settings).

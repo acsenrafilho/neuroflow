@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+title: NeuroFlow
+message: If you use NeuroFlow, please cite it using these metadata.
+type: software
+authors:
+  - family-names: Senra Filho
+    given-names: Antonio Carlos
+    email: acsenrafilho@users.noreply.github.com
+repository-code: https://github.com/acsenrafilho/neuroflow
+url: https://neuroflowpipelines.readthedocs.io/
+abstract: >-
+  NeuroFlow is a web portal that wraps neuroimaging CLI tools with one
+  independent page per program (FreeSurfer, FSL, Spinal Cord Toolbox).
+  It provides upload, parameter forms, command preview, and local
+  subprocess execution via FastAPI and HTML/Tailwind.
+keywords:
+  - neuroimaging
+  - neuroscience
+  - FreeSurfer
+  - FSL
+  - Spinal Cord Toolbox
+  - FastAPI
+  - MRI
+license: MIT
+version: 0.1.0

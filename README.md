@@ -1,8 +1,26 @@
+<p align="center">
+  <img src="assets/images/neuroflow_logo.png" alt="NeuroFlow" width="360">
+</p>
+
 # NeuroFlow
 
-NeuroFlow is a **web portal** that wraps neuroimaging **CLI tools**—one independent page per software. Each module provides upload, parameter forms, command preview, and local execution via subprocess (no multi-tool pipelines, no Docker in this repo).
+**Neuroimaging CLI tools, one web page at a time.**
 
-**Stack:** Python 3.10 · Poetry · FastAPI · HTML/Tailwind · pytest · MkDocs
+NeuroFlow is a **facilitation portal** for neuroscience medical image processing: **one independent page per CLI** (FreeSurfer, FSL, and Spinal Cord Toolbox in the portal today). Each module provides upload, parameter forms, command preview, and **local subprocess** execution.
+
+It is **not** a multi-tool pipeline runner and **does not** ship Docker. You install host packages yourself; NeuroFlow wraps them in a FastAPI + HTML/Tailwind UI.
+
+[![CI](https://github.com/acsenrafilho/neuroflow/actions/workflows/ci.yml/badge.svg)](https://github.com/acsenrafilho/neuroflow/actions/workflows/ci.yml)
+[![Documentation Status](https://readthedocs.org/projects/neuroflowpipelines/badge/?version=latest)](https://neuroflowpipelines.readthedocs.io/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/acsenrafilho)](https://github.com/sponsors/acsenrafilho)
+
+**Stack:** Python 3.10+ · Poetry · FastAPI · HTML/Tailwind · pytest · MkDocs
+
+**Docs:** [User guide on Read the Docs](https://neuroflowpipelines.readthedocs.io/) · in-app help at `/help/` · OpenAPI at `/docs`
 
 ## Prerequisites
 
@@ -79,7 +97,7 @@ With Live Server on port 5500 and the API on port 8000, hub features that call `
 | `make install` | Install Python and frontend dependencies |
 | `make desktop-install` | Linux application menu + Desktop shortcut |
 | `make test` | Run pytest |
-| `make lint` | Run ruff check and format check |
+| `make lint` | Run pre-commit hooks (ruff + file hygiene) |
 | `make api` | Start FastAPI via `poetry run neuroflow serve` (reload; host package scan on startup) |
 | `make frontend-build` | Build Tailwind CSS and copy pages to `frontend/dist/` |
 | `make docs` | Serve MkDocs locally (user guide + developer pages) |
@@ -113,10 +131,29 @@ tests/
 
 ## Adding a tool
 
+See [CONTRIBUTING.md](CONTRIBUTING.md). Short path:
+
 1. Register the tool in `neuroflow/tools/registry.py`.
 2. Add argv builder + launcher under `neuroflow/tools/<name>.py`.
 3. Add API routes under `neuroflow/api/v1/tools.py` (or a dedicated router).
 4. Add `frontend/src/pages/tools/<name>.html` following the FreeSurfer module pattern.
+
+## Community
+
+NeuroFlow is a personal project. Issues and pull requests are welcome; response time may vary.
+
+- [Open an issue](https://github.com/acsenrafilho/neuroflow/issues/new/choose) for bugs, features, or questions (use the form that matches).
+- Look for [`good first issue`](https://github.com/acsenrafilho/neuroflow/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and [`help wanted`](https://github.com/acsenrafilho/neuroflow/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22).
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [Code of Conduct](CODE_OF_CONDUCT.md).
+- Security reports: [SECURITY.md](SECURITY.md) (private advisory, not a public issue).
+
+## Citation
+
+If you use NeuroFlow in academic work, cite the software via [CITATION.cff](CITATION.cff) (GitHub **Cite this repository**).
+
+## Sponsors
+
+Optional [GitHub Sponsors](https://github.com/sponsors/acsenrafilho) support maintenance time. The software remains MIT-licensed either way.
 
 ## License
 

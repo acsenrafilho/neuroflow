@@ -1,0 +1,32 @@
+name: Question
+description: Ask how something works or how to run a module
+title: "[Q] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please search closed issues and the docs first:
+        https://neuroflowpipelines.readthedocs.io/
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: What are you trying to do?
+    validations:
+      required: true
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you already tried?
+      description: Commands, docs pages, or error messages (no PHI).
+  - type: input
+    id: docs
+    attributes:
+      label: Relevant documentation URL
+      placeholder: https://neuroflowpipelines.readthedocs.io/en/latest/...

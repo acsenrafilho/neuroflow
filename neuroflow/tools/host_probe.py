@@ -271,10 +271,7 @@ def probe_sct(settings: Settings) -> ProbeResult:
     return ProbeResult(
         package_id="sct",
         available=False,
-        detail=(
-            "No SCT binary on PATH or under $HOME/sct_*; "
-            "set NEUROFLOW_SCT_DIR or SCT_DIR"
-        ),
+        detail=("No SCT binary on PATH or under $HOME/sct_*; " "set NEUROFLOW_SCT_DIR or SCT_DIR"),
     )
 
 
@@ -334,9 +331,7 @@ def module_available(
             return True
         if name == "eddy" and resolve_executable(settings, "eddy_openmp") is not None:
             return True
-        return which(name) is not None or (
-            name == "eddy" and which("eddy_openmp") is not None
-        )
+        return which(name) is not None or (name == "eddy" and which("eddy_openmp") is not None)
     if module.availability_mode == "itk_binary":
         return resolve_itk_module_binary(settings, module.id) is not None
     if module.availability_mode == "worker_package":
