@@ -89,6 +89,10 @@ def _print_scan(settings: Settings) -> None:
 
 def _run_serve(host: str, port: int, reload: bool) -> None:
     """Start the FastAPI app with uvicorn (dev defaults: reload on localhost:8000)."""
+    from neuroflow.runtime_paths import is_frozen
+
+    if is_frozen():
+        reload = False
     console.print(
         f"[bold]NeuroFlow[/bold] API → http://{host}:{port}/"
         f"  (reload={'on' if reload else 'off'})"

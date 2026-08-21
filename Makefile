@@ -1,4 +1,4 @@
-.PHONY: setup install desktop-install test lint lint-fix api stop frontend-build docs
+.PHONY: setup install desktop-install test lint lint-fix api stop frontend-build docs release-build
 
 setup:
 	@./scripts/setup.sh
@@ -33,3 +33,7 @@ frontend-build:
 docs:
 	poetry install --with docs
 	poetry run mkdocs serve
+
+release-build:
+	poetry install --with packaging
+	@./packaging/build_release.sh

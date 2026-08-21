@@ -2,7 +2,20 @@
 
 NeuroFlow is the portal (Python API + HTML UI). Neuroimaging CLIs such as FreeSurfer, FSL, and SCT stay on the **host** and are never installed by NeuroFlow. See [Host tools](host-tools.md).
 
-## Prerequisites
+## End users (packaged release)
+
+The easiest path on **Windows**, **macOS**, or **Linux** is a pre-built zip from GitHub Releases:
+
+1. Open the [latest release](https://github.com/acsenrafilho/neuroflow/releases/latest).
+2. Download the asset for your OS (`neuroflow-<version>-windows-*.zip`, `…-macos-…`, or `…-linux-…`).
+3. Extract the archive and run the `neuroflow` executable inside the `neuroflow/` folder.
+4. Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) if the browser does not open automatically.
+
+Packaged builds store jobs and datasets under `~/.neuroflow/`. They serve the UI by default and do **not** include FreeSurfer, FSL, or SCT — install those separately (on Windows, **WSL2 + Ubuntu** is often required for FreeSurfer/FSL).
+
+**macOS Gatekeeper / Windows SmartScreen:** unsigned builds may need an explicit “Open anyway” / “Run anyway” confirmation.
+
+## Developers (from source)
 
 **OS:** Ubuntu 22.04+ or Debian 12+ with `apt` (other platforms: install the toolchain yourself; `make setup` is apt-only for now).
 
@@ -12,7 +25,7 @@ NeuroFlow is the portal (Python API + HTML UI). Neuroimaging CLIs such as FreeSu
 - [Poetry](https://python-poetry.org/)
 - Node.js 18+ (frontend build)
 
-## Install NeuroFlow
+### Install NeuroFlow from source
 
 ```bash
 git clone https://github.com/acsenrafilho/neuroflow.git
@@ -54,7 +67,7 @@ make api
 
 Uses uvicorn with auto-reload on `127.0.0.1:8000`.
 
-### Desktop / application menu (Linux)
+### Desktop / application menu (Linux, from-source install)
 
 After `make setup`:
 
@@ -69,6 +82,14 @@ Stop a background instance:
 ```bash
 ./scripts/neuroflow-stop.sh
 ```
+
+### Local release zip (maintainers)
+
+```bash
+make release-build
+```
+
+Produces `dist/release/neuroflow-<version>-linux-<arch>.zip` via PyInstaller (requires the Poetry `packaging` group).
 
 ## URLs
 

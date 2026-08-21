@@ -106,6 +106,7 @@ def test_open_in_file_manager_calls_xdg_open(tmp_path: Path) -> None:
     folder = tmp_path / "folder"
     folder.mkdir()
     with (
+        patch("neuroflow.services.reveal_path.platform.system", return_value="Linux"),
         patch("neuroflow.services.reveal_path.shutil.which", return_value="/usr/bin/xdg-open"),
         patch("neuroflow.services.reveal_path.subprocess.run") as mock_run,
     ):
@@ -120,13 +121,46 @@ def test_open_in_file_manager_calls_xdg_open(tmp_path: Path) -> None:
     assert args[1] == str(folder.resolve())
 
 
+def test_open_in_file_manager_macos(tmp_path: Path) -> None:
+    from neuroflow.services.reveal_path import open_in_file_manager
+
+    folder = tmp_path / "folder"
+    folder.mkdir()
+    with (
+        patch("neuroflow.services.reveal_path.platform.system", return_value="Darwin"),
+        patch("neuroflow.services.reveal_path.subprocess.run") as mock_run,
+    ):
+        mock_run.return_value.returncode = 0
+        mock_run.return_value.stderr = ""
+        mock_run.return_value.stdout = ""
+        open_in_file_manager(folder)
+
+    args = mock_run.call_args.args[0]
+    assert args[0] == "open"
+    assert args[1] == str(folder.resolve())
+
+
+def test_open_in_file_manager_windows(tmp_path: Path) -> None:
+    from neuroflow.services.reveal_path import open_in_file_manager
+
+    folder = tmp_path / "folder"
+    folder.mkdir()
+    with (
+        patch("neuroflow.services.reveal_path.platform.system", return_value="Windows"),
+        patch("neuroflow.services.reveal_path.os.startfile", create=True) as mock_start,
+    ):
+        open_in_file_manager(folder)
+    mock_start.assert_called_once_with(folder.resolve())
+
+
 def test_open_in_file_manager_missing_opener(tmp_path: Path) -> None:
     from neuroflow.services.reveal_path import open_in_file_manager
 
     folder = tmp_path / "folder"
     folder.mkdir()
     with (
+        patch("neuroflow.services.reveal_path.platform.system", return_value="Linux"),
         patch("neuroflow.services.reveal_path.shutil.which", return_value=None),
-        pytest.raises(RuntimeError, match="xdg-open"),
+        pytest.raises(RuntimeError, match="file manager opener"),
     ):
         open_in_file_manager(folder)

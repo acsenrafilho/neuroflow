@@ -15,7 +15,7 @@ Local development: `http://127.0.0.1:8000`
 ```json
 {
   "status": "ok",
-  "version": "0.1.0"
+  "version": "0.0.1"
 }
 ```
 
