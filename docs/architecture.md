@@ -32,6 +32,8 @@ flowchart TB
 4. **No authentication (MVP)** — local/trusted network only; see [Security](security.md).
 5. **No Docker in repo** — tools must be installed on the host where the API runs.
 
+**Packaged distribution:** GitHub Releases ship a PyInstaller build of the **portal only** (API + built UI). Host neuroimaging CLIs are never bundled. Frozen runs resolve UI assets from the bundle and write job/dataset data under `~/.neuroflow/`.
+
 Portal-visible packages are **FreeSurfer**, **FSL**, and **SCT**. ANTs, 3D Slicer, and ITK may exist in code but are hidden from the UI.
 
 ## API surface
