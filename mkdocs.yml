@@ -46,6 +46,7 @@ nav:
   - User guide:
       - Overview: user/overview.md
       - Installation: user/installation.md
+      - Windows and WSL: user/windows-wsl.md
       - Using the portal: user/using.md
       - Workspaces and data: user/workspaces.md
       - Packages and modules: user/modules.md

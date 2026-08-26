@@ -30,6 +30,16 @@ poetry run neuroflow scan
 
 `poetry run neuroflow` lists the data root and package readiness from the same probes used by the API.
 
+## Windows / WSL
+
+On Windows, the portal runs **inside WSL2 Ubuntu**. Host probes inspect the **Ubuntu** `PATH` and environment — not the native Windows PATH.
+
+- Install FreeSurfer, FSL, SCT, and other packages **inside Ubuntu** with each vendor's official procedure.
+- If Home shows **Install on host**, that is not a Windows-PATH bug; install or fix the tool in Ubuntu, then rescan.
+- Jobs and datasets live under `~/.neuroflow/` in the Ubuntu home, not under `C:\Users\...` or `/mnt/c` as the primary store.
+
+See [Windows and WSL](windows-wsl.md) for WSL setup (NeuroFlow never auto-installs WSL) and the supported run path.
+
 ## Reading module status
 
 - **Ready** — binary found; you can open and run the module.

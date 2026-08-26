@@ -30,7 +30,13 @@ Do not expose an unauthenticated instance. Restrict it to localhost or a trusted
 
 ## Does it run on Windows or macOS?
 
-`make setup` is aimed at Ubuntu/Debian with `apt`. Other platforms need the toolchain (Python, Poetry, Node) installed manually. Host neuroimaging tools must still be native installs for that OS.
+**Windows:** NeuroFlow on Windows is a **browser on Windows, compute in Linux on WSL2 Ubuntu**. Install WSL and Ubuntu yourself ([Microsoft guide](https://learn.microsoft.com/windows/wsl/install)); NeuroFlow never auto-installs WSL. The Windows `.exe` is a launcher only — it does not run FreeSurfer, FSL, or SCT on native Windows. See [Windows and WSL](windows-wsl.md).
+
+**macOS:** A packaged portal zip is available (experimental). Host neuroimaging tools must still be native installs for macOS where vendors support them. Development from source is aimed at Ubuntu/Debian with `apt`.
+
+## Does NeuroFlow install WSL?
+
+No. If WSL or Ubuntu is missing, NeuroFlow explains and links to [Microsoft's install guide](https://learn.microsoft.com/windows/wsl/install). Admin rights and a possible reboot are part of Microsoft's installer — not NeuroFlow.
 
 ## Do I need Docker?
 

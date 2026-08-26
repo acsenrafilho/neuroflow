@@ -34,6 +34,8 @@ flowchart TB
 
 **Packaged distribution:** GitHub Releases ship a PyInstaller build of the **portal only** (API + built UI). Host neuroimaging CLIs are never bundled. Frozen runs resolve UI assets from the bundle and write job/dataset data under `~/.neuroflow/`.
 
+**Windows:** The Windows zip is a **thin launcher** on Windows. It starts the **Linux** portal inside WSL2 Ubuntu, polls health, and opens the browser on Windows at `http://127.0.0.1:8000/`. FastAPI, allowlisted `Popen`, and host probes run **inside Ubuntu** — not on native Win32. Until the launcher zip ships, users run the Linux release zip inside Ubuntu (see [Windows and WSL](../user/windows-wsl.md)). NeuroFlow never auto-installs WSL.
+
 Portal-visible packages are **FreeSurfer**, **FSL**, and **SCT**. ANTs, 3D Slicer, and ITK may exist in code but are hidden from the UI.
 
 ## API surface

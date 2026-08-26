@@ -4,14 +4,26 @@ NeuroFlow is the portal (Python API + HTML UI). Neuroimaging CLIs such as FreeSu
 
 ## End users (packaged release)
 
-The easiest path on **Windows**, **macOS**, or **Linux** is a pre-built zip from GitHub Releases:
+The easiest path on **macOS** or **Linux** is a pre-built zip from GitHub Releases:
 
 1. Open the [latest release](https://github.com/acsenrafilho/neuroflow/releases/latest).
-2. Download the asset for your OS (`neuroflow-<version>-windows-*.zip`, `…-macos-…`, or `…-linux-…`).
+2. Download the asset for your OS (`neuroflow-<version>-macos-*.zip` or `…-linux-…`).
 3. Extract the archive and run the `neuroflow` executable inside the `neuroflow/` folder.
 4. Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) if the browser does not open automatically.
 
-Packaged builds store jobs and datasets under `~/.neuroflow/`. They serve the UI by default and do **not** include FreeSurfer, FSL, or SCT — install those separately (on Windows, **WSL2 + Ubuntu** is often required for FreeSurfer/FSL).
+### Windows
+
+On Windows, processing runs in **WSL2 Ubuntu** — not on native Windows. See **[Windows and WSL](windows-wsl.md)** for the full path.
+
+!!! note "Current vs future Windows zip"
+
+    Today's **Windows** release zip still ships a native Win32 portal binary — that is **not** the supported neuroimaging path.
+
+    **Supported today:** install WSL2 + Ubuntu yourself via [Microsoft's guide](https://learn.microsoft.com/windows/wsl/install), then run the **Linux** release zip inside Ubuntu and open Chrome on Windows at [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
+
+    A future Windows zip will ship `NeuroFlow.exe` (launcher) + `linux-payload/` so you can double-click instead of using the Linux zip workaround. NeuroFlow never auto-installs WSL.
+
+Packaged builds store jobs and datasets under `~/.neuroflow/` in the environment where the portal runs (Ubuntu home when using WSL). They serve the UI by default and do **not** include FreeSurfer, FSL, or SCT — install those inside Ubuntu on Windows, or on the host on Linux/macOS. See [Host tools](host-tools.md).
 
 **macOS Gatekeeper / Windows SmartScreen:** unsigned builds may need an explicit “Open anyway” / “Run anyway” confirmation.
 

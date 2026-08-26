@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeuroFlow | Windows + WSL</title>
+    <link rel="stylesheet" href="/assets/app.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-background font-body-md text-on-surface antialiased">
+    <aside id="hub-sidebar"></aside>
+    <header id="hub-header"></header>
+
+    <main class="ml-64 min-h-screen px-12 pb-16 pt-24">
+      <div class="mx-auto flex w-full max-w-[1400px] gap-10">
+        <aside id="help-wiki-nav" class="hidden w-52 shrink-0 md:block" aria-label="User guide topics"></aside>
+
+        <article class="min-w-0 max-w-3xl flex-1 space-y-8">
+          <header class="space-y-3">
+            <h2 class="font-headline-xl text-primary-container">Windows and WSL</h2>
+            <p class="text-on-surface-variant">
+              On Windows, you use NeuroFlow in Chrome while processing runs in Linux on WSL2 Ubuntu.
+              Full guide:
+              <a
+                href="https://neuroflowpipelines.readthedocs.io/en/latest/user/windows-wsl/"
+                class="text-primary underline-offset-2 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Windows and WSL on Read the Docs</a
+              >.
+            </p>
+          </header>
+
+          <div
+            class="rounded-xl border border-secondary/30 bg-secondary/5 px-6 py-5 text-sm text-on-surface"
+          >
+            <div class="mb-2 flex items-center gap-2 font-semibold">
+              <span class="material-symbols-outlined text-secondary">info</span>
+              One-sentence story
+            </div>
+            <p class="text-on-surface-variant">
+              Click NeuroFlow on Windows, use the site in Chrome, and processing happens in Linux on
+              WSL — provided WSL and the neuroimaging tools are already installed. NeuroFlow guides
+              you to official docs; it does not install WSL or vendor CLIs for you.
+            </p>
+          </div>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Requirements</h3>
+            <ul class="list-disc space-y-2 pl-5 text-on-surface-variant">
+              <li><strong class="text-on-surface">Windows 11 + WSL2</strong> is the primary target. Windows 10 + WSL2 is supported with possible localhost caveats.</li>
+              <li>Distro name: <strong class="text-on-surface">Ubuntu</strong> (do not substitute Debian or docker-desktop).</li>
+              <li><strong class="text-on-surface">x86_64</strong> for v1. ARM Windows is out of scope.</li>
+              <li>Host tools (FreeSurfer, FSL, SCT) installed <strong class="text-on-surface">inside Ubuntu</strong>, not on the native Windows PATH.</li>
+            </ul>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Install WSL yourself</h3>
+            <p class="text-on-surface-variant">
+              NeuroFlow <strong class="text-on-surface">never</strong> auto-installs WSL, never runs
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">wsl --install</code>,
+              never reboots your PC, and never enables Windows features on your behalf.
+            </p>
+            <p class="text-on-surface-variant">
+              If WSL or Ubuntu is missing, follow
+              <a
+                href="https://learn.microsoft.com/windows/wsl/install"
+                class="text-primary underline-offset-2 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Microsoft's official WSL install guide</a
+              >. Admin rights and a possible reboot are part of Microsoft's installer. On first
+              Ubuntu launch, create a <strong class="text-on-surface">Linux</strong> username and
+              password (not your Windows account).
+            </p>
+            <p class="text-on-surface-variant">
+              WSL does not reserve a fixed partition. The Ubuntu virtual disk grows with use.
+              FreeSurfer, FSL, and SCT will consume many gigabytes inside Linux once installed.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Where data lives</h3>
+            <p class="text-on-surface-variant">
+              Jobs and datasets live under
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">~/.neuroflow/</code>
+              in the Ubuntu home — not under
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">C:\Users\...</code>
+              or on
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">/mnt/c</code> as the
+              primary store.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">How to run today</h3>
+            <div
+              class="rounded-xl border border-outline-variant bg-surface-container-low px-6 py-5 text-sm text-on-surface-variant"
+            >
+              <p class="mb-2 font-semibold text-on-surface">Current Windows release zip</p>
+              <p>
+                Today's Windows zip still ships a native Win32 portal — that is
+                <strong class="text-on-surface">not</strong> the supported neuroimaging path.
+              </p>
+              <p class="mt-3">
+                <strong class="text-on-surface">Supported today:</strong> install WSL2 + Ubuntu,
+                download the <strong class="text-on-surface">Linux</strong> release zip, run
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">neuroflow</code>
+                inside an Ubuntu terminal, then open Chrome on Windows at
+                <a href="http://127.0.0.1:8000/" class="text-primary underline-offset-2 hover:underline">http://127.0.0.1:8000/</a>.
+              </p>
+            </div>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">How the Windows zip will work</h3>
+            <p class="text-on-surface-variant">
+              A future release will ship
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NeuroFlow.exe</code>
+              (launcher) plus
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">linux-payload/</code>.
+              Double-click will start the Linux portal in Ubuntu and open your browser on Windows.
+              If WSL is missing, the launcher will show a guide and link to Microsoft — still with
+              no auto-install.
+            </p>
+            <p class="text-on-surface-variant">
+              Unsigned builds may trigger SmartScreen — choose
+              <strong class="text-on-surface">More info → Run anyway</strong> when you trust the
+              release source.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Host tools in Ubuntu</h3>
+            <p class="text-on-surface-variant">
+              NeuroFlow does not download FreeSurfer, FSL, or SCT. Install them inside Ubuntu, then
+              rescan:
+            </p>
+            <pre
+              class="overflow-x-auto rounded-xl border border-outline-variant bg-surface-container-low p-4 text-sm text-on-surface"
+            ><code>curl -X POST http://127.0.0.1:8000/api/v1/host/rescan</code></pre>
+            <p class="text-on-surface-variant">
+              If Home shows <strong class="text-on-surface">Install on host</strong>, the probe did
+              not find the CLI in Ubuntu — not a Windows PATH issue. See
+              <a href="/help/host-tools.html" class="text-primary underline-offset-2 hover:underline">Host tools</a>.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Troubleshooting</h3>
+            <ul class="list-disc space-y-2 pl-5 text-on-surface-variant">
+              <li><strong class="text-on-surface">Ubuntu not initialized</strong> — open Ubuntu from Start and complete Linux user setup.</li>
+              <li><strong class="text-on-surface">Port 8000 busy</strong> — stop the other process or wait until it finishes.</li>
+              <li><strong class="text-on-surface">Browser cannot reach portal on Windows 10</strong> — WSL2 localhost forwarding may differ; try from inside Ubuntu first.</li>
+              <li><strong class="text-on-surface">ARM Windows</strong> — not supported in v1.</li>
+            </ul>
+          </section>
+        </article>
+      </div>
+    </main>
+
+    <script src="/js/hub-layout.js"></script>
+    <script src="/js/help-layout.js"></script>
+    <script>
+      HelpLayout.init({ topicId: "windows-wsl", title: "Windows + WSL" });
+    </script>
+  </body>
+</html>

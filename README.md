@@ -31,17 +31,19 @@ Download a pre-built portal package from the **[latest GitHub Release](https://g
 
 | Platform | Asset (example) | How to run |
 |----------|-----------------|------------|
-| Windows | `neuroflow-*-windows-*.zip` | Extract → run `neuroflow\neuroflow.exe` |
+| Windows | `neuroflow-*-windows-*.zip` | See [Windows and WSL](https://neuroflowpipelines.readthedocs.io/en/latest/user/windows-wsl/) — processing runs in **WSL2 Ubuntu**, not native Windows |
 | macOS | `neuroflow-*-macos-*.zip` | Extract → run `./neuroflow/neuroflow` (see Gatekeeper note below) |
 | Linux | `neuroflow-*-linux-*.zip` | Extract → `chmod +x neuroflow/neuroflow` → run `./neuroflow/neuroflow` |
 
-The app starts the local API, serves the UI, and opens [http://127.0.0.1:8000/](http://127.0.0.1:8000/). Job and dataset files are stored under `~/.neuroflow/` (not inside the zip).
+On **Windows**, you use the site in Chrome on Windows while the portal and neuroimaging CLIs run in **Linux on WSL2 Ubuntu**. NeuroFlow does not run FreeSurfer, FSL, or SCT on native Windows. Install WSL and Ubuntu yourself ([Microsoft guide](https://learn.microsoft.com/windows/wsl/install)); NeuroFlow never auto-installs WSL. Full path: [Windows and WSL on Read the Docs](https://neuroflowpipelines.readthedocs.io/en/latest/user/windows-wsl/).
+
+The app starts the local API, serves the UI, and opens [http://127.0.0.1:8000/](http://127.0.0.1:8000/). Job and dataset files are stored under `~/.neuroflow/` in the environment where the portal runs (Ubuntu home on Windows via WSL — not under `C:\Users\...` as the primary store).
 
 **macOS:** if Gatekeeper blocks the binary, use **System Settings → Privacy & Security → Open Anyway**, or `xattr -dr com.apple.quarantine neuroflow` after extract.
 
 **Windows:** SmartScreen may warn on unsigned builds — choose **More info → Run anyway** when you trust the release source.
 
-The release zip is the **NeuroFlow portal only**. It does **not** include FreeSurfer, FSL, or SCT. Install those on the host (or inside **WSL2 + Ubuntu** on Windows) and ensure they are on `PATH` (or set the `NEUROFLOW_*` env vars). See [Host tools](https://neuroflowpipelines.readthedocs.io/en/latest/user/host-tools/).
+The release zip is the **NeuroFlow portal only**. It does **not** include FreeSurfer, FSL, or SCT. On Windows, install those **inside WSL2 Ubuntu** (see [Windows and WSL](https://neuroflowpipelines.readthedocs.io/en/latest/user/windows-wsl/)). On Linux or macOS, install on the host and ensure tools are on `PATH` (or set the `NEUROFLOW_*` env vars). See [Host tools](https://neuroflowpipelines.readthedocs.io/en/latest/user/host-tools/).
 
 ## Developers (Ubuntu / Debian)
 
