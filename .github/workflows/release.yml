@@ -3,6 +3,12 @@ name: Release
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to rebuild binaries for (e.g. v0.0.1)"
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -13,6 +19,7 @@ concurrency:
 
 jobs:
   semantic-release:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     outputs:
       released: ${{ steps.meta.outputs.released }}
@@ -69,7 +76,11 @@ jobs:
 
   build-binaries:
     needs: semantic-release
-    if: needs.semantic-release.outputs.released == 'true'
+    if: |
+      always() && (
+        (github.event_name == 'push' && needs.semantic-release.outputs.released == 'true') ||
+        github.event_name == 'workflow_dispatch'
+      )
     strategy:
       fail-fast: false
       matrix:
@@ -82,9 +93,27 @@ jobs:
             script: pwsh -File packaging/build_release.ps1
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Resolve tag and version
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${{ needs.semantic-release.outputs.tag }}"
+          fi
+          if [[ -z "$TAG" ]]; then
+            echo "Release tag is empty" >&2
+            exit 1
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
         with:
-          ref: ${{ needs.semantic-release.outputs.tag }}
+          ref: ${{ steps.meta.outputs.tag }}
 
       - uses: actions/setup-python@v5
         with:
@@ -96,18 +125,19 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - uses: snok/install-poetry@v1
-        with:
-          version: latest
-          virtualenvs-create: true
-          virtualenvs-in-project: true
+      - name: Install Poetry
+        shell: bash
+        run: |
+          set -euo pipefail
+          pipx install poetry
+          echo "$(pipx environment --value PIPX_BIN_DIR)" >> "$GITHUB_PATH"
 
       - name: Install Python deps (incl. PyInstaller)
         run: poetry install --no-interaction --with packaging
 
       - name: Build release zip
         env:
-          NEUROFLOW_VERSION: ${{ needs.semantic-release.outputs.version }}
+          NEUROFLOW_VERSION: ${{ steps.meta.outputs.version }}
         run: ${{ matrix.script }}
 
       - name: Upload assets to GitHub Release
@@ -116,7 +146,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TAG="${{ needs.semantic-release.outputs.tag }}"
+          TAG="${{ steps.meta.outputs.tag }}"
           shopt -s nullglob
           assets=(dist/release/neuroflow-*.zip)
           if [[ ${#assets[@]} -eq 0 ]]; then
