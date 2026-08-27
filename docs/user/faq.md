@@ -18,7 +18,14 @@ Host RAM or CPU is above `NEUROFLOW_RAM_MAX_PERCENT` / `NEUROFLOW_CPU_MAX_PERCEN
 
 ## Where are outputs versus logs?
 
-Logs and job metadata live under `NEUROFLOW_DATA_ROOT` (`./data/jobs` by default). Researcher-facing images and derivatives live under `NEUROFLOW_DATASETS_ROOT` (`./data/datasets`) in a per-subject tree. See [Workspaces and data](workspaces.md).
+Logs and job metadata live under `NEUROFLOW_DATA_ROOT`. Researcher-facing images and derivatives live under `NEUROFLOW_DATASETS_ROOT` in a per-subject tree.
+
+| Mode | Jobs | Datasets |
+|------|------|----------|
+| From source | `./data/jobs` (default) | `./data/datasets` (default) |
+| Packaged zip | `~/.neuroflow/jobs` | `~/.neuroflow/datasets` |
+
+On Windows (WSL), those packaged paths are under the **Ubuntu** home, not `C:\Users\...`. See [Workspaces and data](workspaces.md).
 
 ## Is there a login?
 
@@ -52,7 +59,12 @@ No. Each module run is one job. Prerequisites (for example TOPUP before EDDY) ar
 
 ## How do I stop the server?
 
-Foreground `make api`: interrupt the terminal (Ctrl+C). Desktop/background: `./scripts/neuroflow-stop.sh`.
+| How you started | How to stop |
+|-----------------|-------------|
+| Packaged Linux / macOS (`./neuroflow/neuroflow`) | **Ctrl+C** in that terminal |
+| Packaged Windows (`NeuroFlow.exe`) | `NeuroFlow.exe --stop` (does not run `wsl --shutdown`; does not cancel running jobs) |
+| From source foreground (`make api`) | **Ctrl+C** in that terminal |
+| Linux desktop shortcut (`make desktop-install`) | `./scripts/neuroflow-stop.sh` |
 
 ## What about ANTs, 3D Slicer, and ITK?
 

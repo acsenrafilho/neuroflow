@@ -58,23 +58,32 @@
           <section class="space-y-3">
             <h3 class="font-headline-md text-on-surface">Where files live</h3>
             <p class="text-on-surface-variant">
-              Defaults (override with environment variables if needed):
+              Override with
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NEUROFLOW_DATA_ROOT</code>
+              and
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NEUROFLOW_DATASETS_ROOT</code>
+              if needed.
             </p>
             <ul class="list-disc space-y-2 pl-5 text-on-surface-variant">
               <li>
-                Job metadata and logs:
-                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NEUROFLOW_DATA_ROOT</code>
-                (default <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">./data/jobs</code>)
+                <strong class="text-on-surface">Packaged zip:</strong>
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">~/.neuroflow/jobs</code>
+                and
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">~/.neuroflow/datasets</code>
+                (Ubuntu home on Windows via WSL — not under
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">C:\Users\...</code>
+                as the primary store).
               </li>
               <li>
-                Researcher datasets:
-                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NEUROFLOW_DATASETS_ROOT</code>
-                (default <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">./data/datasets</code>)
+                <strong class="text-on-surface">From source:</strong>
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">./data/jobs</code>
+                and
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">./data/datasets</code>.
               </li>
             </ul>
             <pre
               class="overflow-x-auto rounded-xl border border-outline-variant bg-surface-container-low p-4 text-sm text-on-surface"
-            ><code>data/datasets/&lt;workspace&gt;/
+            ><code>&lt;datasets_root&gt;/&lt;workspace&gt;/
   sub-001/
     anat/…
     derivatives/
@@ -85,7 +94,14 @@
               Inputs and derivatives for a subject stay under that subject folder so you can see
               which processings were run. Older layouts with
               <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">&lt;workspace&gt;/derivatives/…</code>
-              (sibling to subjects) are obsolete for new jobs.
+              (sibling to subjects) are obsolete for new jobs. Full detail:
+              <a
+                href="https://neuroflowpipelines.readthedocs.io/en/latest/user/workspaces/"
+                class="text-primary underline-offset-2 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Workspaces on Read the Docs</a
+              >.
             </p>
           </section>
 

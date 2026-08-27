@@ -2,6 +2,8 @@
 
 On Windows, NeuroFlow is a **facilitation portal in your browser** while **processing runs in Linux** on WSL2 Ubuntu. You click NeuroFlow on Windows, use the site in Chrome, and jobs execute inside Ubuntu — provided WSL and the neuroimaging tools are already installed. NeuroFlow guides you to official docs; it does not install WSL or vendor CLIs for you.
 
+For the short Windows steps next to Linux and macOS, see [Installation](installation.md#windows-packaged).
+
 ## Requirements
 
 | Item | Detail |

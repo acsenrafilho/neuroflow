@@ -18,7 +18,7 @@ User documentation: [https://neuroflowpipelines.readthedocs.io/](https://neurofl
 
 ## Development setup
 
-Prerequisites and first-machine bootstrap are in the [README](README.md). Short version on Ubuntu/Debian:
+Prerequisites and first-machine bootstrap are in the [Development](https://neuroflowpipelines.readthedocs.io/en/latest/development/) guide (and summarized in the [README](README.md)). Short version on Ubuntu/Debian:
 
 ```bash
 git clone https://github.com/acsenrafilho/neuroflow.git

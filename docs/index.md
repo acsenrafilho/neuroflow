@@ -16,6 +16,7 @@ NeuroFlow is a **facilitation portal** for neuroscience medical image processing
 
 ## User guide
 
+- [Getting started](getting-started.md) — which page to read (packaged vs develop)
 - [Overview](user/overview.md) — purpose and objectives
 - [Installation](user/installation.md) — packaged release and from-source setup
 - [Windows and WSL](user/windows-wsl.md) — browser on Windows, compute in Ubuntu
