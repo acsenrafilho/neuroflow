@@ -8,6 +8,7 @@ body:
       value: |
         Do **not** attach identifiable scans, PHI, or logs that include real subject IDs.
         User guide: https://neuroflowpipelines.readthedocs.io/
+        **Windows:** report bugs for the WSL2 Ubuntu path, not native Win32 CLIs.
   - type: textarea
     id: describe
     attributes:
@@ -42,7 +43,8 @@ body:
         - Debian 12
         - Other Linux
         - macOS (unsupported / experimental)
-        - Windows (unsupported)
+        - Windows 11 + WSL2 Ubuntu
+        - Windows 10 + WSL2
     validations:
       required: true
   - type: input
