@@ -1,4 +1,4 @@
-"""CLI entry for the Windows WSL launcher (Phase 1: detection only)."""
+"""CLI entry for the Windows WSL launcher (Phase 2: detect + runtime)."""
 
 from __future__ import annotations
 
@@ -9,9 +9,12 @@ from rich.console import Console
 
 from neuroflow.windows_launcher.detect import probe_wsl
 from neuroflow.windows_launcher.notify import notify_user
+from neuroflow.windows_launcher.runtime import launch
 from neuroflow.windows_launcher.types import WSL_INSTALL_URL, WslState
 
 console = Console()
+
+_READY_STATES = frozenset({WslState.UBUNTU_STOPPED, WslState.UBUNTU_RUNNING})
 
 
 def _print_probe(probe, *, include_state_line: bool) -> None:
@@ -22,10 +25,8 @@ def _print_probe(probe, *, include_state_line: bool) -> None:
 
 
 def _handle_default(probe) -> int:
-    ready_states = {WslState.UBUNTU_STOPPED, WslState.UBUNTU_RUNNING}
-    if probe.state in ready_states:
-        _print_probe(probe, include_state_line=False)
-        return 0
+    if probe.state in _READY_STATES:
+        return launch(probe)
 
     _print_probe(probe, include_state_line=False)
     notify_user("NeuroFlow — WSL required", probe.message)
@@ -33,10 +34,10 @@ def _handle_default(probe) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run the launcher CLI (detection gate only in Phase 1)."""
+    """Run the launcher CLI (detection gate + portal runtime)."""
     parser = argparse.ArgumentParser(
         prog="NeuroFlow",
-        description="NeuroFlow Windows launcher — WSL detection (Phase 1)",
+        description="NeuroFlow Windows launcher — WSL detection and portal start",
     )
     parser.add_argument(
         "--status",

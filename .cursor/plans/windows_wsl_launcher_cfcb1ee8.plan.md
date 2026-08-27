@@ -10,7 +10,7 @@ todos:
     status: completed
   - id: phase-2-wsl-runtime
     content: "Phase 2: Copy Linux payload into Ubuntu FS, start packaged Linux portal, poll health from Windows, open browser; idempotent if already up."
-    status: pending
+    status: completed
   - id: phase-3-ci-zip
     content: "Phase 3: Release CI — Windows zip = launcher + linux-payload from ubuntu-latest; stop shipping Win32 FastAPI as the product."
     status: pending
@@ -122,6 +122,8 @@ Linux and macOS zips stay as they are (portal runs natively).
 ---
 
 ## Phase 2 — Runtime: copy Linux portal into WSL and open the browser
+
+**Status: complete** (2026-08-27)
 
 **Goal:** Happy path for a user who **already** has Ubuntu.
 

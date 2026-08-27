@@ -65,6 +65,16 @@ poetry run pre-commit install
 
 CI and `make lint` run `pre-commit run --all-files` (Ruff plus trailing whitespace, YAML, large-file, and related checks). See [Contributing](contributing.md).
 
+## Windows WSL launcher (maintainers)
+
+Until the release zip bundles `linux-payload/` (Phase 3), dogfood the Phase 2 runtime like this:
+
+1. On Linux, build the portal onedir: `packaging/build_release.sh` → `dist/neuroflow/`.
+2. On Windows (WSL2 Ubuntu ready), copy that folder as `linux-payload/` next to the launcher, or set `NEUROFLOW_LINUX_PAYLOAD` to it.
+3. Run: `poetry run python -m neuroflow.windows_launcher_app`
+
+The launcher copies the onedir into Ubuntu at `~/.neuroflow-app/<version>/`, starts it with `NEUROFLOW_SKIP_BROWSER=1`, polls health from Windows, and opens the browser.
+
 ## GitHub repository settings (maintainers)
 
 Description, topics, social preview, Sponsors, labels, and branch protection are configured in the GitHub UI. The checklist is in [CONTRIBUTING.md](https://github.com/acsenrafilho/neuroflow/blob/main/CONTRIBUTING.md#maintainer-github-repository-settings).

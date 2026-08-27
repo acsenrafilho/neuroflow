@@ -158,7 +158,9 @@
             <h3 class="font-headline-md text-on-surface">Troubleshooting</h3>
             <ul class="list-disc space-y-2 pl-5 text-on-surface-variant">
               <li><strong class="text-on-surface">Ubuntu not initialized</strong> — open Ubuntu from Start and complete Linux user setup.</li>
-              <li><strong class="text-on-surface">Port 8000 busy</strong> — stop the other process or wait until it finishes.</li>
+              <li><strong class="text-on-surface">Port 8000 busy</strong> — stop the other process or wait until it finishes. NeuroFlow will not kill that process.</li>
+              <li><strong class="text-on-surface">linux-payload missing</strong> — place the Linux onedir next to NeuroFlow.exe, or set <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NEUROFLOW_LINUX_PAYLOAD</code>.</li>
+              <li><strong class="text-on-surface">Second double-click</strong> — if the portal is already up, NeuroFlow only opens the browser again.</li>
               <li><strong class="text-on-surface">Browser cannot reach portal on Windows 10</strong> — WSL2 localhost forwarding may differ; try from inside Ubuntu first.</li>
               <li><strong class="text-on-surface">ARM Windows</strong> — not supported in v1.</li>
             </ul>

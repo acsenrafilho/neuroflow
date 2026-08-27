@@ -1,9 +1,11 @@
-"""Windows WSL launcher — detection gate (Phase 1)."""
+"""Windows WSL launcher — detection gate and portal runtime."""
 
 from neuroflow.windows_launcher.detect import WslProbe, probe_wsl
-from neuroflow.windows_launcher.types import WSL_INSTALL_URL, WslState
+from neuroflow.windows_launcher.types import HEALTH_URL, PORTAL_URL, WSL_INSTALL_URL, WslState
 
 __all__ = [
+    "HEALTH_URL",
+    "PORTAL_URL",
     "WSL_INSTALL_URL",
     "WslProbe",
     "WslState",

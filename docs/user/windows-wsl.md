@@ -76,7 +76,9 @@ If Home shows **Install on host**, that means the probe did not find the CLI in 
 | Symptom | What to check |
 |---------|----------------|
 | Ubuntu not initialized | Open Ubuntu from the Start menu once and complete the Linux user setup. |
-| Port 8000 busy | Stop the other process using port 8000, or wait until it finishes. |
+| Port 8000 busy | Stop the other process using port 8000, or wait until it finishes. NeuroFlow will not kill that process. |
+| `linux-payload/` missing | Place the Linux onedir (`neuroflow` + `_internal/`) next to `NeuroFlow.exe`, or set `NEUROFLOW_LINUX_PAYLOAD`. Release zips that bundle this folder arrive in a later packaging phase. |
+| Second double-click | If the portal is already healthy, NeuroFlow only opens the browser again (no second server). |
 | Browser cannot reach the portal on Windows 10 | WSL2 localhost forwarding differs on some Win10 setups; try accessing from inside Ubuntu first, or see Microsoft WSL networking docs. |
 | ARM Windows | Not supported in v1; use an x86_64 Windows PC with WSL2. |
 | Module stuck on Install on host | Install the package in **Ubuntu**, source its environment if needed, then rescan. |

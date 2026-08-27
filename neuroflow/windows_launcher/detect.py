@@ -12,22 +12,23 @@ from pathlib import Path
 
 from neuroflow.windows_launcher.messages import message_for_state
 from neuroflow.windows_launcher.types import WSL_INSTALL_URL, WslState
-
-WSL_LIST_TIMEOUT_SECONDS = 15
-WSL_PROBE_TIMEOUT_SECONDS = 15
-
-ALLOWED_WSL_ARGS = frozenset(
-    {
-        "-l",
-        "-v",
-        "--list",
-        "--verbose",
-        "-d",
-        "Ubuntu",
-        "--",
-        "true",
-    }
+from neuroflow.windows_launcher.wsl_exec import (
+    DISTRO,
+    WSL_LIST_TIMEOUT_SECONDS,
+    WSL_PROBE_TIMEOUT_SECONDS,
+    DisallowedWslArgumentError,
+    run_wsl,
+    validate_wsl_argv,
 )
+
+# Re-export for callers/tests that imported from detect.
+__all__ = [
+    "DisallowedWslArgumentError",
+    "WslProbe",
+    "decode_wsl_output",
+    "probe_wsl",
+    "validate_wsl_argv",
+]
 
 _DISTRO_LINE = re.compile(
     r"^(?P<default>\*?)\s*(?P<name>\S+)\s+(?P<state>Running|Stopped)\s+(?P<version>\d+)\s*$"
@@ -52,22 +53,6 @@ class WslProbe:
     wsl_version: int | None
     microsoft_url: str
     message: str
-
-
-class DisallowedWslArgumentError(ValueError):
-    """Raised when a subprocess argv contains a non-allowlisted wsl flag."""
-
-
-def validate_wsl_argv(argv: list[str]) -> None:
-    """Ensure wsl.exe is only invoked with allowlisted arguments."""
-    if not argv:
-        raise DisallowedWslArgumentError("empty argv")
-    for arg in argv[1:]:
-        if arg in ALLOWED_WSL_ARGS:
-            continue
-        if arg.startswith("-"):
-            raise DisallowedWslArgumentError(f"disallowed wsl flag: {arg}")
-        raise DisallowedWslArgumentError(f"disallowed wsl argument: {arg}")
 
 
 def decode_wsl_output(raw: bytes) -> str:
@@ -112,13 +97,12 @@ def _find_wsl_exe() -> str | None:
 
 
 def _run_wsl(wsl_exe: str, args: list[str]) -> subprocess.CompletedProcess[bytes]:
-    validate_wsl_argv([wsl_exe, *args])
-    return subprocess.run(
-        [wsl_exe, *args],
-        capture_output=True,
-        timeout=WSL_LIST_TIMEOUT_SECONDS,
-        check=False,
+    timeout = (
+        WSL_PROBE_TIMEOUT_SECONDS
+        if args == ["-d", DISTRO, "--", "true"]
+        else WSL_LIST_TIMEOUT_SECONDS
     )
+    return run_wsl(wsl_exe, args, timeout=timeout)
 
 
 def _parse_distro_list(text: str) -> dict[str, tuple[str, int]]:
@@ -156,7 +140,7 @@ def _probe_result(
 
 def _ubuntu_running_check(wsl_exe: str) -> WslState:
     try:
-        result = _run_wsl(wsl_exe, ["-d", "Ubuntu", "--", "true"])
+        result = _run_wsl(wsl_exe, ["-d", DISTRO, "--", "true"])
     except (subprocess.TimeoutExpired, OSError):
         return WslState.UBUNTU_NEEDS_USER_SETUP
     if result.returncode == 0:
@@ -184,15 +168,15 @@ def probe_wsl() -> WslProbe:
         return _probe_result(WslState.WSL_MISSING, wsl_exe)
 
     distros = _parse_distro_list(text)
-    if "Ubuntu" not in distros:
+    if DISTRO not in distros:
         return _probe_result(WslState.WSL_PRESENT_NO_UBUNTU, wsl_exe)
 
-    ubuntu_state, ubuntu_version = distros["Ubuntu"]
+    ubuntu_state, ubuntu_version = distros[DISTRO]
     if ubuntu_state == "Stopped":
         return _probe_result(
             WslState.UBUNTU_STOPPED,
             wsl_exe,
-            distro="Ubuntu",
+            distro=DISTRO,
             wsl_version=ubuntu_version,
         )
 
@@ -200,6 +184,6 @@ def probe_wsl() -> WslProbe:
     return _probe_result(
         state,
         wsl_exe,
-        distro="Ubuntu",
+        distro=DISTRO,
         wsl_version=ubuntu_version,
     )

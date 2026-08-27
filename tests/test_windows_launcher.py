@@ -63,9 +63,50 @@ class TestValidateWslArgv:
         with pytest.raises(DisallowedWslArgumentError, match="--install"):
             validate_wsl_argv(["wsl.exe", "--install"])
 
+    def test_rejects_shutdown(self) -> None:
+        with pytest.raises(DisallowedWslArgumentError, match="--shutdown"):
+            validate_wsl_argv(["wsl.exe", "--shutdown"])
+
     def test_allows_list_and_probe(self) -> None:
         validate_wsl_argv(["wsl.exe", "-l", "-v"])
         validate_wsl_argv(["wsl.exe", "-d", "Ubuntu", "--", "true"])
+
+    def test_allows_constructed_templates(self) -> None:
+        home = "/home/lab"
+        validate_wsl_argv(
+            ["wsl.exe", "-d", "Ubuntu", "--", "printenv", "HOME"],
+        )
+        validate_wsl_argv(
+            [
+                "wsl.exe",
+                "-d",
+                "Ubuntu",
+                "--",
+                "test",
+                "-x",
+                f"{home}/.neuroflow-app/0.0.1/neuroflow",
+            ],
+            linux_home=home,
+        )
+        validate_wsl_argv(
+            [
+                "wsl.exe",
+                "-d",
+                "Ubuntu",
+                "--",
+                "env",
+                "NEUROFLOW_SKIP_BROWSER=1",
+                f"{home}/.neuroflow-app/0.0.1/neuroflow",
+            ],
+            linux_home=home,
+        )
+
+    def test_rejects_path_outside_app_home(self) -> None:
+        with pytest.raises(DisallowedWslArgumentError):
+            validate_wsl_argv(
+                ["wsl.exe", "-d", "Ubuntu", "--", "chmod", "+x", "/tmp/evil"],
+                linux_home="/home/lab",
+            )
 
 
 class TestProbeWsl:
@@ -224,18 +265,34 @@ class TestLauncherCli:
         mock_notify.assert_called_once()
         assert "Install WSL." in capsys.readouterr().out
 
-    def test_default_ready_state_no_messagebox(self) -> None:
+    def test_default_ready_state_launches_runtime(self) -> None:
+        probe = MagicMock()
+        probe.state = WslState.UBUNTU_RUNNING
+        probe.message = "Ready."
+        probe.microsoft_url = WSL_INSTALL_URL
+        probe.wsl_exe = _WSL_EXE
+        with (
+            patch("neuroflow.windows_launcher.app.probe_wsl", return_value=probe),
+            patch("neuroflow.windows_launcher.app.launch", return_value=0) as mock_launch,
+            patch("neuroflow.windows_launcher.app.notify_user") as mock_notify,
+        ):
+            code = launcher_main([])
+        assert code == 0
+        mock_launch.assert_called_once_with(probe)
+        mock_notify.assert_not_called()
+
+    def test_status_does_not_call_runtime(self) -> None:
         probe = MagicMock()
         probe.state = WslState.UBUNTU_RUNNING
         probe.message = "Ready."
         probe.microsoft_url = WSL_INSTALL_URL
         with (
             patch("neuroflow.windows_launcher.app.probe_wsl", return_value=probe),
-            patch("neuroflow.windows_launcher.app.notify_user") as mock_notify,
+            patch("neuroflow.windows_launcher.app.launch") as mock_launch,
         ):
-            code = launcher_main([])
+            code = launcher_main(["--status"])
         assert code == 0
-        mock_notify.assert_not_called()
+        mock_launch.assert_not_called()
 
     def test_never_imports_windll_on_non_windows(self) -> None:
         assert sys.platform != "win32"
