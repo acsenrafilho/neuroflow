@@ -102,12 +102,55 @@
           </section>
 
           <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Windows / WSL</h3>
+            <p class="text-on-surface-variant">
+              On Windows, the portal runs inside WSL2 Ubuntu. Probes inspect the
+              <strong class="text-on-surface">Ubuntu</strong> PATH — not native Windows. If Home
+              shows <strong class="text-on-surface">Install on host</strong>, that is not a Windows
+              PATH bug. See
+              <a href="/help/windows-wsl.html" class="text-primary underline-offset-2 hover:underline">Windows + WSL</a>.
+            </p>
+            <ol class="list-decimal space-y-2 pl-5 text-on-surface-variant">
+              <li>
+                Install FreeSurfer, FSL, and SCT with each vendor’s official procedure
+                <strong class="text-on-surface">inside Ubuntu</strong>.
+              </li>
+              <li>
+                Ensure binaries are on the Ubuntu
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">PATH</code>
+                or set
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NEUROFLOW_*</code>
+                overrides.
+              </li>
+              <li>
+                Click <strong class="text-on-surface">Rescan host tools</strong> below (or use the
+                curl command).
+              </li>
+              <li>
+                Return to Home — module badges update after you reload the page.
+              </li>
+            </ol>
+          </section>
+
+          <section class="space-y-3">
             <h3 class="font-headline-md text-on-surface">Scan and rescan</h3>
             <p class="text-on-surface-variant">
               On API startup, NeuroFlow scans the host for registered packages and caches the
-              result. After sourcing a tool environment (for example FreeSurfer), re-scan without
-              restarting:
+              result. After installing or sourcing a tool environment, re-scan without restarting:
             </p>
+            <div class="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                id="host-tools-rescan-btn"
+                class="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-on-primary transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <span class="material-symbols-outlined text-sm">refresh</span>
+                Rescan host tools
+              </button>
+              <p id="host-tools-rescan-status" class="font-label-sm text-on-surface-variant" role="status"></p>
+            </div>
+            <div id="host-tools-rescan-results" class="space-y-2" aria-live="polite"></div>
+            <p class="text-on-surface-variant">From a terminal you can also run:</p>
             <pre
               class="overflow-x-auto rounded-xl border border-outline-variant bg-surface-container-low p-4 text-sm text-on-surface"
             ><code>curl -X POST http://127.0.0.1:8000/api/v1/host/rescan</code></pre>
@@ -133,8 +176,11 @@
 
     <script src="/js/hub-layout.js"></script>
     <script src="/js/help-layout.js"></script>
+    <script src="/js/neuroflow-api.js"></script>
+    <script src="/js/host-tools-page.js"></script>
     <script>
       HelpLayout.init({ topicId: "host-tools", title: "Host tools" });
+      HostToolsPage.init();
     </script>
   </body>
 </html>

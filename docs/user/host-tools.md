@@ -14,7 +14,9 @@ ANTs, 3D Slicer, and ITK have similar environment overrides in `.env.example` bu
 
 ## Scan and rescan
 
-On API startup, NeuroFlow scans the host for registered packages and caches the result. After sourcing a tool environment, re-scan without restarting:
+On API startup, NeuroFlow scans the host for registered packages and caches the result. After sourcing a tool environment, re-scan without restarting.
+
+In the app, open **Host tools** help and click **Rescan host tools**. From a terminal:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/v1/host/rescan
@@ -29,6 +31,19 @@ poetry run neuroflow scan
 ```
 
 `poetry run neuroflow` lists the data root and package readiness from the same probes used by the API.
+
+## Windows / WSL
+
+On Windows, the portal runs **inside WSL2 Ubuntu**. Host probes inspect the **Ubuntu** `PATH` and environment — not the native Windows PATH. If Home shows **Install on host**, that is not a Windows-PATH bug.
+
+1. Install FreeSurfer, FSL, SCT, and other packages **inside Ubuntu** with each vendor's official procedure.
+2. Ensure binaries are on the Ubuntu `PATH` (or set `NEUROFLOW_*` overrides).
+3. Open **Host tools** in the app and click **Rescan host tools** (or use the curl command above).
+4. Return to Home and reload the page so module badges refresh.
+
+Jobs and datasets live under `~/.neuroflow/` in the Ubuntu home, not under `C:\Users\...` or `/mnt/c` as the primary store.
+
+See [Windows and WSL](windows-wsl.md) for WSL setup (NeuroFlow never auto-installs WSL) and the supported run path.
 
 ## Reading module status
 

@@ -18,7 +18,7 @@ User documentation: [https://neuroflowpipelines.readthedocs.io/](https://neurofl
 
 ## Development setup
 
-Prerequisites and first-machine bootstrap are in the [README](README.md). Short version on Ubuntu/Debian:
+Prerequisites and first-machine bootstrap are in the [Development](https://neuroflowpipelines.readthedocs.io/en/latest/development/) guide (and summarized in the [README](README.md)). Short version on Ubuntu/Debian:
 
 ```bash
 git clone https://github.com/acsenrafilho/neuroflow.git
@@ -78,7 +78,7 @@ Use **[Conventional Commits](https://www.conventionalcommits.org/)** so merges t
 
 Examples: `feat: add FSL flirt module page`, `fix: correct SCT path probe on macOS`.
 
-On push to `main`, [`.github/workflows/release.yml`](.github/workflows/release.yml) runs [python-semantic-release](https://python-semantic-release.readthedocs.io/), tags `vX.Y.Z`, publishes a GitHub Release, and attaches PyInstaller zips for Linux, Windows, and macOS. The SemVer baseline is `0.0.1` (`0.x` APIs may still change).
+On push to `main`, [`.github/workflows/release.yml`](.github/workflows/release.yml) runs [python-semantic-release](https://python-semantic-release.readthedocs.io/), tags `vX.Y.Z`, publishes a GitHub Release, and attaches platform zips: Linux and macOS portal onedirs, plus a Windows zip that is the WSL **launcher** (`NeuroFlow.exe`) bundled with the Linux portal as `linux-payload/` (built on `ubuntu-latest`). The SemVer baseline is `0.0.1` (`0.x` APIs may still change).
 
 ## Pull requests
 

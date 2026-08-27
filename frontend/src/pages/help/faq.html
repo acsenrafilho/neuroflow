@@ -49,7 +49,9 @@
             <h3 class="font-headline-md text-on-surface">Why does a module say Install on host?</h3>
             <p class="text-on-surface-variant">
               The probe binary was not found. Fix PATH or <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">.env</code>,
-              then rescan or restart the API.
+              then rescan or restart the API. On Windows, the probe runs inside
+              <strong class="text-on-surface">Ubuntu</strong> — not against the native Windows PATH. See
+              <a href="/help/host-tools.html" class="text-primary underline-offset-2 hover:underline">Host tools</a>.
             </p>
           </section>
 
@@ -71,10 +73,79 @@
           </section>
 
           <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Does it run on Windows or macOS?</h3>
+            <p class="text-on-surface-variant">
+              <strong class="text-on-surface">Windows:</strong> browser on Windows, compute in Linux
+              on WSL2 Ubuntu. NeuroFlow never auto-installs WSL. The Windows
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">.exe</code> is a
+              launcher only — it does not run FreeSurfer, FSL, or SCT on native Windows. See
+              <a href="/help/windows-wsl.html" class="text-primary underline-offset-2 hover:underline">Windows + WSL</a>.
+            </p>
+            <p class="text-on-surface-variant">
+              <strong class="text-on-surface">macOS:</strong> a packaged portal zip is available
+              (experimental). Host tools must still be native installs where vendors support them.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Does NeuroFlow install WSL?</h3>
+            <p class="text-on-surface-variant">
+              No. If WSL or Ubuntu is missing, NeuroFlow explains and links to
+              <a
+                href="https://learn.microsoft.com/windows/wsl/install"
+                class="text-primary underline-offset-2 hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Microsoft's install guide</a
+              >. Admin rights and a possible reboot are part of Microsoft's installer.
+            </p>
+          </section>
+
+          <section class="space-y-3">
             <h3 class="font-headline-md text-on-surface">Does it chain pipelines or use Docker?</h3>
             <p class="text-on-surface-variant">
               No automatic pipelines and no Docker requirement. Each module is one job. Tools stay on
               the host OS.
+            </p>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">How do I stop the server?</h3>
+            <ul class="list-disc space-y-2 pl-5 text-on-surface-variant">
+              <li>
+                Packaged Linux / macOS
+                (<code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">./neuroflow/neuroflow</code>):
+                <strong class="text-on-surface">Ctrl+C</strong> in that terminal.
+              </li>
+              <li>
+                Packaged Windows
+                (<code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NeuroFlow.exe</code>):
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NeuroFlow.exe --stop</code>
+                (does not shut down WSL; does not cancel running jobs).
+              </li>
+              <li>
+                From source foreground
+                (<code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">make api</code>):
+                <strong class="text-on-surface">Ctrl+C</strong>.
+              </li>
+              <li>
+                Linux desktop shortcut:
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">./scripts/neuroflow-stop.sh</code>.
+              </li>
+            </ul>
+          </section>
+
+          <section class="space-y-3">
+            <h3 class="font-headline-md text-on-surface">Where are outputs versus logs?</h3>
+            <p class="text-on-surface-variant">
+              Packaged builds store jobs and datasets under
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">~/.neuroflow/</code>
+              (Ubuntu home on Windows). From-source defaults are
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">./data/jobs</code>
+              and
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">./data/datasets</code>.
+              See
+              <a href="/help/workspaces.html" class="text-primary underline-offset-2 hover:underline">Workspaces</a>.
             </p>
           </section>
 

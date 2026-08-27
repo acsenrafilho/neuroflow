@@ -8,7 +8,7 @@
 
 NeuroFlow is a **facilitation portal** for neuroscience medical image processing: **one independent page per CLI** (FreeSurfer, FSL, and Spinal Cord Toolbox in the portal today). Each module provides upload, parameter forms, command preview, and **local subprocess** execution.
 
-It is **not** a multi-tool pipeline runner and **does not** ship Docker. You install host packages yourself; NeuroFlow wraps them in a FastAPI + HTML/Tailwind UI.
+It is **not** a multi-tool pipeline runner and **does not** ship Docker. The release is the **portal only** — it does **not** install FreeSurfer, FSL, or SCT, and there is **no login**. You install host packages yourself; NeuroFlow wraps them in a FastAPI + HTML/Tailwind UI.
 
 [![CI](https://github.com/acsenrafilho/neuroflow/actions/workflows/ci.yml/badge.svg)](https://github.com/acsenrafilho/neuroflow/actions/workflows/ci.yml)
 [![GitHub release](https://img.shields.io/github/v/release/acsenrafilho/neuroflow?sort=semver)](https://github.com/acsenrafilho/neuroflow/releases/latest)
@@ -25,27 +25,69 @@ It is **not** a multi-tool pipeline runner and **does not** ship Docker. You ins
 
 **Docs:** [User guide on Read the Docs](https://neuroflowpipelines.readthedocs.io/) · in-app help at `/help/` · OpenAPI at `/docs`
 
-## End users (Windows / macOS / Linux)
+## Choose a path
 
-Download a pre-built portal package from the **[latest GitHub Release](https://github.com/acsenrafilho/neuroflow/releases/latest)** — no Poetry or Node required.
+- **[I only want to use NeuroFlow](#end-users--packaged-release)** — download a zip from GitHub Releases. No git, Poetry, or Node.
+- **[I want to develop NeuroFlow](#developers--from-source)** — clone the repo on Ubuntu/Debian and run from source.
 
-| Platform | Asset (example) | How to run |
-|----------|-----------------|------------|
-| Windows | `neuroflow-*-windows-*.zip` | Extract → run `neuroflow\neuroflow.exe` |
-| macOS | `neuroflow-*-macos-*.zip` | Extract → run `./neuroflow/neuroflow` (see Gatekeeper note below) |
-| Linux | `neuroflow-*-linux-*.zip` | Extract → `chmod +x neuroflow/neuroflow` → run `./neuroflow/neuroflow` |
+Full walkthroughs: [Installation](https://neuroflowpipelines.readthedocs.io/en/latest/user/installation/) · [Windows and WSL](https://neuroflowpipelines.readthedocs.io/en/latest/user/windows-wsl/) · [Development](https://neuroflowpipelines.readthedocs.io/en/latest/development/)
 
-The app starts the local API, serves the UI, and opens [http://127.0.0.1:8000/](http://127.0.0.1:8000/). Job and dataset files are stored under `~/.neuroflow/` (not inside the zip).
+## End users — packaged release
 
-**macOS:** if Gatekeeper blocks the binary, use **System Settings → Privacy & Security → Open Anyway**, or `xattr -dr com.apple.quarantine neuroflow` after extract.
+Download the asset for your OS from the **[latest GitHub Release](https://github.com/acsenrafilho/neuroflow/releases/latest)**. Extract the archive and **keep the folder intact** (`_internal/` must stay next to the binary; on Windows also keep `linux-payload/`).
 
-**Windows:** SmartScreen may warn on unsigned builds — choose **More info → Run anyway** when you trust the release source.
+The app starts the local API, serves the UI, and opens [http://127.0.0.1:8000/](http://127.0.0.1:8000/). Job and dataset files live under `~/.neuroflow/` in the environment where the portal runs (Ubuntu home on Windows via WSL — not under `C:\Users\...` as the primary store).
 
-The release zip is the **NeuroFlow portal only**. It does **not** include FreeSurfer, FSL, or SCT. Install those on the host (or inside **WSL2 + Ubuntu** on Windows) and ensure they are on `PATH` (or set the `NEUROFLOW_*` env vars). See [Host tools](https://neuroflowpipelines.readthedocs.io/en/latest/user/host-tools/).
+### Linux
 
-## Developers (Ubuntu / Debian)
+1. Download `neuroflow-*-linux-*.zip` and extract it.
+2. Make the binary executable: `chmod +x neuroflow/neuroflow`
+3. Run: `./neuroflow/neuroflow`
+4. A browser should open at [http://127.0.0.1:8000/](http://127.0.0.1:8000/). Leave the terminal open while you use the portal.
+5. Stop with **Ctrl+C** in that terminal.
 
-Development and from-source install stay on Linux with Poetry:
+Data: `~/.neuroflow/jobs` and `~/.neuroflow/datasets`.
+
+### macOS (experimental)
+
+1. Download `neuroflow-*-macos-*.zip` and extract it.
+2. Run: `./neuroflow/neuroflow`
+3. If Gatekeeper blocks the binary, use **System Settings → Privacy & Security → Open Anyway**, or after extract: `xattr -dr com.apple.quarantine neuroflow`
+4. A browser should open at [http://127.0.0.1:8000/](http://127.0.0.1:8000/). Leave the terminal open while you use the portal.
+5. Stop with **Ctrl+C** in that terminal.
+
+Install FreeSurfer, FSL, and SCT as **native macOS** packages where vendors support them.
+
+### Windows
+
+On Windows you click NeuroFlow, use the site in Chrome, and processing happens in Linux on WSL — if WSL and the neuroimaging tools are already installed. NeuroFlow points you to official docs; it does **not** install WSL or vendor CLIs.
+
+**Requirements:** Windows 11 + WSL2 (primary; Windows 10 + WSL2 works with possible localhost caveats), distro name **Ubuntu**, **x86_64** only (ARM is refused).
+
+1. Install **WSL2 + Ubuntu** yourself via [Microsoft’s WSL guide](https://learn.microsoft.com/windows/wsl/install). NeuroFlow never runs `wsl --install`, never reboots your PC, and never enables Windows features for you.
+2. Open Ubuntu once and create a **Linux** username and password (not your Windows account).
+3. Download `neuroflow-*-windows-x86_64.zip` and extract it. Keep **`NeuroFlow.exe`**, **`_internal/`**, and **`linux-payload/`** together.
+4. Double-click **`NeuroFlow.exe`**.
+5. If WSL or Ubuntu is missing, follow the on-screen Microsoft link, finish Ubuntu setup, then click again.
+6. If SmartScreen warns (“Windows protected your PC”), choose **More info → Run anyway** when you trust the release source.
+7. Stop the portal later with: `NeuroFlow.exe --stop` (does not shut down WSL; does not cancel running jobs).
+
+Full path: [Windows and WSL on Read the Docs](https://neuroflowpipelines.readthedocs.io/en/latest/user/windows-wsl/).
+
+### Then install host tools
+
+The release zip does **not** include FreeSurfer, FSL, or SCT.
+
+| Platform | Where to install tools |
+|----------|------------------------|
+| Linux / macOS | On that machine (`PATH` or `NEUROFLOW_*` env overrides) |
+| Windows | **Inside WSL2 Ubuntu**, not on the native Windows PATH |
+
+If Home shows **Install on host**, the probe failed on the OS where the portal runs (Ubuntu on Windows). Install the package, then rescan — see [Host tools](https://neuroflowpipelines.readthedocs.io/en/latest/user/host-tools/).
+
+## Developers — from source
+
+Development and from-source install target **Ubuntu 22.04+ / Debian 12+** with Poetry:
 
 ```bash
 git clone https://github.com/acsenrafilho/neuroflow.git
@@ -54,79 +96,9 @@ make setup
 make api
 ```
 
-Open http://127.0.0.1:8000/ (with `NEUROFLOW_SERVE_FRONTEND=1` from `.env.example`). In-app user guide: http://127.0.0.1:8000/help/. User documentation: https://neuroflowpipelines.readthedocs.io/. OpenAPI (Swagger): http://127.0.0.1:8000/docs.
+Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) (with `NEUROFLOW_SERVE_FRONTEND=1` from `.env.example`).
 
-For a one-click start from the application menu or Desktop (Linux, Poetry install):
-
-```bash
-make desktop-install
-```
-
-Then use the **NeuroFlow** icon (background server + browser). Stop with `./scripts/neuroflow-stop.sh`.
-
-### Prerequisites
-
-**NeuroFlow toolchain** (Ubuntu 22.04+ / Debian 12+):
-
-- [Poetry](https://python-poetry.org/) (Python 3.10+)
-- [Node.js](https://nodejs.org/) 18+ (frontend Tailwind build)
-
-On Debian/Ubuntu, `make setup` checks these and can suggest `apt` / Poetry installer commands.
-
-**Host neuroimaging tools (optional)** — install on the machine yourself; NeuroFlow does not install them:
-
-- **FreeSurfer** (`recon-all` on `PATH`, or `NEUROFLOW_RECON_ALL_BIN`)
-- **FSL** (`bet`, `flirt`, etc. on `PATH`, or `NEUROFLOW_FSLDIR` / `FSLDIR`)
-- **Spinal Cord Toolbox (SCT)** (`sct_version` on `PATH`, `$HOME/sct_*`, or `SCT_DIR` / `NEUROFLOW_SCT_DIR`)
-- Optional (code present, hidden in the portal UI for now): ANTs, 3D Slicer, ITK
-
-### Manual install (toolchain already present)
-
-```bash
-cp .env.example .env
-make install
-make frontend-build
-poetry run neuroflow serve
-```
-
-Dev shortcuts: `poetry run neuroflow serve` (or `make api`) — uvicorn with reload on `127.0.0.1:8000`.
-
-Local packaged zip (optional): `make release-build` → `dist/release/neuroflow-*-linux-*.zip`.
-
-## Viewing the frontend
-
-The UI is **not** served from `frontend/src/pages/`. That folder is source only. Tailwind builds CSS and copies HTML into `frontend/dist/`, which is the deployable site.
-
-**Always build before preview:**
-
-```bash
-make frontend-build
-# or: cd frontend && npm run build
-```
-
-Pages link to absolute paths such as `/assets/app.css`. The web server root must therefore be `frontend/dist/`, not the repository root and not `src/pages/`.
-
-| Method | URL | Notes |
-|--------|-----|--------|
-| FastAPI + static | http://127.0.0.1:8000/ | Set `NEUROFLOW_SERVE_FRONTEND=1` in `.env`. UI and API share the same origin. |
-| Python | http://127.0.0.1:8080/ | `cd frontend/dist && python -m http.server 8080` |
-| Live Server (VS Code / Cursor) | http://127.0.0.1:5500/ | Uses [`.vscode/settings.json`](.vscode/settings.json) (`root`: `frontend/dist`). Install the **Live Server** extension, build the frontend, then **Go Live** from `frontend/dist/index.html` or the workspace. |
-
-**Do not** open `http://127.0.0.1:5500/frontend/src/pages/index.html` — CSS and logo paths will 404 and the layout will look broken.
-
-With Live Server on port 5500 and the API on port 8000, hub features that call `/api/v1/tools` require the API to be running; for a full stack preview, prefer `NEUROFLOW_SERVE_FRONTEND=1` on port 8000.
-
-| Command | Description |
-|---------|-------------|
-| `make setup` | First-machine bootstrap (apt checks, deps, frontend build) |
-| `make install` | Install Python and frontend dependencies |
-| `make desktop-install` | Linux application menu + Desktop shortcut |
-| `make test` | Run pytest |
-| `make lint` | Run pre-commit hooks (ruff + file hygiene) |
-| `make api` | Start FastAPI via `poetry run neuroflow serve` (reload; host package scan on startup) |
-| `make frontend-build` | Build Tailwind CSS and copy pages to `frontend/dist/` |
-| `make release-build` | PyInstaller onedir zip under `dist/release/` |
-| `make docs` | Serve MkDocs locally (user guide + developer pages) |
+Full from-source setup, desktop shortcut, frontend preview, and `make` targets: [Development](https://neuroflowpipelines.readthedocs.io/en/latest/development/) · [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Project layout
 
@@ -143,17 +115,12 @@ scripts/            # setup, launch, host scan helpers
 tests/
 ```
 
-## API
+## Docs and API
 
 - User documentation: https://neuroflowpipelines.readthedocs.io/
-- In-app user guide: http://127.0.0.1:8000/help/ (when frontend is served)
-- OpenAPI: http://127.0.0.1:8000/docs
+- In-app user guide: http://127.0.0.1:8000/help/ (when the frontend is served)
+- OpenAPI (Swagger): http://127.0.0.1:8000/docs
 - Health: `GET /api/v1/health`
-- Tools / modules: `GET /api/v1/tools`, `GET /api/v1/modules` (portal: FreeSurfer, FSL, SCT)
-- Active jobs: `GET /api/v1/jobs`
-- Host resources: `GET /api/v1/host/resources`
-- FreeSurfer job: `POST /api/v1/tools/freesurfer/jobs` (multipart: files, `subject_ids`, `workspace`, …)
-- FSL job: `POST /api/v1/tools/fsl/jobs` (multipart: files, `workspace`, `subject_id`, `module_id`, …)
 
 ## Adding a tool
 

@@ -2,18 +2,121 @@
 
 NeuroFlow is the portal (Python API + HTML UI). Neuroimaging CLIs such as FreeSurfer, FSL, and SCT stay on the **host** and are never installed by NeuroFlow. See [Host tools](host-tools.md).
 
-## End users (packaged release)
+## Pick your path
 
-The easiest path on **Windows**, **macOS**, or **Linux** is a pre-built zip from GitHub Releases:
+| You want to… | Path |
+|--------------|------|
+| **Use** the portal (no coding) | Download a zip from [GitHub Releases](https://github.com/acsenrafilho/neuroflow/releases/latest) — [Linux](#linux-packaged), [macOS](#macos-packaged-experimental), or [Windows](#windows-packaged) |
+| **Develop** or change the code | Clone the repo on Ubuntu/Debian — [Developers (from source)](#developers-from-source) |
+
+End users do **not** need git, Poetry, Node, or `make`.
+
+## What you must install yourself
+
+| Item | Who installs it |
+|------|-----------------|
+| NeuroFlow portal | You download the release zip (or build from source) |
+| WSL2 + Ubuntu (Windows only) | You, via [Microsoft’s guide](https://learn.microsoft.com/windows/wsl/install) — NeuroFlow never auto-installs WSL |
+| FreeSurfer, FSL, SCT | You, with each vendor’s official installer, on the OS where the portal runs |
+
+There is no Docker requirement and no login in the current MVP.
+
+## Linux packaged
 
 1. Open the [latest release](https://github.com/acsenrafilho/neuroflow/releases/latest).
-2. Download the asset for your OS (`neuroflow-<version>-windows-*.zip`, `…-macos-…`, or `…-linux-…`).
-3. Extract the archive and run the `neuroflow` executable inside the `neuroflow/` folder.
-4. Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) if the browser does not open automatically.
+2. Download `neuroflow-<version>-linux-*.zip`.
+3. Extract the archive. You should see a `neuroflow/` folder that contains the `neuroflow` executable and an `_internal/` directory. **Keep them together** — do not delete `_internal/`.
+4. Make the binary executable:
 
-Packaged builds store jobs and datasets under `~/.neuroflow/`. They serve the UI by default and do **not** include FreeSurfer, FSL, or SCT — install those separately (on Windows, **WSL2 + Ubuntu** is often required for FreeSurfer/FSL).
+   ```bash
+   chmod +x neuroflow/neuroflow
+   ```
 
-**macOS Gatekeeper / Windows SmartScreen:** unsigned builds may need an explicit “Open anyway” / “Run anyway” confirmation.
+5. Run:
+
+   ```bash
+   ./neuroflow/neuroflow
+   ```
+
+6. After about one second the portal opens a browser at [http://127.0.0.1:8000/](http://127.0.0.1:8000/). Leave the terminal open while you use the app.
+7. Stop with **Ctrl+C** in that terminal.
+
+**Data:** jobs and datasets under `~/.neuroflow/jobs` and `~/.neuroflow/datasets`.
+
+**Not this path:** `make desktop-install` is only for a from-source Poetry install on Linux, not for the release zip.
+
+### Common failures (Linux)
+
+| Symptom | What to check |
+|---------|----------------|
+| Permission denied | Run `chmod +x neuroflow/neuroflow` again. |
+| Missing libraries / crash on start | Keep `_internal/` next to the binary after extract. |
+| Port 8000 busy | Stop the other process using port 8000, then try again. |
+| Browser did not open | Open [http://127.0.0.1:8000/](http://127.0.0.1:8000/) yourself. |
+
+## macOS packaged (experimental)
+
+The macOS release zip is **experimental**. Host neuroimaging tools must still be native installs where vendors support them.
+
+1. Open the [latest release](https://github.com/acsenrafilho/neuroflow/releases/latest).
+2. Download `neuroflow-<version>-macos-*.zip`.
+3. Extract the archive. Keep the `neuroflow/` folder and its `_internal/` directory together.
+4. Run:
+
+   ```bash
+   ./neuroflow/neuroflow
+   ```
+
+5. If Gatekeeper blocks the binary:
+   - **System Settings → Privacy & Security → Open Anyway**, or
+   - after extract: `xattr -dr com.apple.quarantine neuroflow`
+6. A browser should open at [http://127.0.0.1:8000/](http://127.0.0.1:8000/). Leave the terminal open.
+7. Stop with **Ctrl+C**.
+
+**Data:** `~/.neuroflow/jobs` and `~/.neuroflow/datasets`.
+
+Install FreeSurfer, FSL, and SCT on macOS (`PATH` or `NEUROFLOW_*` overrides), then rescan — see [Host tools](host-tools.md).
+
+## Windows packaged
+
+On Windows, processing runs in **WSL2 Ubuntu** — not on native Windows. You click NeuroFlow, use the site in Chrome, and jobs execute inside Ubuntu. Full detail: **[Windows and WSL](windows-wsl.md)**.
+
+**Requirements:** Windows 11 + WSL2 (primary), distro name **Ubuntu**, **x86_64** only. NeuroFlow **never** auto-installs WSL.
+
+1. Install WSL2 + Ubuntu yourself ([Microsoft guide](https://learn.microsoft.com/windows/wsl/install)). Finish first Ubuntu launch (Linux username and password).
+2. Download `neuroflow-<version>-windows-x86_64.zip` from the [latest release](https://github.com/acsenrafilho/neuroflow/releases/latest).
+3. Extract the archive. Keep **`NeuroFlow.exe`**, **`_internal/`**, and **`linux-payload/`** together.
+4. Double-click **`NeuroFlow.exe`**.
+5. If WSL or Ubuntu is missing, follow the on-screen Microsoft link, then click again.
+6. When Ubuntu is ready, the launcher copies the Linux portal into Ubuntu, starts it, and opens your browser at [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
+7. Stop later with: `NeuroFlow.exe --stop` (does not run `wsl --shutdown`; does not cancel running jobs).
+
+**SmartScreen:** unsigned builds may show “Windows protected your PC”. Choose **More info → Run anyway** when you trust the release source.
+
+### Launcher flags
+
+| Command | Behavior |
+|---------|----------|
+| `NeuroFlow.exe` | Detect WSL, start the portal (or open the browser if already up). |
+| `NeuroFlow.exe --status` | Print detection state and exit. |
+| `NeuroFlow.exe --stop` | Stop the Linux portal via pidfile. |
+| `NeuroFlow.exe --open-wsl-docs` | Open Microsoft’s WSL install guide. |
+
+**Data:** under the Ubuntu home (`~/.neuroflow/`), not under `C:\Users\...` as the primary store.
+
+Install FreeSurfer, FSL, and SCT **inside Ubuntu**, then rescan — see [Host tools](host-tools.md) and [Windows and WSL](windows-wsl.md).
+
+## After the UI loads (all OS)
+
+1. Open [Home](http://127.0.0.1:8000/). The **Processing modules** table lists FreeSurfer, FSL, and SCT.
+2. **Ready** means the CLI was found on the host where the portal runs. **Install on host** means install or fix `PATH` / env, then rescan.
+3. Rescan without restarting: open [Host tools](host-tools.md) in the app and click **Rescan host tools**, or:
+
+   ```bash
+   curl -X POST http://127.0.0.1:8000/api/v1/host/rescan
+   ```
+
+4. Next: [Using the portal](using.md).
 
 ## Developers (from source)
 
@@ -56,18 +159,16 @@ make frontend-build
 
 `.env.example` sets `NEUROFLOW_SERVE_FRONTEND=1` so the built UI is served from the API at [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
 
-## Run
-
-### Development (terminal)
+### Run (development)
 
 ```bash
 make api
 # or: poetry run neuroflow serve
 ```
 
-Uses uvicorn with auto-reload on `127.0.0.1:8000`.
+Uses uvicorn with auto-reload on `127.0.0.1:8000`. Stop with **Ctrl+C**.
 
-### Desktop / application menu (Linux, from-source install)
+### Desktop / application menu (Linux, from-source only)
 
 After `make setup`:
 
@@ -83,17 +184,11 @@ Stop a background instance:
 ./scripts/neuroflow-stop.sh
 ```
 
-### Local release zip (maintainers)
+**Data (from source):** defaults are `./data/jobs` and `./data/datasets` (see `.env.example`). Packaged zips use `~/.neuroflow/` instead.
 
-```bash
-make release-build
-```
-
-Produces `dist/release/neuroflow-<version>-linux-<arch>.zip` via PyInstaller (requires the Poetry `packaging` group).
+For frontend preview pitfalls, Makefile targets, and maintainer release builds, see [Development](../development.md).
 
 ## URLs
-
-On startup the API scans the local host for registered packages. The home **Processing modules** table lists **FreeSurfer**, **FSL**, and **SCT**.
 
 | What | URL |
 |------|-----|
@@ -103,23 +198,5 @@ On startup the API scans the local host for registered packages. The home **Proc
 | FSL package | [http://127.0.0.1:8000/packages/fsl.html](http://127.0.0.1:8000/packages/fsl.html) |
 | SCT package | [http://127.0.0.1:8000/packages/sct.html](http://127.0.0.1:8000/packages/sct.html) |
 | OpenAPI | [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) |
-
-After sourcing a tool environment (for example FreeSurfer), re-scan without restarting:
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/v1/host/rescan
-```
-
-## Frontend-only (separate port)
-
-```bash
-cd frontend/dist && python -m http.server 8080
-```
-
-Use the API on port 8000. Prefer serving the UI from the API (`NEUROFLOW_SERVE_FRONTEND=1`) so hub calls to `/api/v1/` share the same origin.
-
-!!! warning "Do not serve `frontend/src/pages`"
-
-    Always run `make frontend-build` and serve `frontend/dist/`. Opening source HTML directly breaks CSS and asset paths.
 
 Next: [Using the portal](using.md).

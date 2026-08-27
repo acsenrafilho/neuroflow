@@ -94,8 +94,7 @@ def _run_serve(host: str, port: int, reload: bool) -> None:
     if is_frozen():
         reload = False
     console.print(
-        f"[bold]NeuroFlow[/bold] API → http://{host}:{port}/"
-        f"  (reload={'on' if reload else 'off'})"
+        f"[bold]NeuroFlow[/bold] API → http://{host}:{port}/  (reload={'on' if reload else 'off'})"
     )
     uvicorn.run(
         "neuroflow.api.main:app",

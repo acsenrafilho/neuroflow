@@ -13,7 +13,9 @@ It sits between your browser and neuroimaging software already installed on the 
 
 ## Who it is for
 
-Researchers and lab operators who already (or will) install vendor CLIs on Ubuntu/Debian and want a local web UI instead of assembling every command by hand.
+Researchers and lab operators who install vendor CLIs on Ubuntu/Debian (or **WSL2 Ubuntu on Windows**) and want a local web UI instead of assembling every command by hand.
+
+**End users** download a pre-built zip from [GitHub Releases](https://github.com/acsenrafilho/neuroflow/releases/latest) — see [Installation](installation.md). **Developers** clone the repository and work from source on Ubuntu/Debian — see [Development](../development.md).
 
 ## What NeuroFlow does not do
 

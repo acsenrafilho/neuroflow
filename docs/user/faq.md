@@ -10,7 +10,7 @@ No. Install those packages with their official installers. NeuroFlow only detect
 
 ## Why does a module say “Install on host”?
 
-The probe binary was not found on `PATH` (and no matching `.env` override worked). Install the package, source its environment, then rescan or restart the API.
+The probe binary was not found on `PATH` (and no matching `.env` override worked). Install the package, source its environment, then rescan or restart the API. On Windows, the probe runs **inside Ubuntu** — not against the native Windows PATH. See [Host tools](host-tools.md) and [Windows and WSL](windows-wsl.md).
 
 ## Why is my job queued?
 
@@ -18,7 +18,14 @@ Host RAM or CPU is above `NEUROFLOW_RAM_MAX_PERCENT` / `NEUROFLOW_CPU_MAX_PERCEN
 
 ## Where are outputs versus logs?
 
-Logs and job metadata live under `NEUROFLOW_DATA_ROOT` (`./data/jobs` by default). Researcher-facing images and derivatives live under `NEUROFLOW_DATASETS_ROOT` (`./data/datasets`) in a per-subject tree. See [Workspaces and data](workspaces.md).
+Logs and job metadata live under `NEUROFLOW_DATA_ROOT`. Researcher-facing images and derivatives live under `NEUROFLOW_DATASETS_ROOT` in a per-subject tree.
+
+| Mode | Jobs | Datasets |
+|------|------|----------|
+| From source | `./data/jobs` (default) | `./data/datasets` (default) |
+| Packaged zip | `~/.neuroflow/jobs` | `~/.neuroflow/datasets` |
+
+On Windows (WSL), those packaged paths are under the **Ubuntu** home, not `C:\Users\...`. See [Workspaces and data](workspaces.md).
 
 ## Is there a login?
 
@@ -30,7 +37,13 @@ Do not expose an unauthenticated instance. Restrict it to localhost or a trusted
 
 ## Does it run on Windows or macOS?
 
-`make setup` is aimed at Ubuntu/Debian with `apt`. Other platforms need the toolchain (Python, Poetry, Node) installed manually. Host neuroimaging tools must still be native installs for that OS.
+**Windows:** NeuroFlow on Windows is a **browser on Windows, compute in Linux on WSL2 Ubuntu**. Install WSL and Ubuntu yourself ([Microsoft guide](https://learn.microsoft.com/windows/wsl/install)); NeuroFlow never auto-installs WSL. The Windows `.exe` is a launcher only — it does not run FreeSurfer, FSL, or SCT on native Windows. See [Windows and WSL](windows-wsl.md).
+
+**macOS:** A packaged portal zip is available (experimental). Host neuroimaging tools must still be native installs for macOS where vendors support them. Development from source is aimed at Ubuntu/Debian with `apt`.
+
+## Does NeuroFlow install WSL?
+
+No. If WSL or Ubuntu is missing, NeuroFlow explains and links to [Microsoft's install guide](https://learn.microsoft.com/windows/wsl/install). Admin rights and a possible reboot are part of Microsoft's installer — not NeuroFlow.
 
 ## Do I need Docker?
 
@@ -46,7 +59,12 @@ No. Each module run is one job. Prerequisites (for example TOPUP before EDDY) ar
 
 ## How do I stop the server?
 
-Foreground `make api`: interrupt the terminal (Ctrl+C). Desktop/background: `./scripts/neuroflow-stop.sh`.
+| How you started | How to stop |
+|-----------------|-------------|
+| Packaged Linux / macOS (`./neuroflow/neuroflow`) | **Ctrl+C** in that terminal |
+| Packaged Windows (`NeuroFlow.exe`) | `NeuroFlow.exe --stop` (does not run `wsl --shutdown`; does not cancel running jobs) |
+| From source foreground (`make api`) | **Ctrl+C** in that terminal |
+| Linux desktop shortcut (`make desktop-install`) | `./scripts/neuroflow-stop.sh` |
 
 ## What about ANTs, 3D Slicer, and ITK?
 
