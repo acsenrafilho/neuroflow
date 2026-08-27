@@ -1,7 +1,6 @@
 """FastAPI application entry point."""
 
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -16,6 +15,7 @@ from neuroflow.api.host_state import run_host_scan
 from neuroflow.api.v1.router import api_router
 from neuroflow.logging_config import configure_app_logging
 from neuroflow.models.schemas import ErrorDetail
+from neuroflow.runtime_paths import frontend_dist_dir
 from neuroflow.tools.host_probe import log_scan_summary
 
 
@@ -36,7 +36,7 @@ async def lifespan(app: FastAPI):
     start_scheduler()
 
     if settings.neuroflow_serve_frontend:
-        dist = Path("frontend/dist")
+        dist = frontend_dist_dir()
         if dist.is_dir():
             app.mount("/", StaticFiles(directory=str(dist), html=True), name="frontend")
 
@@ -97,7 +97,7 @@ async def validation_exception_handler(
 async def root():
     settings = get_cached_settings()
     if settings.neuroflow_serve_frontend:
-        index = Path("frontend/dist/index.html")
+        index = frontend_dist_dir() / "index.html"
         if index.is_file():
             return FileResponse(index)
     return {"service": "neuroflow", "docs": "/docs", "api": "/api/v1/health"}

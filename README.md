@@ -11,6 +11,7 @@ NeuroFlow is a **facilitation portal** for neuroscience medical image processing
 It is **not** a multi-tool pipeline runner and **does not** ship Docker. You install host packages yourself; NeuroFlow wraps them in a FastAPI + HTML/Tailwind UI.
 
 [![CI](https://github.com/acsenrafilho/neuroflow/actions/workflows/ci.yml/badge.svg)](https://github.com/acsenrafilho/neuroflow/actions/workflows/ci.yml)
+[![GitHub release](https://img.shields.io/github/v/release/acsenrafilho/neuroflow?sort=semver)](https://github.com/acsenrafilho/neuroflow/releases/latest)
 [![Documentation Status](https://readthedocs.org/projects/neuroflowpipelines/badge/?version=latest)](https://neuroflowpipelines.readthedocs.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
@@ -20,9 +21,52 @@ It is **not** a multi-tool pipeline runner and **does not** ship Docker. You ins
 
 **Stack:** Python 3.10+ · Poetry · FastAPI · HTML/Tailwind · pytest · MkDocs
 
+**Versioning:** [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`), starting at `0.0.1`. Merges to `main` drive releases via Conventional Commits (see [CHANGELOG.md](CHANGELOG.md)).
+
 **Docs:** [User guide on Read the Docs](https://neuroflowpipelines.readthedocs.io/) · in-app help at `/help/` · OpenAPI at `/docs`
 
-## Prerequisites
+## End users (Windows / macOS / Linux)
+
+Download a pre-built portal package from the **[latest GitHub Release](https://github.com/acsenrafilho/neuroflow/releases/latest)** — no Poetry or Node required.
+
+| Platform | Asset (example) | How to run |
+|----------|-----------------|------------|
+| Windows | `neuroflow-*-windows-*.zip` | Extract → keep `_internal/` + `linux-payload/` → double-click `NeuroFlow.exe` ([Windows and WSL](https://neuroflowpipelines.readthedocs.io/en/latest/user/windows-wsl/)) |
+| macOS | `neuroflow-*-macos-*.zip` | Extract → run `./neuroflow/neuroflow` (see Gatekeeper note below) |
+| Linux | `neuroflow-*-linux-*.zip` | Extract → `chmod +x neuroflow/neuroflow` → run `./neuroflow/neuroflow` |
+
+On **Windows**, you use the site in Chrome on Windows while the portal and neuroimaging CLIs run in **Linux on WSL2 Ubuntu**. NeuroFlow does not run FreeSurfer, FSL, or SCT on native Windows. Install WSL and Ubuntu yourself ([Microsoft guide](https://learn.microsoft.com/windows/wsl/install)); NeuroFlow never auto-installs WSL. Full path: [Windows and WSL on Read the Docs](https://neuroflowpipelines.readthedocs.io/en/latest/user/windows-wsl/).
+
+The app starts the local API, serves the UI, and opens [http://127.0.0.1:8000/](http://127.0.0.1:8000/). Job and dataset files are stored under `~/.neuroflow/` in the environment where the portal runs (Ubuntu home on Windows via WSL — not under `C:\Users\...` as the primary store).
+
+**macOS:** if Gatekeeper blocks the binary, use **System Settings → Privacy & Security → Open Anyway**, or `xattr -dr com.apple.quarantine neuroflow` after extract.
+
+**Windows:** SmartScreen may warn on unsigned builds — choose **More info → Run anyway** when you trust the release source.
+
+The release zip is the **NeuroFlow portal only**. It does **not** include FreeSurfer, FSL, or SCT. On Windows, install those **inside WSL2 Ubuntu** (see [Windows and WSL](https://neuroflowpipelines.readthedocs.io/en/latest/user/windows-wsl/)). On Linux or macOS, install on the host and ensure tools are on `PATH` (or set the `NEUROFLOW_*` env vars). See [Host tools](https://neuroflowpipelines.readthedocs.io/en/latest/user/host-tools/).
+
+## Developers (Ubuntu / Debian)
+
+Development and from-source install stay on Linux with Poetry:
+
+```bash
+git clone https://github.com/acsenrafilho/neuroflow.git
+cd neuroflow
+make setup
+make api
+```
+
+Open http://127.0.0.1:8000/ (with `NEUROFLOW_SERVE_FRONTEND=1` from `.env.example`). In-app user guide: http://127.0.0.1:8000/help/. User documentation: https://neuroflowpipelines.readthedocs.io/. OpenAPI (Swagger): http://127.0.0.1:8000/docs.
+
+For a one-click start from the application menu or Desktop (Linux, Poetry install):
+
+```bash
+make desktop-install
+```
+
+Then use the **NeuroFlow** icon (background server + browser). Stop with `./scripts/neuroflow-stop.sh`.
+
+### Prerequisites
 
 **NeuroFlow toolchain** (Ubuntu 22.04+ / Debian 12+):
 
@@ -38,25 +82,6 @@ On Debian/Ubuntu, `make setup` checks these and can suggest `apt` / Poetry insta
 - **Spinal Cord Toolbox (SCT)** (`sct_version` on `PATH`, `$HOME/sct_*`, or `SCT_DIR` / `NEUROFLOW_SCT_DIR`)
 - Optional (code present, hidden in the portal UI for now): ANTs, 3D Slicer, ITK
 
-## Quick start (Ubuntu / Debian)
-
-```bash
-git clone https://github.com/acsenrafilho/neuroflow.git
-cd neuroflow
-make setup
-make api
-```
-
-Open http://127.0.0.1:8000/ (with `NEUROFLOW_SERVE_FRONTEND=1` from `.env.example`). In-app user guide: http://127.0.0.1:8000/help/. User documentation: https://neuroflowpipelines.readthedocs.io/. OpenAPI (Swagger): http://127.0.0.1:8000/docs.
-
-For a one-click start from the application menu or Desktop:
-
-```bash
-make desktop-install
-```
-
-Then use the **NeuroFlow** icon (background server + browser). Stop with `./scripts/neuroflow-stop.sh`.
-
 ### Manual install (toolchain already present)
 
 ```bash
@@ -67,6 +92,8 @@ poetry run neuroflow serve
 ```
 
 Dev shortcuts: `poetry run neuroflow serve` (or `make api`) — uvicorn with reload on `127.0.0.1:8000`.
+
+Local packaged zip (optional): `make release-build` → `dist/release/neuroflow-*-linux-*.zip`.
 
 ## Viewing the frontend
 
@@ -100,6 +127,7 @@ With Live Server on port 5500 and the API on port 8000, hub features that call `
 | `make lint` | Run pre-commit hooks (ruff + file hygiene) |
 | `make api` | Start FastAPI via `poetry run neuroflow serve` (reload; host package scan on startup) |
 | `make frontend-build` | Build Tailwind CSS and copy pages to `frontend/dist/` |
+| `make release-build` | PyInstaller onedir zip under `dist/release/` |
 | `make docs` | Serve MkDocs locally (user guide + developer pages) |
 
 ## Project layout
@@ -107,7 +135,7 @@ With Live Server on port 5500 and the API on port 8000, hub features that call `
 ```
 neuroflow/          # Python package (api, tools, services)
 frontend/           # Production UI (hub + per-tool pages)
-packaging/          # Desktop entry template (Linux)
+packaging/          # Desktop entry + PyInstaller release build
 doc/mockup/         # Legacy design reference mockups
 doc/licenses/       # Third-party tool license notices
 data/jobs/          # Job metadata and logs (gitignored contents)

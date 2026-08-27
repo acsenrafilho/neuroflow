@@ -65,6 +65,21 @@ make frontend-build
 4. Add `frontend/src/pages/tools/<name>.html` following an existing module page.
 5. Add tests that do not require the host CLI unless you skip them when the binary is missing.
 
+## Commit messages and releases
+
+Use **[Conventional Commits](https://www.conventionalcommits.org/)** so merges to `main` can version the project automatically:
+
+| Prefix | Release effect |
+|--------|----------------|
+| `fix:` | Patch (`0.0.x`) |
+| `feat:` | Minor (`0.x.0`) while on `0.x`; major when past `1.0.0` |
+| `feat!:` / `BREAKING CHANGE:` | Major |
+| `docs:`, `chore:`, `ci:`, `test:`, `refactor:` | No version bump (unless configured otherwise) |
+
+Examples: `feat: add FSL flirt module page`, `fix: correct SCT path probe on macOS`.
+
+On push to `main`, [`.github/workflows/release.yml`](.github/workflows/release.yml) runs [python-semantic-release](https://python-semantic-release.readthedocs.io/), tags `vX.Y.Z`, publishes a GitHub Release, and attaches platform zips: Linux and macOS portal onedirs, plus a Windows zip that is the WSL **launcher** (`NeuroFlow.exe`) bundled with the Linux portal as `linux-payload/` (built on `ubuntu-latest`). The SemVer baseline is `0.0.1` (`0.x` APIs may still change).
+
 ## Pull requests
 
 - Open from a feature branch; fill in the PR template.

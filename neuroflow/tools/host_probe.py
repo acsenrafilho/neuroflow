@@ -80,8 +80,7 @@ def probe_freesurfer(settings: Settings) -> ProbeResult:
         package_id="freesurfer",
         available=False,
         detail=(
-            "recon-all not found on PATH; "
-            "set NEUROFLOW_RECON_ALL_BIN or NEUROFLOW_FREESURFER_HOME"
+            "recon-all not found on PATH; set NEUROFLOW_RECON_ALL_BIN or NEUROFLOW_FREESURFER_HOME"
         ),
     )
 
@@ -271,7 +270,7 @@ def probe_sct(settings: Settings) -> ProbeResult:
     return ProbeResult(
         package_id="sct",
         available=False,
-        detail=("No SCT binary on PATH or under $HOME/sct_*; " "set NEUROFLOW_SCT_DIR or SCT_DIR"),
+        detail=("No SCT binary on PATH or under $HOME/sct_*; set NEUROFLOW_SCT_DIR or SCT_DIR"),
     )
 
 

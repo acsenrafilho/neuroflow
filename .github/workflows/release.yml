@@ -1,0 +1,329 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to rebuild binaries for (e.g. v0.0.1)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  semantic-release:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.meta.outputs.released }}
+      tag: ${{ steps.meta.outputs.tag }}
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bootstrap v0.0.1 tag when none exist
+        id: bootstrap
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if git describe --tags --match 'v*' --abbrev=0 >/dev/null 2>&1; then
+            echo "bootstrapped=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git tag -a "v0.0.1" -m "chore(release): 0.0.1"
+          git push origin "v0.0.1"
+          gh release create "v0.0.1" \
+            --title "v0.0.1" \
+            --notes "Initial SemVer baseline. Packaged portal builds (Windows / macOS / Linux) are attached by the build-binaries job."
+          echo "bootstrapped=true" >> "$GITHUB_OUTPUT"
+
+      - name: Python Semantic Release
+        id: release
+        if: steps.bootstrap.outputs.bootstrapped != 'true'
+        uses: python-semantic-release/python-semantic-release@v9.21.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set job outputs
+        id: meta
+        run: |
+          set -euo pipefail
+          if [[ "${{ steps.bootstrap.outputs.bootstrapped }}" == "true" ]]; then
+            echo "released=true" >> "$GITHUB_OUTPUT"
+            echo "tag=v0.0.1" >> "$GITHUB_OUTPUT"
+            echo "version=0.0.1" >> "$GITHUB_OUTPUT"
+          else
+            echo "released=${{ steps.release.outputs.released }}" >> "$GITHUB_OUTPUT"
+            echo "tag=${{ steps.release.outputs.tag }}" >> "$GITHUB_OUTPUT"
+            echo "version=${{ steps.release.outputs.version }}" >> "$GITHUB_OUTPUT"
+          fi
+
+  build-linux:
+    needs: semantic-release
+    if: |
+      always() && (
+        (github.event_name == 'push' && needs.semantic-release.outputs.released == 'true') ||
+        github.event_name == 'workflow_dispatch'
+      )
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.meta.outputs.tag }}
+      version: ${{ steps.meta.outputs.version }}
+    steps:
+      - name: Resolve tag and version
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${{ needs.semantic-release.outputs.tag }}"
+          fi
+          if [[ -z "$TAG" ]]; then
+            echo "Release tag is empty" >&2
+            exit 1
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.meta.outputs.tag }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Poetry
+        shell: bash
+        run: |
+          set -euo pipefail
+          pipx install poetry
+          echo "$(pipx environment --value PIPX_BIN_DIR)" >> "$GITHUB_PATH"
+
+      - name: Install Python deps (incl. PyInstaller)
+        run: poetry install --no-interaction --with packaging
+
+      - name: Build release zip
+        env:
+          NEUROFLOW_VERSION: ${{ steps.meta.outputs.version }}
+        run: bash packaging/build_release.sh
+
+      - name: Upload Linux onedir for Windows launcher
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-portal-onedir
+          path: dist/neuroflow/
+          if-no-files-found: error
+          retention-days: 5
+
+      - name: Upload assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.meta.outputs.tag }}"
+          shopt -s nullglob
+          assets=(dist/release/neuroflow-*.zip)
+          if [[ ${#assets[@]} -eq 0 ]]; then
+            echo "No zip artifacts found under dist/release/" >&2
+            ls -la dist/release || true
+            exit 1
+          fi
+          gh release upload "$TAG" "${assets[@]}" --clobber
+
+  build-macos:
+    needs: semantic-release
+    if: |
+      always() && (
+        (github.event_name == 'push' && needs.semantic-release.outputs.released == 'true') ||
+        github.event_name == 'workflow_dispatch'
+      )
+    runs-on: macos-latest
+    steps:
+      - name: Resolve tag and version
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${{ needs.semantic-release.outputs.tag }}"
+          fi
+          if [[ -z "$TAG" ]]; then
+            echo "Release tag is empty" >&2
+            exit 1
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.meta.outputs.tag }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Poetry
+        shell: bash
+        run: |
+          set -euo pipefail
+          pipx install poetry
+          echo "$(pipx environment --value PIPX_BIN_DIR)" >> "$GITHUB_PATH"
+
+      - name: Install Python deps (incl. PyInstaller)
+        run: poetry install --no-interaction --with packaging
+
+      - name: Build release zip
+        env:
+          NEUROFLOW_VERSION: ${{ steps.meta.outputs.version }}
+        run: bash packaging/build_release.sh
+
+      - name: Upload assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.meta.outputs.tag }}"
+          shopt -s nullglob
+          assets=(dist/release/neuroflow-*.zip)
+          if [[ ${#assets[@]} -eq 0 ]]; then
+            echo "No zip artifacts found under dist/release/" >&2
+            ls -la dist/release || true
+            exit 1
+          fi
+          gh release upload "$TAG" "${assets[@]}" --clobber
+
+  build-windows:
+    needs: [semantic-release, build-linux]
+    if: |
+      always() && needs.build-linux.result == 'success' && (
+        (github.event_name == 'push' && needs.semantic-release.outputs.released == 'true') ||
+        github.event_name == 'workflow_dispatch'
+      )
+    runs-on: windows-latest
+    steps:
+      - name: Resolve tag and version
+        id: meta
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${{ inputs.tag }}"
+          else
+            TAG="${{ needs.semantic-release.outputs.tag }}"
+          fi
+          if [[ -z "$TAG" ]]; then
+            echo "Release tag is empty" >&2
+            exit 1
+          fi
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Refuse non-x86_64 runners
+        shell: pwsh
+        run: |
+          $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLower()
+          if ($arch -ne "x64") {
+            Write-Error "Windows release zip is x86_64 only (got: $arch)."
+            exit 1
+          }
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.meta.outputs.tag }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Poetry
+        shell: bash
+        run: |
+          set -euo pipefail
+          pipx install poetry
+          echo "$(pipx environment --value PIPX_BIN_DIR)" >> "$GITHUB_PATH"
+
+      - name: Install Python deps (incl. PyInstaller)
+        run: poetry install --no-interaction --with packaging
+
+      - name: Download Linux portal onedir
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-portal-onedir
+          path: dist/linux-payload-src
+
+      - name: Resolve flat Linux onedir path
+        id: payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          # upload-artifact may place files at the artifact root or under neuroflow/
+          if [[ -f dist/linux-payload-src/neuroflow && -d dist/linux-payload-src/_internal ]]; then
+            echo "path=dist/linux-payload-src" >> "$GITHUB_OUTPUT"
+          elif [[ -f dist/linux-payload-src/neuroflow/neuroflow && -d dist/linux-payload-src/neuroflow/_internal ]]; then
+            echo "path=dist/linux-payload-src/neuroflow" >> "$GITHUB_OUTPUT"
+          else
+            echo "Could not find Linux onedir (neuroflow + _internal) under dist/linux-payload-src" >&2
+            find dist/linux-payload-src -maxdepth 3 -print || true
+            exit 1
+          fi
+
+      - name: Build Windows launcher zip
+        env:
+          NEUROFLOW_VERSION: ${{ steps.meta.outputs.version }}
+          NEUROFLOW_LINUX_PAYLOAD: ${{ steps.payload.outputs.path }}
+        shell: pwsh
+        run: pwsh -File packaging/build_windows_launcher.ps1
+
+      - name: Upload assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.meta.outputs.tag }}"
+          shopt -s nullglob
+          assets=(dist/release/neuroflow-*.zip)
+          if [[ ${#assets[@]} -eq 0 ]]; then
+            echo "No zip artifacts found under dist/release/" >&2
+            ls -la dist/release || true
+            exit 1
+          fi
+          gh release upload "$TAG" "${assets[@]}" --clobber
