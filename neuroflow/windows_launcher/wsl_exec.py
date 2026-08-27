@@ -20,6 +20,7 @@ def portal_pidfile_path(linux_home: str) -> str:
     """Return the absolute Linux path for the portal pidfile."""
     return f"{linux_home.rstrip('/')}/{APP_DIR_NAME}/{PORTAL_PIDFILE_NAME}"
 
+
 _ALLOWED_WSL_FLAGS = frozenset(
     {
         "-l",
