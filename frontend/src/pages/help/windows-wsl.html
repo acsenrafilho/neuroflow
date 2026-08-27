@@ -101,56 +101,61 @@
           </section>
 
           <section class="space-y-3">
-            <h3 class="font-headline-md text-on-surface">How to run today</h3>
+            <h3 class="font-headline-md text-on-surface">How to run</h3>
             <div
               class="rounded-xl border border-outline-variant bg-surface-container-low px-6 py-5 text-sm text-on-surface-variant"
             >
-              <p class="mb-2 font-semibold text-on-surface">Current Windows release zip</p>
-              <p>
-                Today's Windows zip still ships a native Win32 portal — that is
-                <strong class="text-on-surface">not</strong> the supported neuroimaging path.
-              </p>
+              <p class="mb-2 font-semibold text-on-surface">Windows release zip</p>
+              <ol class="list-decimal space-y-2 pl-5">
+                <li>
+                  Download
+                  <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">neuroflow-*-windows-x86_64.zip</code>
+                  from GitHub Releases.
+                </li>
+                <li>
+                  Extract and keep
+                  <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NeuroFlow.exe</code>,
+                  <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">_internal/</code>, and
+                  <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">linux-payload/</code>
+                  together.
+                </li>
+                <li>
+                  Double-click
+                  <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NeuroFlow.exe</code>.
+                  If WSL or Ubuntu is missing, follow Microsoft's guide — NeuroFlow never
+                  auto-installs WSL.
+                </li>
+                <li>
+                  When Ubuntu is ready, Chrome opens
+                  <a href="http://127.0.0.1:8000/" class="text-primary underline-offset-2 hover:underline">http://127.0.0.1:8000/</a>
+                  while the portal runs inside Ubuntu.
+                </li>
+              </ol>
               <p class="mt-3">
-                <strong class="text-on-surface">Supported today:</strong> install WSL2 + Ubuntu,
-                download the <strong class="text-on-surface">Linux</strong> release zip, run
-                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">neuroflow</code>
-                inside an Ubuntu terminal, then open Chrome on Windows at
-                <a href="http://127.0.0.1:8000/" class="text-primary underline-offset-2 hover:underline">http://127.0.0.1:8000/</a>.
+                Unsigned builds may trigger SmartScreen — choose
+                <strong class="text-on-surface">More info → Run anyway</strong> when you trust the
+                release source.
               </p>
             </div>
-          </section>
-
-          <section class="space-y-3">
-            <h3 class="font-headline-md text-on-surface">How the Windows zip will work</h3>
-            <p class="text-on-surface-variant">
-              A future release will ship
-              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NeuroFlow.exe</code>
-              (launcher) plus
-              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">linux-payload/</code>.
-              Double-click will start the Linux portal in Ubuntu and open your browser on Windows.
-              If WSL is missing, the launcher will show a guide and link to Microsoft — still with
-              no auto-install.
-            </p>
-            <p class="text-on-surface-variant">
-              Unsigned builds may trigger SmartScreen — choose
-              <strong class="text-on-surface">More info → Run anyway</strong> when you trust the
-              release source.
-            </p>
           </section>
 
           <section class="space-y-3">
             <h3 class="font-headline-md text-on-surface">Host tools in Ubuntu</h3>
             <p class="text-on-surface-variant">
               NeuroFlow does not download FreeSurfer, FSL, or SCT. Install them inside Ubuntu, then
-              rescan:
+              open
+              <a href="/help/host-tools.html" class="text-primary underline-offset-2 hover:underline">Host tools</a>
+              and click <strong class="text-on-surface">Rescan host tools</strong>. From a terminal
+              you can also run:
             </p>
             <pre
               class="overflow-x-auto rounded-xl border border-outline-variant bg-surface-container-low p-4 text-sm text-on-surface"
             ><code>curl -X POST http://127.0.0.1:8000/api/v1/host/rescan</code></pre>
             <p class="text-on-surface-variant">
               If Home shows <strong class="text-on-surface">Install on host</strong>, the probe did
-              not find the CLI in Ubuntu — not a Windows PATH issue. See
-              <a href="/help/host-tools.html" class="text-primary underline-offset-2 hover:underline">Host tools</a>.
+              not find the CLI in Ubuntu — not a Windows PATH issue. After a successful rescan,
+              reload Home so module badges refresh. When FreeSurfer, FSL, and SCT are all missing,
+              the Windows launcher may open the Host tools page first.
             </p>
           </section>
 

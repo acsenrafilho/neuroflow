@@ -67,11 +67,13 @@ CI and `make lint` run `pre-commit run --all-files` (Ruff plus trailing whitespa
 
 ## Windows WSL launcher (maintainers)
 
-Until the release zip bundles `linux-payload/` (Phase 3), dogfood the Phase 2 runtime like this:
+Release zips already bundle `linux-payload/` next to `NeuroFlow.exe`. To dogfood from source with the same layout:
 
 1. On Linux, build the portal onedir: `packaging/build_release.sh` → `dist/neuroflow/`.
-2. On Windows (WSL2 Ubuntu ready), copy that folder as `linux-payload/` next to the launcher, or set `NEUROFLOW_LINUX_PAYLOAD` to it.
+2. On Windows (WSL2 Ubuntu ready), place that folder as `linux-payload/` next to the launcher, or set `NEUROFLOW_LINUX_PAYLOAD` to it.
 3. Run: `poetry run python -m neuroflow.windows_launcher_app`
+
+Or build the launcher onedir with `packaging/windows_launcher.spec` / `packaging/build_windows_launcher.ps1` and assemble with `packaging/assemble_windows_release.py`.
 
 The launcher copies the onedir into Ubuntu at `~/.neuroflow-app/<version>/`, starts it with `NEUROFLOW_SKIP_BROWSER=1`, polls health from Windows, and opens the browser.
 

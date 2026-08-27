@@ -79,6 +79,12 @@ MSG_START_FAILED = (
 
 MSG_RUNNING = f"NeuroFlow is running at {PORTAL_URL} — you can minimize this window."
 
+MSG_HOST_TOOLS_MISSING = (
+    "FreeSurfer, FSL, and SCT were not found in Ubuntu. "
+    "Install them inside Ubuntu (not on the Windows PATH), then use Rescan on the "
+    "Host tools help page."
+)
+
 
 def message_for_state(state: WslState) -> str:
     """Return the English user-facing message for a detection state."""

@@ -15,13 +15,22 @@ from neuroflow.windows_launcher.health import (
     probe_health,
     wait_until_healthy,
 )
+from neuroflow.windows_launcher.host_scan import (
+    choose_landing_url,
+    portal_tools_missing,
+)
 from neuroflow.windows_launcher.payload import (
     PayloadError,
     ensure_payload_installed,
     resolve_payload_dir,
 )
 from neuroflow.windows_launcher.runtime import launch
-from neuroflow.windows_launcher.types import PORTAL_URL, WSL_INSTALL_URL, WslState
+from neuroflow.windows_launcher.types import (
+    HOST_TOOLS_URL,
+    PORTAL_URL,
+    WSL_INSTALL_URL,
+    WslState,
+)
 
 _WSL_EXE = r"C:\Windows\System32\wsl.exe"
 _HOME = "/home/lab"
@@ -191,12 +200,119 @@ class TestHealth:
         assert result.status == HealthStatus.DOWN
 
 
+class TestHostScan:
+    def test_all_portal_missing(self) -> None:
+        packages = [
+            {"id": "freesurfer", "available": False},
+            {"id": "fsl", "available": False},
+            {"id": "sct", "available": False},
+        ]
+        assert portal_tools_missing(packages) is True
+
+    def test_any_portal_ready(self) -> None:
+        packages = [
+            {"id": "freesurfer", "available": False},
+            {"id": "fsl", "available": True},
+            {"id": "sct", "available": False},
+        ]
+        assert portal_tools_missing(packages) is False
+
+    def test_incomplete_or_malformed(self) -> None:
+        assert portal_tools_missing([]) is None
+        assert portal_tools_missing("nope") is None
+        assert portal_tools_missing([{"id": "freesurfer", "available": False}]) is None
+        assert portal_tools_missing([{"id": "freesurfer", "available": "yes"}]) is None
+
+    def test_choose_landing_all_missing(self) -> None:
+        packages = [
+            {"id": "freesurfer", "name": "FreeSurfer", "available": False},
+            {"id": "fsl", "name": "FSL", "available": False},
+            {"id": "sct", "name": "SCT", "available": False},
+        ]
+        with patch(
+            "neuroflow.windows_launcher.host_scan.fetch_tools",
+            return_value=packages,
+        ):
+            url, missing = choose_landing_url()
+        assert url == HOST_TOOLS_URL
+        assert missing is True
+
+    def test_choose_landing_any_ready(self) -> None:
+        packages = [
+            {"id": "freesurfer", "available": True},
+            {"id": "fsl", "available": False},
+            {"id": "sct", "available": False},
+        ]
+        with patch(
+            "neuroflow.windows_launcher.host_scan.fetch_tools",
+            return_value=packages,
+        ):
+            url, missing = choose_landing_url()
+        assert url == PORTAL_URL
+        assert missing is False
+
+    def test_choose_landing_scan_fail(self) -> None:
+        with patch(
+            "neuroflow.windows_launcher.host_scan.fetch_tools",
+            return_value=None,
+        ):
+            url, missing = choose_landing_url()
+        assert url == PORTAL_URL
+        assert missing is False
+
+    def test_fetch_tools_garbage_json(self) -> None:
+        from neuroflow.windows_launcher.host_scan import fetch_tools
+
+        class _Resp:
+            status = 200
+
+            def read(self) -> bytes:
+                return b"not-json"
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        with patch(
+            "neuroflow.windows_launcher.host_scan.urllib.request.urlopen",
+            return_value=_Resp(),
+        ):
+            assert fetch_tools() is None
+
+    def test_fetch_tools_non_list(self) -> None:
+        from neuroflow.windows_launcher.host_scan import fetch_tools
+
+        class _Resp:
+            status = 200
+
+            def read(self) -> bytes:
+                return b'{"status":"ok"}'
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+        with patch(
+            "neuroflow.windows_launcher.host_scan.urllib.request.urlopen",
+            return_value=_Resp(),
+        ):
+            assert fetch_tools() is None
+
+
 class TestLaunch:
     def test_idempotent_opens_browser_only(self) -> None:
         with (
             patch(
                 "neuroflow.windows_launcher.runtime.probe_health",
                 return_value=HealthResult(HealthStatus.OK),
+            ),
+            patch(
+                "neuroflow.windows_launcher.runtime.choose_landing_url",
+                return_value=(PORTAL_URL, False),
             ),
             patch("neuroflow.windows_launcher.runtime.webbrowser.open") as mock_open,
             patch("neuroflow.windows_launcher.runtime.ensure_payload_installed") as mock_copy,
@@ -205,6 +321,26 @@ class TestLaunch:
             code = launch(_probe(), wait_on_process=False)
         assert code == 0
         mock_open.assert_called_once_with(PORTAL_URL)
+        mock_copy.assert_not_called()
+        mock_popen.assert_not_called()
+
+    def test_idempotent_opens_host_tools_when_all_missing(self) -> None:
+        with (
+            patch(
+                "neuroflow.windows_launcher.runtime.probe_health",
+                return_value=HealthResult(HealthStatus.OK),
+            ),
+            patch(
+                "neuroflow.windows_launcher.runtime.choose_landing_url",
+                return_value=(HOST_TOOLS_URL, True),
+            ),
+            patch("neuroflow.windows_launcher.runtime.webbrowser.open") as mock_open,
+            patch("neuroflow.windows_launcher.runtime.ensure_payload_installed") as mock_copy,
+            patch("neuroflow.windows_launcher.runtime.popen_wsl") as mock_popen,
+        ):
+            code = launch(_probe(), wait_on_process=False)
+        assert code == 0
+        mock_open.assert_called_once_with(HOST_TOOLS_URL)
         mock_copy.assert_not_called()
         mock_popen.assert_not_called()
 
@@ -258,6 +394,10 @@ class TestLaunch:
                 "neuroflow.windows_launcher.runtime.wait_until_healthy",
                 return_value=HealthResult(HealthStatus.OK),
             ),
+            patch(
+                "neuroflow.windows_launcher.runtime.choose_landing_url",
+                return_value=(PORTAL_URL, False),
+            ),
             patch("neuroflow.windows_launcher.runtime.webbrowser.open") as mock_open,
             patch("neuroflow.windows_launcher.runtime._wake_ubuntu", return_value=True),
         ):
@@ -273,6 +413,70 @@ class TestLaunch:
         assert _ELF in argv
         assert "--install" not in argv
         assert "--shutdown" not in argv
+        mock_open.assert_called_once_with(PORTAL_URL)
+
+    def test_start_opens_host_tools_when_all_missing(self) -> None:
+        paths = MagicMock()
+        paths.linux_home = _HOME
+        paths.linux_elf = _ELF
+        proc = MagicMock()
+        proc.wait.return_value = 0
+
+        with (
+            patch(
+                "neuroflow.windows_launcher.runtime.probe_health",
+                return_value=HealthResult(HealthStatus.DOWN),
+            ),
+            patch(
+                "neuroflow.windows_launcher.runtime.ensure_payload_installed",
+                return_value=paths,
+            ),
+            patch("neuroflow.windows_launcher.runtime.popen_wsl", return_value=proc),
+            patch(
+                "neuroflow.windows_launcher.runtime.wait_until_healthy",
+                return_value=HealthResult(HealthStatus.OK),
+            ),
+            patch(
+                "neuroflow.windows_launcher.runtime.choose_landing_url",
+                return_value=(HOST_TOOLS_URL, True),
+            ),
+            patch("neuroflow.windows_launcher.runtime.webbrowser.open") as mock_open,
+        ):
+            code = launch(_probe(), wait_on_process=False)
+
+        assert code == 0
+        mock_open.assert_called_once_with(HOST_TOOLS_URL)
+
+    def test_start_opens_home_when_scan_fails(self) -> None:
+        paths = MagicMock()
+        paths.linux_home = _HOME
+        paths.linux_elf = _ELF
+        proc = MagicMock()
+        proc.wait.return_value = 0
+
+        with (
+            patch(
+                "neuroflow.windows_launcher.runtime.probe_health",
+                return_value=HealthResult(HealthStatus.DOWN),
+            ),
+            patch(
+                "neuroflow.windows_launcher.runtime.ensure_payload_installed",
+                return_value=paths,
+            ),
+            patch("neuroflow.windows_launcher.runtime.popen_wsl", return_value=proc),
+            patch(
+                "neuroflow.windows_launcher.runtime.wait_until_healthy",
+                return_value=HealthResult(HealthStatus.OK),
+            ),
+            patch(
+                "neuroflow.windows_launcher.runtime.choose_landing_url",
+                return_value=(PORTAL_URL, False),
+            ),
+            patch("neuroflow.windows_launcher.runtime.webbrowser.open") as mock_open,
+        ):
+            code = launch(_probe(), wait_on_process=False)
+
+        assert code == 0
         mock_open.assert_called_once_with(PORTAL_URL)
 
     def test_health_timeout(self) -> None:

@@ -10,6 +10,11 @@ PORTAL_HOST = "127.0.0.1"
 PORTAL_PORT = 8000
 PORTAL_URL = f"http://{PORTAL_HOST}:{PORTAL_PORT}/"
 HEALTH_URL = f"http://{PORTAL_HOST}:{PORTAL_PORT}/api/v1/health"
+TOOLS_URL = f"http://{PORTAL_HOST}:{PORTAL_PORT}/api/v1/tools"
+HOST_TOOLS_URL = f"http://{PORTAL_HOST}:{PORTAL_PORT}/help/host-tools.html"
+
+# Portal-visible packages used for the post-start host-tools landing decision.
+PORTAL_PACKAGE_IDS = frozenset({"freesurfer", "fsl", "sct"})
 
 
 class WslState(str, enum.Enum):

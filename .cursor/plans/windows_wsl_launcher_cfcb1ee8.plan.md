@@ -13,10 +13,10 @@ todos:
     status: completed
   - id: phase-3-ci-zip
     content: "Phase 3: Release CI — Windows zip = launcher + linux-payload from ubuntu-latest; stop shipping Win32 FastAPI as the product."
-    status: pending
+    status: completed
   - id: phase-4-host-tools-guide
     content: "Phase 4: Guided copy for missing FreeSurfer/FSL/SCT in Ubuntu (help pages + optional post-start scan)."
-    status: pending
+    status: completed
   - id: phase-5-stop-qa
     content: "Phase 5: --stop, single-instance, ARM refusal, and manual Windows QA checklist."
     status: pending
@@ -60,7 +60,7 @@ flowchart TD
 
 ## Current vs target
 
-**Today:** [`.github/workflows/release.yml`](.github/workflows/release.yml) builds a native Win32 PyInstaller app from [`neuroflow/packaged_app.py`](neuroflow/packaged_app.py) via [`packaging/build_release.ps1`](packaging/build_release.ps1). That process runs FastAPI **on Windows**. Probes and `Popen` look at the Windows PATH. README tells users to run `neuroflow.exe`; FAQ/bug template still say Windows is unsupported.
+**Windows zip (Phase 3):** [`.github/workflows/release.yml`](.github/workflows/release.yml) builds the Linux portal onedir on `ubuntu-latest`, then a Windows job packs the WSL launcher (`NeuroFlow.exe` via [`packaging/windows_launcher.spec`](packaging/windows_launcher.spec)) with that onedir as `linux-payload/`. FastAPI does **not** run as a native Win32 product.
 
 **Target zip layout (Windows):**
 
@@ -151,6 +151,8 @@ Linux and macOS zips stay as they are (portal runs natively).
 
 ## Phase 3 — Release packaging and CI
 
+**Status: complete** (2026-08-27)
+
 **Goal:** The GitHub Release Windows zip **is** the launcher + Linux payload, not a Win32 FastAPI.
 
 **Pipeline change** in [`.github/workflows/release.yml`](.github/workflows/release.yml):
@@ -174,6 +176,8 @@ Linux and macOS zips stay as they are (portal runs natively).
 ---
 
 ## Phase 4 — Guided host-tools assistant (still no vendor installers)
+
+**Status: complete** (2026-08-27)
 
 **Goal:** After the portal is up, a leigo who has WSL but no FreeSurfer/FSL/SCT knows what to do **in Ubuntu**, without a terminal if possible.
 

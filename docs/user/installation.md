@@ -15,13 +15,10 @@ The easiest path on **macOS** or **Linux** is a pre-built zip from GitHub Releas
 
 On Windows, processing runs in **WSL2 Ubuntu** — not on native Windows. See **[Windows and WSL](windows-wsl.md)** for the full path.
 
-!!! note "Current vs future Windows zip"
-
-    Today's **Windows** release zip still ships a native Win32 portal binary — that is **not** the supported neuroimaging path.
-
-    **Supported today:** install WSL2 + Ubuntu yourself via [Microsoft's guide](https://learn.microsoft.com/windows/wsl/install), then run the **Linux** release zip inside Ubuntu and open Chrome on Windows at [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
-
-    A future Windows zip will ship `NeuroFlow.exe` (launcher) + `linux-payload/` so you can double-click instead of using the Linux zip workaround. NeuroFlow never auto-installs WSL.
+1. Download `neuroflow-<version>-windows-x86_64.zip` from the [latest release](https://github.com/acsenrafilho/neuroflow/releases/latest).
+2. Extract the archive. Keep `NeuroFlow.exe`, `_internal/`, and `linux-payload/` together.
+3. Double-click **`NeuroFlow.exe`**. Install WSL2 + Ubuntu yourself first if needed ([Microsoft guide](https://learn.microsoft.com/windows/wsl/install)); NeuroFlow never auto-installs WSL.
+4. Use Chrome (or your default browser) at [http://127.0.0.1:8000/](http://127.0.0.1:8000/) while the portal runs inside Ubuntu.
 
 Packaged builds store jobs and datasets under `~/.neuroflow/` in the environment where the portal runs (Ubuntu home when using WSL). They serve the UI by default and do **not** include FreeSurfer, FSL, or SCT — install those inside Ubuntu on Windows, or on the host on Linux/macOS. See [Host tools](host-tools.md).
 

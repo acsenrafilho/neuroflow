@@ -31,7 +31,7 @@ Download a pre-built portal package from the **[latest GitHub Release](https://g
 
 | Platform | Asset (example) | How to run |
 |----------|-----------------|------------|
-| Windows | `neuroflow-*-windows-*.zip` | See [Windows and WSL](https://neuroflowpipelines.readthedocs.io/en/latest/user/windows-wsl/) — processing runs in **WSL2 Ubuntu**, not native Windows |
+| Windows | `neuroflow-*-windows-*.zip` | Extract → keep `_internal/` + `linux-payload/` → double-click `NeuroFlow.exe` ([Windows and WSL](https://neuroflowpipelines.readthedocs.io/en/latest/user/windows-wsl/)) |
 | macOS | `neuroflow-*-macos-*.zip` | Extract → run `./neuroflow/neuroflow` (see Gatekeeper note below) |
 | Linux | `neuroflow-*-linux-*.zip` | Extract → `chmod +x neuroflow/neuroflow` → run `./neuroflow/neuroflow` |
 

@@ -1,8 +1,8 @@
 """Orchestrate copy → start → health poll → browser for ready Ubuntu states.
 
-Maintainer dogfood (before Phase 3 ships the Windows zip):
+Maintainer dogfood (same layout as the release zip):
 1. On Linux, build the onedir: ``packaging/build_release.sh`` → ``dist/neuroflow/``.
-2. On Windows, copy that folder as ``linux-payload/`` next to the launcher, or set
+2. On Windows, place that folder as ``linux-payload/`` next to the launcher, or set
    ``NEUROFLOW_LINUX_PAYLOAD`` to it.
 3. Run: ``poetry run python -m neuroflow.windows_launcher_app`` (with WSL2 Ubuntu ready).
 """
@@ -16,8 +16,10 @@ from rich.console import Console
 
 from neuroflow.windows_launcher.detect import WslProbe
 from neuroflow.windows_launcher.health import HealthStatus, probe_health, wait_until_healthy
+from neuroflow.windows_launcher.host_scan import choose_landing_url
 from neuroflow.windows_launcher.messages import (
     MSG_HEALTH_TIMEOUT,
+    MSG_HOST_TOOLS_MISSING,
     MSG_PAYLOAD_MISSING,
     MSG_PORT_BUSY,
     MSG_RUNNING,
@@ -26,7 +28,7 @@ from neuroflow.windows_launcher.messages import (
 )
 from neuroflow.windows_launcher.notify import notify_user
 from neuroflow.windows_launcher.payload import PayloadError, ensure_payload_installed
-from neuroflow.windows_launcher.types import PORTAL_URL, WslState
+from neuroflow.windows_launcher.types import WslState
 from neuroflow.windows_launcher.wsl_exec import (
     DISTRO,
     WSL_WAKE_TIMEOUT_SECONDS,
@@ -46,8 +48,12 @@ def _fail(title: str, body: str, *, code: int = 1) -> int:
 
 
 def _open_portal_browser() -> None:
-    webbrowser.open(PORTAL_URL)
-    console.print(f"Opened browser at {PORTAL_URL}")
+    """Open Home or Host tools help based on portal package readiness."""
+    url, all_missing = choose_landing_url()
+    if all_missing:
+        console.print(MSG_HOST_TOOLS_MISSING)
+    webbrowser.open(url)
+    console.print(f"Opened browser at {url}")
 
 
 def _wake_ubuntu(wsl_exe: str) -> bool:

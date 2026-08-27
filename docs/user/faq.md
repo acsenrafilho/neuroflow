@@ -10,7 +10,7 @@ No. Install those packages with their official installers. NeuroFlow only detect
 
 ## Why does a module say “Install on host”?
 
-The probe binary was not found on `PATH` (and no matching `.env` override worked). Install the package, source its environment, then rescan or restart the API.
+The probe binary was not found on `PATH` (and no matching `.env` override worked). Install the package, source its environment, then rescan or restart the API. On Windows, the probe runs **inside Ubuntu** — not against the native Windows PATH. See [Host tools](host-tools.md) and [Windows and WSL](windows-wsl.md).
 
 ## Why is my job queued?
 
