@@ -5,12 +5,20 @@ from __future__ import annotations
 import subprocess
 from pathlib import PurePosixPath
 
+from neuroflow.windows_launcher.types import APP_DIR_NAME, PORTAL_PIDFILE_NAME
+
 WSL_LIST_TIMEOUT_SECONDS = 15
 WSL_PROBE_TIMEOUT_SECONDS = 15
 WSL_WAKE_TIMEOUT_SECONDS = 60
 WSL_COPY_TIMEOUT_SECONDS = 180
+WSL_STOP_TIMEOUT_SECONDS = 15
 
 DISTRO = "Ubuntu"
+
+
+def portal_pidfile_path(linux_home: str) -> str:
+    """Return the absolute Linux path for the portal pidfile."""
+    return f"{linux_home.rstrip('/')}/{APP_DIR_NAME}/{PORTAL_PIDFILE_NAME}"
 
 _ALLOWED_WSL_FLAGS = frozenset(
     {
@@ -60,6 +68,16 @@ def _require_under_app_home(path: str, linux_home: str) -> None:
         raise DisallowedWslArgumentError(f"path must be under {prefix!r}: {path!r}")
 
 
+def _parse_positive_pid(raw: str) -> int | None:
+    """Return an integer PID > 1, or None if invalid."""
+    if not raw.isdigit():
+        return None
+    pid = int(raw)
+    if pid <= 1:
+        return None
+    return pid
+
+
 def _validate_after_separator(after: list[str], *, linux_home: str | None) -> None:
     """Validate the argv segment after ``wsl -d Ubuntu --``."""
     if not after:
@@ -71,16 +89,40 @@ def _validate_after_separator(after: list[str], *, linux_home: str | None) -> No
     if after == ["printenv", "HOME"]:
         return
 
+    if after == ["uname", "-m"]:
+        return
+
     if len(after) == 3 and after[0] == "wslpath" and after[1] == "-u":
         # Windows path as seen by wslpath; reject empty / null bytes only.
         if not after[2] or "\x00" in after[2]:
             raise DisallowedWslArgumentError("invalid wslpath argument")
         return
 
-    if len(after) == 3 and after[0] == "test" and after[1] in {"-x", "-d"}:
+    if len(after) == 3 and after[0] == "test" and after[1] in {"-x", "-d", "-f"}:
         if linux_home is None:
             raise DisallowedWslArgumentError("linux_home required for test")
         _require_under_app_home(after[2], linux_home)
+        return
+
+    if len(after) == 2 and after[0] == "cat":
+        if linux_home is None:
+            raise DisallowedWslArgumentError("linux_home required for cat")
+        expected = portal_pidfile_path(linux_home)
+        if after[1] != expected:
+            raise DisallowedWslArgumentError(f"cat only allowed for pidfile: {after[1]!r}")
+        return
+
+    if len(after) == 3 and after[0] == "kill" and after[1] in {"-TERM", "-KILL"}:
+        if _parse_positive_pid(after[2]) is None:
+            raise DisallowedWslArgumentError(f"unsafe kill pid: {after[2]!r}")
+        return
+
+    if len(after) == 3 and after[0] == "rm" and after[1] == "-f":
+        if linux_home is None:
+            raise DisallowedWslArgumentError("linux_home required for rm")
+        expected = portal_pidfile_path(linux_home)
+        if after[2] != expected:
+            raise DisallowedWslArgumentError(f"rm only allowed for pidfile: {after[2]!r}")
         return
 
     if len(after) == 3 and after[0] == "mkdir" and after[1] == "-p":
@@ -111,10 +153,26 @@ def _validate_after_separator(after: list[str], *, linux_home: str | None) -> No
         _require_under_app_home(after[2], linux_home)
         return
 
-    if len(after) == 3 and after[0] == "env" and after[1] == "NEUROFLOW_SKIP_BROWSER=1":
+    # env NEUROFLOW_SKIP_BROWSER=1 [NEUROFLOW_PORTAL_PIDFILE=…] <elf>
+    if after and after[0] == "env" and "NEUROFLOW_SKIP_BROWSER=1" in after[1:]:
         if linux_home is None:
             raise DisallowedWslArgumentError("linux_home required for env start")
-        _require_under_app_home(after[2], linux_home)
+        assignments = after[1:-1]
+        elf = after[-1]
+        if not assignments or assignments[0] != "NEUROFLOW_SKIP_BROWSER=1":
+            raise DisallowedWslArgumentError(f"disallowed env start: {after!r}")
+        allowed_keys = {"NEUROFLOW_SKIP_BROWSER", "NEUROFLOW_PORTAL_PIDFILE"}
+        for item in assignments:
+            if "=" not in item:
+                raise DisallowedWslArgumentError(f"invalid env assignment: {item!r}")
+            key, value = item.split("=", 1)
+            if key not in allowed_keys:
+                raise DisallowedWslArgumentError(f"disallowed env key: {key!r}")
+            if key == "NEUROFLOW_SKIP_BROWSER" and value != "1":
+                raise DisallowedWslArgumentError(f"invalid skip-browser value: {value!r}")
+            if key == "NEUROFLOW_PORTAL_PIDFILE" and value != portal_pidfile_path(linux_home):
+                raise DisallowedWslArgumentError(f"invalid pidfile path: {value!r}")
+        _require_under_app_home(elf, linux_home)
         return
 
     raise DisallowedWslArgumentError(f"disallowed wsl command: {after!r}")

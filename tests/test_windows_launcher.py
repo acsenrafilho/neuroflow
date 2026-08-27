@@ -100,6 +100,72 @@ class TestValidateWslArgv:
             ],
             linux_home=home,
         )
+        validate_wsl_argv(
+            [
+                "wsl.exe",
+                "-d",
+                "Ubuntu",
+                "--",
+                "env",
+                "NEUROFLOW_SKIP_BROWSER=1",
+                f"NEUROFLOW_PORTAL_PIDFILE={home}/.neuroflow-app/portal.pid",
+                f"{home}/.neuroflow-app/0.0.1/neuroflow",
+            ],
+            linux_home=home,
+        )
+        validate_wsl_argv(["wsl.exe", "-d", "Ubuntu", "--", "uname", "-m"])
+        validate_wsl_argv(
+            [
+                "wsl.exe",
+                "-d",
+                "Ubuntu",
+                "--",
+                "test",
+                "-f",
+                f"{home}/.neuroflow-app/portal.pid",
+            ],
+            linux_home=home,
+        )
+        validate_wsl_argv(
+            [
+                "wsl.exe",
+                "-d",
+                "Ubuntu",
+                "--",
+                "cat",
+                f"{home}/.neuroflow-app/portal.pid",
+            ],
+            linux_home=home,
+        )
+        validate_wsl_argv(["wsl.exe", "-d", "Ubuntu", "--", "kill", "-TERM", "1234"])
+        validate_wsl_argv(["wsl.exe", "-d", "Ubuntu", "--", "kill", "-KILL", "1234"])
+        validate_wsl_argv(
+            [
+                "wsl.exe",
+                "-d",
+                "Ubuntu",
+                "--",
+                "rm",
+                "-f",
+                f"{home}/.neuroflow-app/portal.pid",
+            ],
+            linux_home=home,
+        )
+
+    def test_rejects_kill_pid_one(self) -> None:
+        with pytest.raises(DisallowedWslArgumentError, match="unsafe kill"):
+            validate_wsl_argv(["wsl.exe", "-d", "Ubuntu", "--", "kill", "-TERM", "1"])
+
+    def test_rejects_kill_non_digit(self) -> None:
+        with pytest.raises(DisallowedWslArgumentError, match="unsafe kill"):
+            validate_wsl_argv(["wsl.exe", "-d", "Ubuntu", "--", "kill", "-TERM", "abc"])
+
+    def test_rejects_cat_outside_pidfile(self) -> None:
+        with pytest.raises(DisallowedWslArgumentError):
+            validate_wsl_argv(
+                ["wsl.exe", "-d", "Ubuntu", "--", "cat", "/home/lab/.bashrc"],
+                linux_home="/home/lab",
+            )
 
     def test_rejects_path_outside_app_home(self) -> None:
         with pytest.raises(DisallowedWslArgumentError):
@@ -293,6 +359,68 @@ class TestLauncherCli:
             code = launcher_main(["--status"])
         assert code == 0
         mock_launch.assert_not_called()
+
+    def test_stop_does_not_call_launch(self) -> None:
+        probe = MagicMock()
+        probe.state = WslState.UBUNTU_RUNNING
+        probe.message = "Ready."
+        probe.microsoft_url = WSL_INSTALL_URL
+        probe.wsl_exe = _WSL_EXE
+        with (
+            patch("neuroflow.windows_launcher.app.windows_is_arm", return_value=False),
+            patch("neuroflow.windows_launcher.app.probe_wsl", return_value=probe),
+            patch("neuroflow.windows_launcher.app.launch") as mock_launch,
+            patch("neuroflow.windows_launcher.app.stop_portal", return_value=0) as mock_stop,
+        ):
+            code = launcher_main(["--stop"])
+        assert code == 0
+        mock_stop.assert_called_once_with(probe)
+        mock_launch.assert_not_called()
+
+    def test_status_wins_over_stop(self) -> None:
+        probe = MagicMock()
+        probe.state = WslState.UBUNTU_RUNNING
+        probe.message = "Ready."
+        probe.microsoft_url = WSL_INSTALL_URL
+        with (
+            patch("neuroflow.windows_launcher.app.probe_wsl", return_value=probe),
+            patch("neuroflow.windows_launcher.app.launch") as mock_launch,
+            patch("neuroflow.windows_launcher.app.stop_portal") as mock_stop,
+        ):
+            code = launcher_main(["--status", "--stop"])
+        assert code == 0
+        mock_launch.assert_not_called()
+        mock_stop.assert_not_called()
+
+    def test_arm_windows_refuses_default_launch(self, capsys: pytest.CaptureFixture[str]) -> None:
+        with (
+            patch("neuroflow.windows_launcher.app.windows_is_arm", return_value=True),
+            patch("neuroflow.windows_launcher.app.windows_machine_arch", return_value="arm64"),
+            patch("neuroflow.windows_launcher.app.probe_wsl") as mock_probe,
+            patch("neuroflow.windows_launcher.app.launch") as mock_launch,
+            patch("neuroflow.windows_launcher.app.notify_user") as mock_notify,
+        ):
+            code = launcher_main([])
+        assert code == 0
+        mock_probe.assert_not_called()
+        mock_launch.assert_not_called()
+        mock_notify.assert_called_once()
+        assert "x86_64" in capsys.readouterr().out
+
+    def test_status_prints_arch_when_not_x86(self, capsys: pytest.CaptureFixture[str]) -> None:
+        probe = MagicMock()
+        probe.state = WslState.WSL_MISSING
+        probe.message = "Install WSL."
+        probe.microsoft_url = WSL_INSTALL_URL
+        with (
+            patch("neuroflow.windows_launcher.app.windows_machine_arch", return_value="arm64"),
+            patch("neuroflow.windows_launcher.app.probe_wsl", return_value=probe),
+        ):
+            code = launcher_main(["--status"])
+        captured = capsys.readouterr().out
+        assert code == 0
+        assert "state=wsl_missing" in captured
+        assert "arch=arm64" in captured
 
     def test_never_imports_windll_on_non_windows(self) -> None:
         assert sys.platform != "win32"

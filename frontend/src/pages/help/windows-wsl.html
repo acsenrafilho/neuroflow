@@ -57,7 +57,7 @@
             <ul class="list-disc space-y-2 pl-5 text-on-surface-variant">
               <li><strong class="text-on-surface">Windows 11 + WSL2</strong> is the primary target. Windows 10 + WSL2 is supported with possible localhost caveats.</li>
               <li>Distro name: <strong class="text-on-surface">Ubuntu</strong> (do not substitute Debian or docker-desktop).</li>
-              <li><strong class="text-on-surface">x86_64</strong> for v1. ARM Windows is out of scope.</li>
+              <li><strong class="text-on-surface">x86_64</strong> for v1. The launcher refuses ARM Windows / aarch64 Ubuntu.</li>
               <li>Host tools (FreeSurfer, FSL, SCT) installed <strong class="text-on-surface">inside Ubuntu</strong>, not on the native Windows PATH.</li>
             </ul>
           </section>
@@ -136,6 +136,15 @@
                 <strong class="text-on-surface">More info → Run anyway</strong> when you trust the
                 release source.
               </p>
+              <p class="mt-3">
+                Optional:
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NeuroFlow.exe --status</code>
+                prints detection state;
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NeuroFlow.exe --stop</code>
+                stops the Linux portal (never
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">wsl --shutdown</code>;
+                does not cancel running jobs).
+              </p>
             </div>
           </section>
 
@@ -165,9 +174,10 @@
               <li><strong class="text-on-surface">Ubuntu not initialized</strong> — open Ubuntu from Start and complete Linux user setup.</li>
               <li><strong class="text-on-surface">Port 8000 busy</strong> — stop the other process or wait until it finishes. NeuroFlow will not kill that process.</li>
               <li><strong class="text-on-surface">linux-payload missing</strong> — place the Linux onedir next to NeuroFlow.exe, or set <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NEUROFLOW_LINUX_PAYLOAD</code>.</li>
-              <li><strong class="text-on-surface">Second double-click</strong> — if the portal is already up, NeuroFlow only opens the browser again.</li>
+              <li><strong class="text-on-surface">Second double-click</strong> — if the portal is already up, NeuroFlow only opens the browser again. Two rapid clicks while starting show “already starting” instead of a second portal.</li>
+              <li><strong class="text-on-surface">--stop then health fails</strong> — after <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">NeuroFlow.exe --stop</code>, the health URL should fail. Running jobs in Ubuntu are not killed.</li>
               <li><strong class="text-on-surface">Browser cannot reach portal on Windows 10</strong> — WSL2 localhost forwarding may differ; try from inside Ubuntu first.</li>
-              <li><strong class="text-on-surface">ARM Windows</strong> — not supported in v1.</li>
+              <li><strong class="text-on-surface">ARM Windows</strong> — launcher refuses with a clear message.</li>
             </ul>
           </section>
         </article>

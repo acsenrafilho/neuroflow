@@ -66,7 +66,13 @@ def fetch_tools(url: str = TOOLS_URL) -> list[Any] | None:
             if not isinstance(data, list):
                 return None
             return data
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, json.JSONDecodeError, OSError):
+    except (
+        urllib.error.URLError,
+        urllib.error.HTTPError,
+        TimeoutError,
+        json.JSONDecodeError,
+        OSError,
+    ):
         return None
 
 

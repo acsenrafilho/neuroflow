@@ -75,7 +75,20 @@ Release zips already bundle `linux-payload/` next to `NeuroFlow.exe`. To dogfood
 
 Or build the launcher onedir with `packaging/windows_launcher.spec` / `packaging/build_windows_launcher.ps1` and assemble with `packaging/assemble_windows_release.py`.
 
-The launcher copies the onedir into Ubuntu at `~/.neuroflow-app/<version>/`, starts it with `NEUROFLOW_SKIP_BROWSER=1`, polls health from Windows, and opens the browser.
+The launcher copies the onedir into Ubuntu at `~/.neuroflow-app/<version>/`, starts it with `NEUROFLOW_SKIP_BROWSER=1` and `NEUROFLOW_PORTAL_PIDFILE`, polls health from Windows, and opens the browser. Use `NeuroFlow.exe --stop` to terminate the portal (pidfile under `~/.neuroflow-app/`; never `wsl --shutdown`).
+
+### Manual Windows QA checklist
+
+CI has no real WSL and no FSL on `windows-latest`. Before a release, spot-check on a Win11 machine:
+
+- [ ] WSL **absent**: guide + Microsoft URL; no feature enable / no `wsl --install`.
+- [ ] Ubuntu **present**, tools **absent**: UI loads; modules show Install on host (or Host tools landing).
+- [ ] Ubuntu + at least one CLI: Execute produces `run.log` as on Linux.
+- [ ] Second double-click: only opens the browser.
+- [ ] Two rapid double-clicks while starting: no second portal (`already starting` or browser only).
+- [ ] `NeuroFlow.exe --stop` then health fails; running jobs are not killed by `--stop`.
+- [ ] Port 8000 taken by a non-NeuroFlow process: clear error.
+- [ ] ARM Windows (if available): calm refusal message; `--status` prints `arch=`.
 
 ## GitHub repository settings (maintainers)
 

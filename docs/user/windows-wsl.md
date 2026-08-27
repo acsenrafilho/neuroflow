@@ -8,7 +8,7 @@ On Windows, NeuroFlow is a **facilitation portal in your browser** while **proce
 |------|--------|
 | Windows | **Windows 11 + WSL2** is the primary target. Windows 10 + WSL2 is supported; see [Troubleshooting](#troubleshooting) for localhost caveats. |
 | Distro | **Ubuntu** (default name). Install Ubuntu from Microsoft’s guide — do not substitute Debian or docker-desktop silently. |
-| Architecture | **x86_64** for v1. ARM Windows is out of scope. |
+| Architecture | **x86_64** for v1. The launcher **refuses** ARM Windows / aarch64 Ubuntu with a clear message. |
 | Browser | Chrome or another browser on Windows at [http://127.0.0.1:8000/](http://127.0.0.1:8000/) (WSL2 localhost forwarding on Windows 11). |
 | Host tools | FreeSurfer, FSL, SCT, etc. installed **inside Ubuntu**, not on the native Windows PATH. |
 
@@ -40,6 +40,15 @@ Use the Ubuntu filesystem for NeuroFlow data and neuroimaging outputs.
 3. Double-click **`NeuroFlow.exe`**.
 4. If WSL or Ubuntu is missing, the launcher shows a short guide and links to Microsoft’s install page (still with **no** auto-install). Install Ubuntu yourself, then click again.
 5. When Ubuntu is ready, the launcher copies the Linux portal into Ubuntu, starts it, and opens your browser at [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
+
+### Launcher CLI
+
+| Command | Behavior |
+|---------|----------|
+| `NeuroFlow.exe` | Detect WSL, start the portal (or open the browser if already up). |
+| `NeuroFlow.exe --status` | Print detection state and exit (no start). On non-x86_64 hosts also prints `arch=…`. |
+| `NeuroFlow.exe --stop` | Stop the Linux portal via `~/.neuroflow-app/portal.pid`. Does **not** run `wsl --shutdown`. Does **not** cancel running neuroimaging jobs — use Cancel in the UI first if needed. |
+| `NeuroFlow.exe --open-wsl-docs` | Open Microsoft’s WSL install guide in a browser. |
 
 The Windows process is a **thin launcher only**. FastAPI, allowlisted subprocesses, and host probes run **inside Ubuntu**. Module status reflects the **Ubuntu** PATH, not Windows.
 
@@ -77,9 +86,10 @@ When FreeSurfer, FSL, and SCT are all missing, the Windows launcher may open the
 | Ubuntu not initialized | Open Ubuntu from the Start menu once and complete the Linux user setup. |
 | Port 8000 busy | Stop the other process using port 8000, or wait until it finishes. NeuroFlow will not kill that process. |
 | `linux-payload/` missing | Keep `linux-payload/` next to `NeuroFlow.exe` after extract, or set `NEUROFLOW_LINUX_PAYLOAD` to a Linux onedir (`neuroflow` + `_internal/`). |
-| Second double-click | If the portal is already healthy, NeuroFlow only opens the browser again (no second server). |
+| Second double-click | If the portal is already healthy, NeuroFlow only opens the browser again (no second server). Two rapid clicks while starting show a short “already starting” message instead of spawning a second portal. |
+| `--stop` then health fails | After `NeuroFlow.exe --stop`, [http://127.0.0.1:8000/api/v1/health](http://127.0.0.1:8000/api/v1/health) should fail. Jobs already running in Ubuntu are not killed. |
 | Browser cannot reach the portal on Windows 10 | WSL2 localhost forwarding differs on some Win10 setups; try accessing from inside Ubuntu first, or see Microsoft WSL networking docs. |
-| ARM Windows | Not supported in v1; use an x86_64 Windows PC with WSL2. |
+| ARM Windows | Launcher refuses with a clear message; use an x86_64 Windows PC with WSL2. |
 | Module stuck on Install on host | Install the package in **Ubuntu**, source its environment if needed, then rescan. |
 
 Next: [Using the portal](using.md) · [Host tools](host-tools.md) · [FAQ](faq.md).

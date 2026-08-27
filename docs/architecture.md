@@ -34,7 +34,7 @@ flowchart TB
 
 **Packaged distribution:** GitHub Releases ship a PyInstaller build of the **portal only** (API + built UI). Host neuroimaging CLIs are never bundled. Frozen runs resolve UI assets from the bundle and write job/dataset data under `~/.neuroflow/`.
 
-**Windows:** The Windows zip is a **thin launcher** on Windows (`NeuroFlow.exe` + `_internal/` + `linux-payload/`). When Ubuntu is ready, it copies the Linux portal onedir into `~/.neuroflow-app/<version>/` inside Ubuntu, starts that ELF, polls `GET /api/v1/health` from Windows, and opens the browser at `http://127.0.0.1:8000/`. FastAPI, allowlisted `Popen`, and host probes run **inside Ubuntu** — not on native Win32. Release CI builds the Linux onedir on `ubuntu-latest` and nests it as `linux-payload/` next to the launcher (see [Development](development.md)). NeuroFlow never auto-installs WSL.
+**Windows:** The Windows zip is a **thin launcher** on Windows (`NeuroFlow.exe` + `_internal/` + `linux-payload/`). When Ubuntu is ready, it copies the Linux portal onedir into `~/.neuroflow-app/<version>/` inside Ubuntu, starts that ELF, polls `GET /api/v1/health` from Windows, and opens the browser at `http://127.0.0.1:8000/`. `NeuroFlow.exe --stop` terminates the Linux portal via a pidfile under `~/.neuroflow-app/` — it never runs `wsl --shutdown`. FastAPI, allowlisted `Popen`, and host probes run **inside Ubuntu** — not on native Win32. Release CI builds the Linux onedir on `ubuntu-latest` and nests it as `linux-payload/` next to the launcher (see [Development](development.md)). NeuroFlow never auto-installs WSL.
 
 Portal-visible packages are **FreeSurfer**, **FSL**, and **SCT**. ANTs, 3D Slicer, and ITK may exist in code but are hidden from the UI.
 

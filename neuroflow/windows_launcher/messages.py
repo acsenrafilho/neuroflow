@@ -50,7 +50,8 @@ MSG_PAYLOAD_MISSING = (
     "Place a linux-payload/ folder next to NeuroFlow.exe "
     "(the same onedir layout as the Linux release: neuroflow + _internal/), "
     "or set the NEUROFLOW_LINUX_PAYLOAD environment variable to that folder.\n\n"
-    "Release zips that bundle the launcher with linux-payload/ arrive in a later packaging phase."
+    "Release zips already bundle linux-payload/ next to NeuroFlow.exe — "
+    "keep that folder after extract."
 )
 
 MSG_PORT_BUSY = (
@@ -83,6 +84,41 @@ MSG_HOST_TOOLS_MISSING = (
     "FreeSurfer, FSL, and SCT were not found in Ubuntu. "
     "Install them inside Ubuntu (not on the Windows PATH), then use Rescan on the "
     "Host tools help page."
+)
+
+MSG_ALREADY_STARTING = (
+    "NeuroFlow is already starting in another window.\n\n"
+    "Wait a few seconds for the browser to open, or run NeuroFlow again once the "
+    "portal is up."
+)
+
+MSG_ARM_REFUSED = (
+    "This NeuroFlow release supports x86_64 (AMD64) Windows and Ubuntu only.\n\n"
+    "ARM Windows / aarch64 WSL is out of scope for v1. Use an x86_64 Windows PC "
+    "with WSL2 Ubuntu."
+)
+
+MSG_NOT_RUNNING = "NeuroFlow is not running."
+
+MSG_STOP_DONE = (
+    f"NeuroFlow stopped. {PORTAL_URL} should no longer respond.\n\n"
+    "Note: --stop ends only the portal. Running neuroimaging jobs inside Ubuntu "
+    "are not cancelled — use Cancel in the UI first if you need them stopped. "
+    "NeuroFlow never runs wsl --shutdown."
+)
+
+MSG_STOP_NO_PIDFILE = (
+    f"Something is responding at {PORTAL_URL}, but NeuroFlow has no portal.pid "
+    "under ~/.neuroflow-app/.\n\n"
+    "That process was probably not started by this launcher. Stop it yourself "
+    "(or close the other NeuroFlow window). NeuroFlow will not kill unknown "
+    "processes on port 8000."
+)
+
+MSG_STOP_PARTIAL = (
+    "NeuroFlow sent a stop signal, but the health check still succeeds.\n\n"
+    "Try again, or close the console window that started NeuroFlow. "
+    "NeuroFlow never runs wsl --shutdown."
 )
 
 

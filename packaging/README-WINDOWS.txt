@@ -16,6 +16,8 @@ Quick start
    your PC for you.
 4. After Ubuntu is ready, click NeuroFlow.exe again. Chrome (or your default
    browser) opens http://127.0.0.1:8000/ while the portal runs in Linux.
+5. To stop the portal later: NeuroFlow.exe --stop
+   (does not run "wsl --shutdown"; does not cancel running jobs).
 
 Requirements
 ------------
@@ -23,7 +25,7 @@ Requirements
 - Windows 11 + WSL2 (primary). Windows 10 + WSL2 works with possible localhost
   caveats.
 - Distro name: Ubuntu.
-- Architecture: x86_64 only. ARM Windows is not supported in this release.
+- Architecture: x86_64 only. The launcher refuses ARM Windows / aarch64 Ubuntu.
 - FreeSurfer, FSL, and SCT (if you need them) must be installed inside Ubuntu,
   not on the native Windows PATH.
 

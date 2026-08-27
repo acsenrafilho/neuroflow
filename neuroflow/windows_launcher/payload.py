@@ -9,6 +9,7 @@ from pathlib import Path
 
 from neuroflow import __version__
 from neuroflow.windows_launcher.detect import decode_wsl_output
+from neuroflow.windows_launcher.types import APP_DIR_NAME
 from neuroflow.windows_launcher.wsl_exec import (
     DISTRO,
     WSL_COPY_TIMEOUT_SECONDS,
@@ -17,7 +18,6 @@ from neuroflow.windows_launcher.wsl_exec import (
 )
 
 PAYLOAD_ENV = "NEUROFLOW_LINUX_PAYLOAD"
-APP_DIR_NAME = ".neuroflow-app"
 
 
 class PayloadError(Exception):

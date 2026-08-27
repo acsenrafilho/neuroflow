@@ -304,6 +304,10 @@ class TestHostScan:
 
 
 class TestLaunch:
+    @pytest.fixture(autouse=True)
+    def _isolate_lock(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("NEUROFLOW_LAUNCHER_LOCK", str(tmp_path / "launcher.lock"))
+
     def test_idempotent_opens_browser_only(self) -> None:
         with (
             patch(
@@ -365,12 +369,30 @@ class TestLaunch:
                 "neuroflow.windows_launcher.runtime.probe_health",
                 return_value=HealthResult(HealthStatus.DOWN),
             ),
+            patch("neuroflow.windows_launcher.runtime.probe_ubuntu_arch", return_value="x86_64"),
             patch("neuroflow.windows_launcher.runtime.notify_user") as mock_notify,
             patch("neuroflow.windows_launcher.runtime._wake_ubuntu", return_value=True),
         ):
             code = launch(_probe(WslState.UBUNTU_STOPPED), wait_on_process=False)
         assert code == 1
         mock_notify.assert_called_once()
+
+    def test_refuses_aarch64_ubuntu(self) -> None:
+        with (
+            patch(
+                "neuroflow.windows_launcher.runtime.probe_health",
+                return_value=HealthResult(HealthStatus.DOWN),
+            ),
+            patch("neuroflow.windows_launcher.runtime.probe_ubuntu_arch", return_value="aarch64"),
+            patch("neuroflow.windows_launcher.runtime.notify_user") as mock_notify,
+            patch("neuroflow.windows_launcher.runtime.ensure_payload_installed") as mock_copy,
+            patch("neuroflow.windows_launcher.runtime.popen_wsl") as mock_popen,
+        ):
+            code = launch(_probe(), wait_on_process=False)
+        assert code == 0
+        mock_notify.assert_called_once()
+        mock_copy.assert_not_called()
+        mock_popen.assert_not_called()
 
     def test_start_poll_open(self, tmp_path: Path) -> None:
         windows_dir = _make_onedir(tmp_path / "linux-payload")
@@ -385,6 +407,7 @@ class TestLaunch:
                 "neuroflow.windows_launcher.runtime.probe_health",
                 return_value=HealthResult(HealthStatus.DOWN),
             ),
+            patch("neuroflow.windows_launcher.runtime.probe_ubuntu_arch", return_value="x86_64"),
             patch(
                 "neuroflow.windows_launcher.runtime.ensure_payload_installed",
                 return_value=paths,
@@ -410,6 +433,7 @@ class TestLaunch:
         mock_popen.assert_called_once()
         argv = mock_popen.call_args[0][1]
         assert "NEUROFLOW_SKIP_BROWSER=1" in argv
+        assert f"NEUROFLOW_PORTAL_PIDFILE={_HOME}/.neuroflow-app/portal.pid" in argv
         assert _ELF in argv
         assert "--install" not in argv
         assert "--shutdown" not in argv
@@ -427,6 +451,7 @@ class TestLaunch:
                 "neuroflow.windows_launcher.runtime.probe_health",
                 return_value=HealthResult(HealthStatus.DOWN),
             ),
+            patch("neuroflow.windows_launcher.runtime.probe_ubuntu_arch", return_value="x86_64"),
             patch(
                 "neuroflow.windows_launcher.runtime.ensure_payload_installed",
                 return_value=paths,
@@ -459,6 +484,7 @@ class TestLaunch:
                 "neuroflow.windows_launcher.runtime.probe_health",
                 return_value=HealthResult(HealthStatus.DOWN),
             ),
+            patch("neuroflow.windows_launcher.runtime.probe_ubuntu_arch", return_value="x86_64"),
             patch(
                 "neuroflow.windows_launcher.runtime.ensure_payload_installed",
                 return_value=paths,
@@ -490,6 +516,7 @@ class TestLaunch:
                 "neuroflow.windows_launcher.runtime.probe_health",
                 return_value=HealthResult(HealthStatus.DOWN),
             ),
+            patch("neuroflow.windows_launcher.runtime.probe_ubuntu_arch", return_value="x86_64"),
             patch(
                 "neuroflow.windows_launcher.runtime.ensure_payload_installed",
                 return_value=paths,
@@ -505,6 +532,55 @@ class TestLaunch:
         assert code == 1
         proc.terminate.assert_called_once()
         mock_notify.assert_called_once()
+
+    def test_lock_busy_health_ok_opens_browser(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        lock_path = tmp_path / "held.lock"
+        monkeypatch.setenv("NEUROFLOW_LAUNCHER_LOCK", str(lock_path))
+        from neuroflow.windows_launcher.instance_lock import LauncherLock
+
+        with LauncherLock(lock_path) as held:
+            assert held.acquired
+            with (
+                patch(
+                    "neuroflow.windows_launcher.runtime.probe_health",
+                    return_value=HealthResult(HealthStatus.OK),
+                ),
+                patch(
+                    "neuroflow.windows_launcher.runtime.choose_landing_url",
+                    return_value=(PORTAL_URL, False),
+                ),
+                patch("neuroflow.windows_launcher.runtime.webbrowser.open") as mock_open,
+                patch("neuroflow.windows_launcher.runtime.popen_wsl") as mock_popen,
+            ):
+                code = launch(_probe(), wait_on_process=False)
+        assert code == 0
+        mock_open.assert_called_once_with(PORTAL_URL)
+        mock_popen.assert_not_called()
+
+    def test_lock_busy_health_down_already_starting(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        lock_path = tmp_path / "held.lock"
+        monkeypatch.setenv("NEUROFLOW_LAUNCHER_LOCK", str(lock_path))
+        from neuroflow.windows_launcher.instance_lock import LauncherLock
+
+        with LauncherLock(lock_path) as held:
+            assert held.acquired
+            with (
+                patch(
+                    "neuroflow.windows_launcher.runtime.probe_health",
+                    return_value=HealthResult(HealthStatus.DOWN),
+                ),
+                patch("neuroflow.windows_launcher.runtime.notify_user") as mock_notify,
+                patch("neuroflow.windows_launcher.runtime.popen_wsl") as mock_popen,
+            ):
+                code = launch(_probe(), wait_on_process=False)
+        assert code == 0
+        mock_popen.assert_not_called()
+        mock_notify.assert_called_once()
+        assert "already starting" in capsys.readouterr().out.lower()
 
 
 class TestPackagedAppSkipBrowser:

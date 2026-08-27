@@ -16,6 +16,10 @@ HOST_TOOLS_URL = f"http://{PORTAL_HOST}:{PORTAL_PORT}/help/host-tools.html"
 # Portal-visible packages used for the post-start host-tools landing decision.
 PORTAL_PACKAGE_IDS = frozenset({"freesurfer", "fsl", "sct"})
 
+# Version-independent pidfile under ~/.neuroflow-app/ (written by packaged_app).
+PORTAL_PIDFILE_NAME = "portal.pid"
+APP_DIR_NAME = ".neuroflow-app"
+
 
 class WslState(str, enum.Enum):
     """Outcome of probing WSL and the Ubuntu distribution."""

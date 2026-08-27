@@ -1,4 +1,4 @@
-"""PyInstaller entrypoint for the Windows WSL launcher (Phase 2)."""
+"""PyInstaller entrypoint for the Windows WSL launcher."""
 
 from neuroflow.windows_launcher.app import main
 
