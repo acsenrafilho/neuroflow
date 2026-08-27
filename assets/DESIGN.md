@@ -443,5 +443,6 @@ Use when adding or updating pages under `doc/mockup/`:
 | 2026-07-25 | — | Home Workspaces panel: create/list folders; Use + Open folder via `/api/v1/workspaces` |
 | 2026-07-25 | — | Subject-centered datasets: outputs under `sub-<id>/derivatives/<package>/<module>/` |
 | 2026-08-19 | — | MkDocs Material theme aligned with portal tokens, Inter/Manrope, and `neuroflow_icon.png` |
+| 2026-08-27 | — | Host tools help page: primary **Rescan host tools** action (`POST /api/v1/host/rescan`) |
 
-**Last updated:** 2026-08-19
+**Last updated:** 2026-08-27

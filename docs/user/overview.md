@@ -13,7 +13,7 @@ It sits between your browser and neuroimaging software already installed on the 
 
 ## Who it is for
 
-Researchers and lab operators who already (or will) install vendor CLIs on Ubuntu/Debian and want a local web UI instead of assembling every command by hand.
+Researchers and lab operators who install vendor CLIs on Ubuntu/Debian (or **WSL2 Ubuntu on Windows**) and want a local web UI instead of assembling every command by hand.
 
 ## What NeuroFlow does not do
 

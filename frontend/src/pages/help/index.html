@@ -47,9 +47,10 @@
               What NeuroFlow does not do
             </div>
             <p class="text-on-surface-variant">
-              It does not install FreeSurfer, FSL, SCT, or other packages; does not chain stages into an
-              automatic pipeline; and does not require Docker in this repository. Host tools stay on
-              the OS where the API runs.
+              It does not install FreeSurfer, FSL, SCT, or other packages; does not auto-install WSL
+              on Windows; does not chain stages into an automatic pipeline; and does not require Docker
+              in this repository. Host tools stay on the OS where the API runs (Ubuntu when using WSL
+              on Windows).
             </p>
           </div>
 
@@ -114,6 +115,12 @@
               <li>
                 <a href="/help/host-tools.html" class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low/50">
                   <span>Host tools</span>
+                  <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
+                </a>
+              </li>
+              <li>
+                <a href="/help/windows-wsl.html" class="flex items-center justify-between px-5 py-4 hover:bg-surface-container-low/50">
+                  <span>Windows + WSL</span>
                   <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
                 </a>
               </li>

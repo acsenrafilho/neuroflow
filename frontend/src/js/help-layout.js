@@ -11,6 +11,7 @@
     { id: "sct-t1-morphometry", href: "/help/sct-t1-morphometry.html", label: "T1 morphometry" },
     { id: "jobs-and-logs", href: "/help/jobs-and-logs.html", label: "Jobs & logs" },
     { id: "host-tools", href: "/help/host-tools.html", label: "Host tools" },
+    { id: "windows-wsl", href: "/help/windows-wsl.html", label: "Windows + WSL" },
     { id: "tips", href: "/help/tips.html", label: "Tips" },
     { id: "faq", href: "/help/faq.html", label: "FAQ" },
     { id: "data-and-privacy", href: "/help/data-and-privacy.html", label: "Data & privacy" },
