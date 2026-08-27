@@ -30,6 +30,9 @@ mkdocs-material = "^9.5.0"
 [tool.poetry.group.packaging.dependencies]
 pyinstaller = { version = "^6.11.0", python = ">=3.10,<3.16" }
 python-semantic-release = "^9.21.0"
+# GitPython 3.1.60 removed Actor.name_email_regex; PSR 9.x still reads it
+# (python-semantic-release/python-semantic-release#1475). Drop after PSR ships #1477.
+gitpython = ">=3.1.59,<3.1.60"
 
 [tool.poetry.scripts]
 neuroflow = "neuroflow.cli:main"

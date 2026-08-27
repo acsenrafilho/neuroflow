@@ -53,12 +53,26 @@ jobs:
             --notes "Initial SemVer baseline. Packaged portal builds (Windows / macOS / Linux) are attached by the build-binaries job."
           echo "bootstrapped=true" >> "$GITHUB_OUTPUT"
 
+      # Official Docker action installs gitpython unpinned (gitpython~=3.0).
+      # GitPython 3.1.60 removed Actor.name_email_regex, which PSR 9.x reads on
+      # every config load (python-semantic-release/python-semantic-release#1475).
+      # Pin gitpython until PSR ships #1477, then restore the action.
+      - uses: actions/setup-python@v5
+        if: steps.bootstrap.outputs.bootstrapped != 'true'
+        with:
+          python-version: "3.10"
+
       - name: Python Semantic Release
         id: release
         if: steps.bootstrap.outputs.bootstrapped != 'true'
-        uses: python-semantic-release/python-semantic-release@v9.21.1
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check \
+            "python-semantic-release==9.21.1" \
+            "gitpython==3.1.59"
+          semantic-release -v version
 
       - name: Set job outputs
         id: meta
