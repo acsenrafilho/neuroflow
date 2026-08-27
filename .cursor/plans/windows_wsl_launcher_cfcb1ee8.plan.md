@@ -7,7 +7,7 @@ todos:
     status: completed
   - id: phase-1-wsl-detect
     content: "Phase 1: Add windows_launcher detection of WSL2/Ubuntu, Microsoft-docs gate, --status; unit tests with mocked wsl output."
-    status: pending
+    status: completed
   - id: phase-2-wsl-runtime
     content: "Phase 2: Copy Linux payload into Ubuntu FS, start packaged Linux portal, poll health from Windows, open browser; idempotent if already up."
     status: pending
@@ -96,6 +96,8 @@ Linux and macOS zips stay as they are (portal runs natively).
 ---
 
 ## Phase 1 — WSL detection gate (no start yet)
+
+**Status: complete** (2026-08-26)
 
 **Goal:** A testable Python module that answers: can we launch into Ubuntu?
 
