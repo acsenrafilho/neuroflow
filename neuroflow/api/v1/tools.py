@@ -41,6 +41,12 @@ from neuroflow.tools.itk import (
 from neuroflow.tools.itk import (
     group_uploads_into_batch as group_itk_uploads_into_batch,
 )
+from neuroflow.tools.mricron import (
+    MRICRON_TOOL_ID,
+    ensure_dcm2niix_available,
+    launch_mricron_job,
+    prepare_dicom_dir,
+)
 from neuroflow.tools.registry import get_module, get_tool, list_modules, list_tools
 from neuroflow.tools.sct import SCT_TOOL_ID, SctJobParams, launch_sct_job
 from neuroflow.tools.sct import (
@@ -741,6 +747,147 @@ async def get_sct_job_log(
     store: Annotated[JobStore, Depends(get_job_store)],
 ) -> JobLogResponse:
     return await _load_job_log(store, SCT_TOOL_ID, job_id)
+
+
+def _parse_copy_to_anat(raw: str) -> bool:
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+@router.post("/mricron/jobs", response_model=JobStatusResponse, status_code=201)
+async def create_mricron_job(
+    settings: Annotated[Settings, Depends(get_cached_settings)],
+    store: Annotated[JobStore, Depends(get_job_store)],
+    files: Annotated[list[UploadFile], File()],
+    workspace: Annotated[str, Form()],
+    subject_id: Annotated[str, Form()],
+    copy_to_anat: Annotated[str, Form()] = "true",
+) -> JobStatusResponse:
+    tool = get_tool(MRICRON_TOOL_ID)
+    if tool is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Tool not found",
+            headers={"X-Error-Code": "tool_not_found"},
+        )
+
+    if not files:
+        raise HTTPException(
+            status_code=422,
+            detail="At least one file is required",
+            headers={"X-Error-Code": "validation_error"},
+        )
+
+    safe_workspace = _parse_workspace(workspace)
+    try:
+        safe_subject = normalize_subject_id(subject_id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "validation_error"},
+        ) from exc
+
+    copy_outputs = _parse_copy_to_anat(copy_to_anat)
+    job_id = store.create_job(
+        MRICRON_TOOL_ID,
+        {
+            "module_id": "mricron-dcm2niix",
+            "workspace": safe_workspace,
+            "subject_id": safe_subject,
+            "copy_to_anat": copy_outputs,
+        },
+    )
+    store.update_meta(
+        MRICRON_TOOL_ID,
+        job_id,
+        workspace=safe_workspace,
+        subject_id=safe_subject,
+    )
+
+    saved: list[Path] = []
+    try:
+        for upload in files:
+            saved.append(await store.save_upload(MRICRON_TOOL_ID, job_id, upload))
+        dicom_dir = store.job_dir(MRICRON_TOOL_ID, job_id) / "input" / "dicom"
+        prepare_dicom_dir(saved, dicom_dir)
+    except ValueError as exc:
+        store.delete_job(MRICRON_TOOL_ID, job_id)
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "validation_error"},
+        ) from exc
+
+    def _start() -> None:
+        launch_mricron_job(
+            settings=settings,
+            store=store,
+            job_id=job_id,
+            dicom_dir=dicom_dir,
+            workspace=safe_workspace,
+            subject_id=safe_subject,
+            copy_to_anat=copy_outputs,
+        )
+
+    try:
+        ensure_dcm2niix_available(settings)
+        await _start_job_off_loop(
+            try_start_job,
+            settings=settings,
+            store=store,
+            tool_id=MRICRON_TOOL_ID,
+            job_id=job_id,
+            starter=_start,
+        )
+    except FileNotFoundError as exc:
+        store.update_meta(
+            MRICRON_TOOL_ID,
+            job_id,
+            status="failed",
+            error_message=str(exc),
+        )
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "tool_not_installed"},
+        ) from exc
+    except ValueError as exc:
+        store.delete_job(MRICRON_TOOL_ID, job_id)
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+            headers={"X-Error-Code": "validation_error"},
+        ) from exc
+    except RuntimeError as exc:
+        store.delete_job(MRICRON_TOOL_ID, job_id)
+        raise _resource_or_queue_error(exc) from exc
+
+    meta = store.read_meta(MRICRON_TOOL_ID, job_id)
+    return enrich_status(meta, _meta_to_status(meta))
+
+
+@router.get("/mricron/jobs/{job_id}", response_model=JobStatusResponse)
+async def get_mricron_job(
+    job_id: str,
+    store: Annotated[JobStore, Depends(get_job_store)],
+) -> JobStatusResponse:
+    try:
+        meta = store.read_meta(MRICRON_TOOL_ID, job_id)
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Job not found: {job_id}",
+            headers={"X-Error-Code": "job_not_found"},
+        ) from exc
+    return enrich_status(meta, _meta_to_status(meta))
+
+
+@router.get("/mricron/jobs/{job_id}/log", response_model=JobLogResponse)
+async def get_mricron_job_log(
+    job_id: str,
+    store: Annotated[JobStore, Depends(get_job_store)],
+) -> JobLogResponse:
+    return await _load_job_log(store, MRICRON_TOOL_ID, job_id)
 
 
 @router.post("/ants/jobs", response_model=JobStatusResponse, status_code=201)

@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     neuroflow_itk_binaries_config: Path | None = None
     neuroflow_antspath: Path | None = None
     neuroflow_sct_dir: Path | None = None
+    neuroflow_dcm2niix: str | None = None
 
     @property
     def data_root(self) -> Path:

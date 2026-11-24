@@ -19,6 +19,7 @@ This page is for people who **clone the repository** and run NeuroFlow from sour
 - **FreeSurfer** (`recon-all` on `PATH`, or `NEUROFLOW_RECON_ALL_BIN`)
 - **FSL** (`bet`, `flirt`, etc. on `PATH`, or `NEUROFLOW_FSLDIR` / `FSLDIR`)
 - **Spinal Cord Toolbox (SCT)** (`sct_version` on `PATH`, `$HOME/sct_*`, or `SCT_DIR` / `NEUROFLOW_SCT_DIR`)
+- **MRIcron / dcm2niix** (`NEUROFLOW_DCM2NIIX`, `dcm2niix` on `PATH`, or `~/mricron/dcm2niix` and `~/MRIcron/dcm2niix`)
 - Optional (code present, hidden in the portal UI for now): ANTs, 3D Slicer, ITK
 
 ## First-machine setup

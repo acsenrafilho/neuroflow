@@ -15,6 +15,10 @@
       docsUrl: "https://spinalcordtoolbox.com/stable/",
       docsLabel: "Spinal Cord Toolbox documentation",
     },
+    mricron: {
+      docsUrl: "https://github.com/rordenlab/dcm2niix",
+      docsLabel: "dcm2niix documentation",
+    },
     ants: {
       docsUrl: "https://github.com/ANTsX/ANTs/wiki",
       docsLabel: "ANTs wiki",
@@ -96,6 +100,9 @@
       } else if (packageId === "sct") {
         summaryEl.textContent =
           "Spinal cord MRI segmentation, labeling, template registration, and morphometrics. Run prerequisite modules separately when needed.";
+      } else if (packageId === "mricron") {
+        summaryEl.textContent =
+          "Convert one DICOM series to NIfTI with dcm2niix. Output names include the DICOM patient name, protocol, and series.";
       } else if (packageId === "itk") {
         summaryEl.textContent =
           "CSIM ITK filters built on the host plus Simple Filters via 3D Slicer. Configure native binaries in config/itk-binaries.json.";
@@ -112,7 +119,9 @@
           ? "/help/modules.html#fsl"
           : packageId === "sct"
             ? "/help/modules.html#sct"
-            : "/help/modules.html";
+            : packageId === "mricron"
+              ? "/help/modules.html#mricron"
+              : "/help/modules.html";
     if (docsEl) {
       const official = meta?.docsUrl
         ? `<a href="${meta.docsUrl}" target="_blank" rel="noopener noreferrer"

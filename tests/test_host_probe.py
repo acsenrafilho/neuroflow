@@ -12,6 +12,7 @@ from neuroflow.tools.host_probe import (
     probe_freesurfer,
     probe_fsl,
     probe_itk,
+    probe_mricron,
     probe_sct,
     probe_slicer,
     scan_all_packages,
@@ -253,6 +254,7 @@ def test_scan_all_packages_returns_all_ids() -> None:
         patch("neuroflow.tools.host_probe.probe_slicer") as mock_slicer,
         patch("neuroflow.tools.host_probe.probe_itk") as mock_itk,
         patch("neuroflow.tools.host_probe.probe_sct") as mock_sct,
+        patch("neuroflow.tools.host_probe.probe_mricron") as mock_mricron,
     ):
         mock_fs.return_value = ProbeResult("freesurfer", False, detail="x")
         mock_fsl.return_value = ProbeResult("fsl", False, detail="y")
@@ -260,5 +262,64 @@ def test_scan_all_packages_returns_all_ids() -> None:
         mock_slicer.return_value = ProbeResult("slicer", False, detail="w")
         mock_itk.return_value = ProbeResult("itk", False, detail="v")
         mock_sct.return_value = ProbeResult("sct", False, detail="u")
+        mock_mricron.return_value = ProbeResult("mricron", False, detail="t")
         results = scan_all_packages(settings)
-    assert set(results.keys()) == {"freesurfer", "fsl", "ants", "slicer", "itk", "sct"}
+    assert set(results.keys()) == {"freesurfer", "fsl", "ants", "slicer", "itk", "sct", "mricron"}
+
+
+def test_probe_mricron_via_env_path(tmp_path: Path) -> None:
+    binary = tmp_path / "dcm2niix"
+    binary.write_text("#!/bin/sh\n", encoding="utf-8")
+    binary.chmod(0o755)
+    settings = Settings(neuroflow_dcm2niix=str(binary))
+    with patch("neuroflow.tools.base.which", return_value=None):
+        result = probe_mricron(settings)
+    assert result.available is True
+    assert result.resolved_path == str(binary)
+
+
+def test_probe_mricron_on_path() -> None:
+    settings = Settings(neuroflow_dcm2niix=None)
+    with patch("neuroflow.tools.base.which", return_value="/usr/bin/dcm2niix"):
+        result = probe_mricron(settings)
+    assert result.available is True
+    assert result.resolved_path == "/usr/bin/dcm2niix"
+
+
+def test_probe_mricron_home_candidate(tmp_path: Path) -> None:
+    binary = tmp_path / "MRIcron" / "dcm2niix"
+    binary.parent.mkdir()
+    binary.write_text("#!/bin/sh\n", encoding="utf-8")
+    binary.chmod(0o755)
+    settings = Settings(neuroflow_dcm2niix=None)
+    with (
+        patch("neuroflow.tools.base.which", return_value=None),
+        patch("neuroflow.tools.base.Path.home", return_value=tmp_path),
+    ):
+        result = probe_mricron(settings)
+    assert result.available is True
+    assert result.resolved_path == str(binary)
+
+
+def test_probe_mricron_missing(tmp_path: Path) -> None:
+    settings = Settings(neuroflow_dcm2niix=None)
+    with (
+        patch("neuroflow.tools.base.which", return_value=None),
+        patch("neuroflow.tools.base.Path.home", return_value=tmp_path),
+    ):
+        result = probe_mricron(settings)
+    assert result.available is False
+    assert "NEUROFLOW_DCM2NIIX" in result.detail
+
+
+def test_probe_mricron_configured_but_not_executable(tmp_path: Path) -> None:
+    binary = tmp_path / "dcm2niix"
+    binary.write_text("not executable", encoding="utf-8")
+    settings = Settings(neuroflow_dcm2niix=str(binary))
+    with (
+        patch("neuroflow.tools.base.which", return_value=None),
+        patch("neuroflow.tools.base.Path.home", return_value=tmp_path / "empty"),
+    ):
+        result = probe_mricron(settings)
+    assert result.available is False
+    assert "NEUROFLOW_DCM2NIIX configured" in result.detail

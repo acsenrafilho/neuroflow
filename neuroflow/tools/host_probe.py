@@ -13,7 +13,7 @@ from neuroflow.tools.base import _sct_root_dir, resolve_executable
 from neuroflow.tools.itk_binaries import count_configured_native_binaries, resolve_itk_module_binary
 from neuroflow.tools.registry import ModuleDefinition
 
-PACKAGE_IDS: tuple[str, ...] = ("freesurfer", "fsl", "ants", "slicer", "itk", "sct")
+PACKAGE_IDS: tuple[str, ...] = ("freesurfer", "fsl", "ants", "slicer", "itk", "sct", "mricron")
 
 _PACKAGE_DISPLAY_NAMES = {
     "freesurfer": "FreeSurfer",
@@ -22,6 +22,7 @@ _PACKAGE_DISPLAY_NAMES = {
     "slicer": "3D Slicer",
     "itk": "ITK",
     "sct": "Spinal Cord Toolbox",
+    "mricron": "MRIcron",
 }
 
 logger = logging.getLogger(__name__)
@@ -274,6 +275,34 @@ def probe_sct(settings: Settings) -> ProbeResult:
     )
 
 
+def probe_mricron(settings: Settings) -> ProbeResult:
+    resolved = resolve_executable(settings, "dcm2niix")
+    if resolved is not None:
+        return ProbeResult(
+            package_id="mricron",
+            available=True,
+            resolved_path=str(resolved),
+            detail="dcm2niix found",
+        )
+
+    if settings.neuroflow_dcm2niix:
+        return ProbeResult(
+            package_id="mricron",
+            available=False,
+            resolved_path=None,
+            detail=(
+                f"NEUROFLOW_DCM2NIIX configured ({settings.neuroflow_dcm2niix}) "
+                "but dcm2niix not executable"
+            ),
+        )
+
+    return ProbeResult(
+        package_id="mricron",
+        available=False,
+        detail=("No dcm2niix on PATH or under ~/mricron or ~/MRIcron; set NEUROFLOW_DCM2NIIX"),
+    )
+
+
 _PROBE_FUNCTIONS = {
     "freesurfer": probe_freesurfer,
     "fsl": lambda settings: probe_fsl(),
@@ -281,6 +310,7 @@ _PROBE_FUNCTIONS = {
     "slicer": probe_slicer,
     "itk": probe_itk,
     "sct": probe_sct,
+    "mricron": probe_mricron,
 }
 
 

@@ -6,6 +6,7 @@
     freesurfer: { icon: "neurology", active: true },
     fsl: { icon: "science", active: true },
     sct: { icon: "accessibility_new", active: true },
+    mricron: { icon: "swap_horiz", active: true },
   };
 
   function statusLabel(module) {

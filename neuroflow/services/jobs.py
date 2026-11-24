@@ -89,7 +89,10 @@ class JobStore:
     def write_meta(self, tool_id: str, job_id: str, meta: dict[str, Any]) -> None:
         path = self.meta_path(tool_id, job_id)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+        # Replace in one step so a fast job cannot be read mid-truncate.
+        temporary = path.with_suffix(".json.tmp")
+        temporary.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+        temporary.replace(path)
 
     def update_meta(self, tool_id: str, job_id: str, **fields: Any) -> dict[str, Any]:
         meta = self.read_meta(tool_id, job_id)

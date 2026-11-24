@@ -388,7 +388,10 @@
           table.setModules(modules, false);
         } catch {
           const fallback = (NeuroflowApi.MODULES_FALLBACK || []).filter(
-            (m) => m.package_id === "freesurfer" || m.package_id === "fsl"
+            (m) =>
+              m.package_id === "freesurfer" ||
+              m.package_id === "fsl" ||
+              m.package_id === "mricron"
           );
           table.setModules(fallback, true);
         }

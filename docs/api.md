@@ -23,7 +23,7 @@ Local development: `http://127.0.0.1:8000`
 
 `GET /api/v1/tools`
 
-Lists **portal-visible** packages (FreeSurfer, FSL, and SCT) and whether each executable is available on `PATH`.
+Lists **portal-visible** packages (FreeSurfer, FSL, SCT, and MRIcron) and whether each executable is available on the host.
 
 ### Processing modules
 

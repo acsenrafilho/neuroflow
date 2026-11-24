@@ -1,6 +1,6 @@
 # Packages and modules
 
-The portal currently lists **FreeSurfer**, **FSL**, and **Spinal Cord Toolbox (SCT)**. For CLI flag reference, always open **Official documentation** on the module page. NeuroFlow is a facilitator, not a complete vendor manual.
+The portal currently lists **FreeSurfer**, **FSL**, **Spinal Cord Toolbox (SCT)**, and **MRIcron** (`dcm2niix`). For CLI flag reference, always open **Official documentation** on the module page. NeuroFlow is a facilitator, not a complete vendor manual.
 
 Run each stage as a **separate job**. The portal does not chain pipelines automatically.
 
@@ -75,6 +75,24 @@ Typical T1 cervical morphometry (CSA and shape at C1–C3): segment (`sct_deepse
 - Vendor: [Spinal Cord Toolbox](https://spinalcordtoolbox.com/stable/)
 
 Outputs land under `sub-<id>/derivatives/sct/<module>/`.
+
+## MRIcron (dcm2niix)
+
+Convert one DICOM series to compressed NIfTI. The portal runs a fixed command:
+
+```text
+dcm2niix -z y -b y -ba y -f %n_%p_%s -o <output> <dicom-directory>
+```
+
+`%n_%p_%s` is the DICOM patient name, protocol, and series. That name is written into the dataset path and into the job log. Upload the `.dcm` slices of one series, or one `.zip` that contains only those slices.
+
+NIfTI and the JSON sidecar land under `sub-<id>/derivatives/mricron/dcm2niix/`. When **Also copy NIfTI into anat/** is on (the default), each `.nii.gz` is also copied to `sub-<id>/anat/`. JSON sidecars stay in the derivatives folder. DICOM inputs stay in the job folder and are not copied into `anat/`.
+
+NeuroFlow does not install `dcm2niix`. It looks for `NEUROFLOW_DCM2NIIX`, then `dcm2niix` on `PATH`, then `~/mricron/dcm2niix` and `~/MRIcron/dcm2niix`. On Windows the binary must be the Linux `dcm2niix` inside WSL Ubuntu, not the MRIcron `.exe`.
+
+- Package: [http://127.0.0.1:8000/packages/mricron.html](http://127.0.0.1:8000/packages/mricron.html)
+- Module: [http://127.0.0.1:8000/tools/mricron.html](http://127.0.0.1:8000/tools/mricron.html)
+- Vendor: [MRIcron on NITRC](https://www.nitrc.org/projects/mricron) and [dcm2niix](https://github.com/rordenlab/dcm2niix)
 
 ## Coming later (not in the portal UI)
 

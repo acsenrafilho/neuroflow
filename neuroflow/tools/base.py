@@ -67,6 +67,7 @@ ALLOWLISTED_EXECUTABLES = frozenset(
         "sct_apply_transfo",
         "sct_process_segmentation",
         "sct_qc",
+        "dcm2niix",
     }
 )
 
@@ -135,9 +136,36 @@ def _sct_root_dir(settings: Settings) -> Path | None:
     return None
 
 
+def _dcm2niix_home_candidates() -> list[Path]:
+    """Conventional MRIcron folders that may contain dcm2niix (not a disk walk)."""
+    home = Path.home()
+    return [home / "mricron" / "dcm2niix", home / "MRIcron" / "dcm2niix"]
+
+
+def _resolve_dcm2niix(settings: Settings) -> Path | None:
+    """NEUROFLOW_DCM2NIIX, then PATH, then ~/mricron and ~/MRIcron."""
+    configured = settings.neuroflow_dcm2niix
+    if configured:
+        candidate = Path(configured)
+        if candidate.is_absolute() and candidate.is_file() and os.access(candidate, os.X_OK):
+            return candidate
+
+    found = which("dcm2niix")
+    if found:
+        return Path(found)
+
+    for candidate in _dcm2niix_home_candidates():
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return candidate
+    return None
+
+
 def resolve_executable(settings: Settings, name: str) -> Path | None:
     if name not in ALLOWLISTED_EXECUTABLES:
         return None
+
+    if name == "dcm2niix":
+        return _resolve_dcm2niix(settings)
 
     if name == "recon-all" and settings.neuroflow_recon_all_bin:
         candidate = settings.neuroflow_recon_all_bin
