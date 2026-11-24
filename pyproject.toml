@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "neuroflow"
-version = "0.0.1"
+version = "0.0.2"
 description = "Web forms that wrap neuroimaging CLI tools (one tool per page)"
 authors = ["Antonio Carlos Senra Filho"]
 readme = "README.md"
