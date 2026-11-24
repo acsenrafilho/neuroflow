@@ -76,6 +76,15 @@
                     </td>
                   </tr>
                   <tr>
+                    <td class="px-4 py-3 font-medium">MRIcron (dcm2niix)</td>
+                    <td class="px-4 py-3 text-on-surface-variant">
+                      <code class="rounded bg-surface-container px-1">NEUROFLOW_DCM2NIIX</code>,
+                      <code class="rounded bg-surface-container px-1">dcm2niix</code> on PATH, or
+                      <code class="rounded bg-surface-container px-1">~/mricron/dcm2niix</code> and
+                      <code class="rounded bg-surface-container px-1">~/MRIcron/dcm2niix</code>
+                    </td>
+                  </tr>
+                  <tr>
                     <td class="px-4 py-3 font-medium">ANTs</td>
                     <td class="px-4 py-3 text-on-surface-variant">
                       <code class="rounded bg-surface-container px-1">ANTSPATH</code> /
@@ -112,8 +121,10 @@
             </p>
             <ol class="list-decimal space-y-2 pl-5 text-on-surface-variant">
               <li>
-                Install FreeSurfer, FSL, and SCT with each vendor’s official procedure
-                <strong class="text-on-surface">inside Ubuntu</strong>.
+                Install FreeSurfer, FSL, SCT, and dcm2niix with each vendor’s official procedure
+                <strong class="text-on-surface">inside Ubuntu</strong>. For MRIcron, use the Linux
+                <code class="rounded bg-surface-container px-1">dcm2niix</code> binary, not the
+                Windows <code class="rounded bg-surface-container px-1">.exe</code>.
               </li>
               <li>
                 Ensure binaries are on the Ubuntu

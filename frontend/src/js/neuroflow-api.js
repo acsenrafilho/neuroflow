@@ -342,6 +342,19 @@
       coming_soon: false,
       available: false,
     },
+    {
+      id: "mricron-dcm2niix",
+      package_id: "mricron",
+      package_name: "MRIcron",
+      module_name: "DICOM to NIfTI",
+      description:
+        "Convert one DICOM series to compressed NIfTI with dcm2niix. Output names use the DICOM patient name, protocol, and series.",
+      page_path: "/tools/mricron.html",
+      recon_options: null,
+      estimated_hours_per_scan: 0.05,
+      coming_soon: false,
+      available: false,
+    },
   ];
 
   function candidateBases() {

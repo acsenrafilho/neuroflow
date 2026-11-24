@@ -124,6 +124,14 @@ TOOLS: dict[str, ToolDefinition] = {
             "sct_qc",
         ),
     ),
+    "mricron": ToolDefinition(
+        id="mricron",
+        name="MRIcron",
+        description="DICOM to NIfTI conversion with dcm2niix (one series per job).",
+        page_path="/tools/mricron.html",
+        executable="dcm2niix",
+        probe_binaries=("dcm2niix",),
+    ),
 }
 
 MODULES: tuple[ModuleDefinition, ...] = (
@@ -702,6 +710,19 @@ MODULES: tuple[ModuleDefinition, ...] = (
         availability_mode="worker_package",
         worker_package_id="slicer",
         estimated_hours_per_scan=0.1,
+    ),
+    ModuleDefinition(
+        id="mricron-dcm2niix",
+        package_id="mricron",
+        package_name="MRIcron",
+        module_name="DICOM to NIfTI",
+        description=(
+            "Convert one DICOM series to compressed NIfTI with dcm2niix. "
+            "Output names use the DICOM patient name, protocol, and series."
+        ),
+        page_path="/tools/mricron.html",
+        required_executable="dcm2niix",
+        estimated_hours_per_scan=0.05,
     ),
 )
 

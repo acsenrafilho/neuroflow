@@ -157,6 +157,45 @@
             </ul>
           </section>
 
+          <section id="mricron" class="scroll-mt-28 space-y-3">
+            <h3 class="font-headline-md text-on-surface">MRIcron (dcm2niix)</h3>
+            <p class="text-on-surface-variant">
+              Convert one DICOM series to compressed NIfTI. The module runs a fixed
+              <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">dcm2niix</code>
+              command (<code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">-z y -b y -ba y -f %n_%p_%s</code>).
+              Output filenames include the DICOM patient name, protocol, and series, and that name
+              is written into the dataset path and the job log.
+            </p>
+            <div
+              class="rounded-xl border border-outline-variant bg-surface-container-low px-5 py-4 text-sm text-on-surface-variant"
+            >
+              NeuroFlow does not install dcm2niix. It checks
+              <code class="rounded bg-surface-container px-1">NEUROFLOW_DCM2NIIX</code>, then
+              <code class="rounded bg-surface-container px-1">dcm2niix</code> on
+              <code class="rounded bg-surface-container px-1">PATH</code>, then
+              <code class="rounded bg-surface-container px-1">~/mricron/dcm2niix</code> and
+              <code class="rounded bg-surface-container px-1">~/MRIcron/dcm2niix</code>.
+              On Windows, install the Linux binary inside WSL Ubuntu — not the MRIcron
+              <code class="rounded bg-surface-container px-1">.exe</code>.
+            </div>
+            <ul class="list-disc space-y-2 pl-5 text-on-surface-variant">
+              <li>
+                Package overview:
+                <a href="/packages/mricron.html" class="text-primary underline-offset-2 hover:underline">/packages/mricron.html</a>
+              </li>
+              <li>
+                Module page:
+                <a href="/tools/mricron.html" class="text-primary underline-offset-2 hover:underline">/tools/mricron.html</a>
+              </li>
+              <li>
+                Outputs:
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">sub-&lt;id&gt;/derivatives/mricron/dcm2niix/</code>.
+                NIfTI can also be copied into
+                <code class="rounded bg-surface-container px-1.5 py-0.5 text-sm">anat/</code>.
+              </li>
+            </ul>
+          </section>
+
           <section class="space-y-3">
             <h3 class="font-headline-md text-on-surface">Other packages</h3>
             <p class="text-on-surface-variant">

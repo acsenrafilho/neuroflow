@@ -1,6 +1,6 @@
 # Host tools
 
-NeuroFlow **detects** neuroimaging packages on the machine; it does **not** install them. Install FreeSurfer, FSL, and SCT with their official procedures, then ensure binaries are on `PATH` or set overrides in `.env`.
+NeuroFlow **detects** neuroimaging packages on the machine; it does **not** install them. Install FreeSurfer, FSL, SCT, and dcm2niix (MRIcron) with their official procedures, then ensure binaries are on `PATH` or set overrides in `.env`.
 
 ## Probes and overrides (portal packages)
 
@@ -9,6 +9,7 @@ NeuroFlow **detects** neuroimaging packages on the machine; it does **not** inst
 | FreeSurfer | `recon-all` on `PATH`, or `NEUROFLOW_RECON_ALL_BIN` / `NEUROFLOW_FREESURFER_HOME` |
 | FSL | `FSLDIR` / `NEUROFLOW_FSLDIR` |
 | Spinal Cord Toolbox (SCT) | `sct_version` on `PATH`, `$HOME/sct_*` (official installer), or `SCT_DIR` / `NEUROFLOW_SCT_DIR` |
+| MRIcron (`dcm2niix`) | `NEUROFLOW_DCM2NIIX`, `dcm2niix` on `PATH`, or `~/mricron/dcm2niix` and `~/MRIcron/dcm2niix` |
 
 ANTs, 3D Slicer, and ITK have similar environment overrides in `.env.example` but are **not** shown in the portal UI yet.
 
@@ -36,7 +37,7 @@ poetry run neuroflow scan
 
 On Windows, the portal runs **inside WSL2 Ubuntu**. Host probes inspect the **Ubuntu** `PATH` and environment — not the native Windows PATH. If Home shows **Install on host**, that is not a Windows-PATH bug.
 
-1. Install FreeSurfer, FSL, SCT, and other packages **inside Ubuntu** with each vendor's official procedure.
+1. Install FreeSurfer, FSL, SCT, dcm2niix, and other packages **inside Ubuntu** with each vendor's official procedure. The MRIcron converter must be the Linux `dcm2niix` binary, not the Windows `.exe`.
 2. Ensure binaries are on the Ubuntu `PATH` (or set `NEUROFLOW_*` overrides).
 3. Open **Host tools** in the app and click **Rescan host tools** (or use the curl command above).
 4. Return to Home and reload the page so module badges refresh.

@@ -2,7 +2,7 @@
  * Host tools help page: POST /api/v1/host/rescan and show package readiness.
  */
 (function (global) {
-  const PORTAL_PACKAGE_IDS = ["freesurfer", "fsl", "sct"];
+  const PORTAL_PACKAGE_IDS = ["freesurfer", "fsl", "sct", "mricron"];
 
   function escapeHtml(value) {
     return String(value)
@@ -17,6 +17,7 @@
       freesurfer: "FreeSurfer",
       fsl: "FSL",
       sct: "Spinal Cord Toolbox (SCT)",
+      mricron: "MRIcron (dcm2niix)",
       ants: "ANTs",
       slicer: "3D Slicer",
       itk: "ITK (CSIM)",

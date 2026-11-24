@@ -206,6 +206,7 @@ class TestHostScan:
             {"id": "freesurfer", "available": False},
             {"id": "fsl", "available": False},
             {"id": "sct", "available": False},
+            {"id": "mricron", "available": False},
         ]
         assert portal_tools_missing(packages) is True
 
@@ -214,6 +215,7 @@ class TestHostScan:
             {"id": "freesurfer", "available": False},
             {"id": "fsl", "available": True},
             {"id": "sct", "available": False},
+            {"id": "mricron", "available": False},
         ]
         assert portal_tools_missing(packages) is False
 
@@ -228,6 +230,7 @@ class TestHostScan:
             {"id": "freesurfer", "name": "FreeSurfer", "available": False},
             {"id": "fsl", "name": "FSL", "available": False},
             {"id": "sct", "name": "SCT", "available": False},
+            {"id": "mricron", "name": "MRIcron", "available": False},
         ]
         with patch(
             "neuroflow.windows_launcher.host_scan.fetch_tools",
@@ -242,6 +245,7 @@ class TestHostScan:
             {"id": "freesurfer", "available": True},
             {"id": "fsl", "available": False},
             {"id": "sct", "available": False},
+            {"id": "mricron", "available": False},
         ]
         with patch(
             "neuroflow.windows_launcher.host_scan.fetch_tools",
