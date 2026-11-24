@@ -299,9 +299,7 @@ def probe_mricron(settings: Settings) -> ProbeResult:
     return ProbeResult(
         package_id="mricron",
         available=False,
-        detail=(
-            "No dcm2niix on PATH or under ~/mricron or ~/MRIcron; set NEUROFLOW_DCM2NIIX"
-        ),
+        detail=("No dcm2niix on PATH or under ~/mricron or ~/MRIcron; set NEUROFLOW_DCM2NIIX"),
     )
 
 
